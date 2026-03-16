@@ -1,6 +1,7 @@
 extends Node2D
 
 ## 暴露 move_to API，供玩家脚本在子线程中同步调用
+## 初始不运行，点 Play 后由 Game 统一启动
 
 const MOVE_SPEED := 200.0
 const ARRIVAL_THRESHOLD := 5.0
@@ -9,6 +10,10 @@ var _move_queue: Array[Dictionary] = []
 var _move_mutex := Mutex.new()
 var _current_target: Vector2
 var _current_semaphore: Semaphore  # null 表示无当前移动任务
+
+
+func _ready() -> void:
+	set_process(false)
 
 
 func _process(delta: float) -> void:

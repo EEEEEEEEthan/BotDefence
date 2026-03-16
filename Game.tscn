@@ -3,8 +3,19 @@
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Script" uid="uid://yhpyx1haq1bj" path="res://Game.gd" id="2_game"]
 
-[node name="Game" type="Node2D" unique_id=107133646]
+[node name="Game" type="Node" unique_id=684061255]
 script = ExtResource("2_game")
 
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
 position = Vector2(472, 271)
+
+[node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
+position = Vector2(781, 373)
+
+[node name="Play" type="Button" parent="." unique_id=1393282050]
+unique_name_in_owner = true
+offset_left = 315.0
+offset_top = 101.0
+offset_right = 356.0
+offset_bottom = 132.0
+text = "Play"
