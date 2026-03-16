@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://k4afs5cov1dn"]
+
+[ext_resource type="Script" path="res://Bot.gd" id="1_bot"]
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xqtm5"]
+
+[node name="Bot" type="Node2D" unique_id=11366525]
+script = ExtResource("1_bot")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
+position = Vector2(0, 1.9073486e-06)
+scale = Vector2(40, 39.999996)
+texture = SubResource("PlaceholderTexture2D_xqtm5")
