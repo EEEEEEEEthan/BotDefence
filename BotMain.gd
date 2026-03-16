@@ -29,3 +29,16 @@ func move(target: Vector2, callback: Callable) -> void:
 func cancel() -> void:
 	if _current_task:
 		_current_task.abort()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var sprite: Sprite2D = $Sprite2D
+	var rect: Rect2 = sprite.get_rect()
+	var global_rect := Rect2(
+		sprite.global_position + rect.position * sprite.global_scale,
+		rect.size * sprite.global_scale
+	)
+	if global_rect.has_point(get_global_mouse_position()):
+		print("Bot 被点击")
