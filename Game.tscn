@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Script" uid="uid://yhpyx1haq1bj" path="res://Game.gd" id="2_game"]
+
 [node name="Game" type="Node" unique_id=684061255]
 script = ExtResource("2_game")
 
