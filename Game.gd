@@ -3,8 +3,6 @@ extends Node
 ## 玩家脚本在子线程运行，传入 bot 供其调用 move_to
 ## 点 Play 后统一启动所有脚本
 
-const BotScript := preload("res://Bot.gd")
-
 @onready var bot: Node2D = $Bot
 @onready var play_button: Button = $Play
 
@@ -30,7 +28,7 @@ func _on_play_pressed() -> void:
 func _run_player_script() -> void:
 	var player_script: GDScript = load("res://player_code.gd") as GDScript
 	var player_instance: Object = player_script.new()
-	var bot_api: RefCounted = BotScript.new(bot.get_threaded_interface())
+	var bot_api: RefCounted = bot.get_bot_api()
 	player_instance.run(bot_api)
 
 

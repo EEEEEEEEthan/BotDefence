@@ -36,7 +36,6 @@ func run(bot) -> void:
 
 ## 架构要点
 
-- **Bot**：玩家可见封装，仅暴露 `move_to`
+- **Bot**：玩家可见封装，仅暴露 `move_to`；子线程调用时 call_deferred 交给 BotMain，抵达后 semaphore 解除阻塞
 - **BotMain**：主线程移动逻辑，无 Mutex，通过 call_deferred 接收请求
-- **BotThreaded**：线程桥接，子线程调用 move_to 时 call_deferred 交给 BotMain，抵达后 semaphore 回调
-- 玩家脚本无法访问 BotInternal，避免窥探内部实现
+- 玩家脚本无法访问 BotMain，避免窥探内部实现

@@ -1,9 +1,9 @@
 extends Node2D
 
 ## 主线程移动逻辑，无 Mutex
-## 通过 call_deferred 接收 BotThreaded 的 add_move 请求，抵达后 post semaphore 回调
+## 通过 call_deferred 接收 Bot 的 add_move 请求，抵达后 post semaphore 回调
 
-const BotThreaded := preload("res://BotThreaded.gd")
+const BotScript := preload("res://Bot.gd")
 
 const MOVE_SPEED := 200.0
 const ARRIVAL_THRESHOLD := 5.0
@@ -12,11 +12,9 @@ var _move_queue: Array[Dictionary] = []
 var _current_target: Vector2
 var _current_semaphore: Semaphore  # null 表示无当前移动任务
 var _cancelled := false
-var _threaded_interface: RefCounted
 
 
 func _ready() -> void:
-	_threaded_interface = BotThreaded.new(self)
 	set_process(false)
 
 
@@ -24,15 +22,15 @@ func _process(delta: float) -> void:
 	_process_movement(delta)
 
 
-func get_threaded_interface() -> RefCounted:
-	return _threaded_interface
+func get_bot_api() -> RefCounted:
+	return BotScript.new(self)
 
 
 func is_cancelled() -> bool:
 	return _cancelled
 
 
-## 由 BotThreaded 通过 call_deferred 调用
+## 由 Bot 通过 call_deferred 调用
 func add_move(target: Vector2, semaphore: Semaphore) -> void:
 	_move_queue.append({"target": target, "semaphore": semaphore})
 
