@@ -2,7 +2,7 @@ extends BotTask
 class_name BotTaskMove
 
 ## 移动任务组件，封装主线程移动逻辑
-## 由 BotMain 持有并每帧 process，抵达或 abort 时调用 callback
+## 由 BotMain 持有并每帧 process，抵达或 abort 时调用 callback(success: bool)，success=true 表示抵达，false 表示 abort
 
 const MOVE_SPEED := 200.0
 const ARRIVAL_THRESHOLD := 5.0
@@ -43,5 +43,5 @@ func process(delta: float) -> bool:
 
 func _finish() -> void:
 	if _callback.is_valid():
-		_callback.call()
+		_callback.call(not _aborted)  # true=抵达, false=abort
 		_callback = Callable()
