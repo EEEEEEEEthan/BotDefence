@@ -7,17 +7,22 @@ extends Node2D
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 var _move_task: BotTaskMove
-var _code: String = ""
 
 var code: String:
 	get:
-		if _code.is_empty():
+		if code.is_empty():
 			var default_file := FileAccess.open(DEFAULT_CODE_PATH, FileAccess.READ)
-			_code = default_file.get_as_text()
-		return _code
+			code = default_file.get_as_text()
+		return code
 	set(value):
-		_code = value
+		code = value
 var _current_task: BotTask
+
+var game: Game:
+	get:
+		if not game:
+			game = get_parent()
+		return game
 
 func _ready() -> void:
 	_move_task = BotTaskMove.new(self)
@@ -43,7 +48,6 @@ func cancel() -> void:
 	if _current_task:
 		_current_task.abort()
 
-
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
@@ -55,7 +59,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	)
 	if global_rect.has_point(get_global_mouse_position()):
 		_open_inspector()
-
 
 func _open_inspector() -> void:
 	var inspector: Window = preload("res://BotInspector.tscn").instantiate()

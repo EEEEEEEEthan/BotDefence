@@ -1,4 +1,5 @@
 extends Node
+class_name Game
 
 ## 每个 Bot 用各自保存的代码在子线程运行
 ## 点 Play 后统一启动所有 Bot 的脚本
