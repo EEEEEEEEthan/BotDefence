@@ -12,21 +12,21 @@ var _target: Vector2
 var _callback: Callable
 var _aborted := false
 
+var aborted: bool:
+	get:
+		return _aborted
 
 func _init(host: Node2D) -> void:
 	_host = host
-
 
 func start(target: Vector2, callback: Callable) -> void:
 	_target = target
 	_callback = callback
 	_aborted = false
 
-
 func abort() -> void:
 	_aborted = true
 	_finish()
-
 
 ## 每帧调用，返回 true 表示任务已结束（抵达或取消）
 func process(delta: float) -> bool:
@@ -41,12 +41,7 @@ func process(delta: float) -> bool:
 		return true
 	return false
 
-
 func _finish() -> void:
 	if _callback.is_valid():
 		_callback.call()
 		_callback = Callable()
-
-
-func is_aborted() -> bool:
-	return _aborted
