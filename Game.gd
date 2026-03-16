@@ -32,5 +32,8 @@ func _run_player_script() -> void:
 
 
 func _exit_tree() -> void:
+	for child in get_children():
+		if child.get_script() == preload("res://Bot.gd"):
+			child.cancel()
 	if _player_thread != null and _player_thread.is_started():
 		_player_thread.wait_to_finish()

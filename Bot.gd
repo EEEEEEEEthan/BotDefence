@@ -10,6 +10,7 @@ var _move_queue: Array[Dictionary] = []
 var _move_mutex := Mutex.new()
 var _current_target: Vector2
 var _current_semaphore: Semaphore  # null 表示无当前移动任务
+var _cancelled := false
 
 
 func _ready() -> void:
@@ -22,11 +23,31 @@ func _process(delta: float) -> void:
 
 ## 供玩家脚本调用，子线程中阻塞直到抵达
 func move_to(target_x: float, target_y: float) -> void:
+	if _cancelled:
+		return
 	var semaphore := Semaphore.new()
 	_move_mutex.lock()
 	_move_queue.append({"target": Vector2(target_x, target_y), "semaphore": semaphore})
 	_move_mutex.unlock()
+	if _cancelled:
+		return
 	semaphore.wait()
+
+
+## 退出时调用，解除玩家线程的 semaphore 等待，避免关游戏死锁
+func cancel() -> void:
+	_move_mutex.lock()
+	_cancelled = true
+	var sem := _current_semaphore
+	_current_semaphore = null
+	var queue_copy: Array[Dictionary] = []
+	queue_copy.assign(_move_queue)
+	_move_queue.clear()
+	_move_mutex.unlock()
+	if sem != null:
+		sem.post()
+	for move_data in queue_copy:
+		move_data.semaphore.post()
 
 
 func _process_movement(delta: float) -> void:
