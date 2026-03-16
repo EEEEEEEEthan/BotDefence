@@ -13,14 +13,14 @@ var _bot_main: Node2D
 
 func _ready() -> void:
 	_bot_main = get_meta("bot_main")
-	code_edit.text = _bot_main.get_code()
+	code_edit.text = _bot_main.code
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
 	save_button.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
 
 
 func _on_save_pressed() -> void:
-	_bot_main.set_code(code_edit.text)
+	_bot_main.code = code_edit.text
 
 
 func _on_close_requested() -> void:
@@ -28,5 +28,5 @@ func _on_close_requested() -> void:
 
 
 func _save_and_close() -> void:
-	_bot_main.set_code(code_edit.text)
+	_bot_main.code = code_edit.text
 	queue_free()

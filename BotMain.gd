@@ -2,11 +2,21 @@ extends Node2D
 
 ## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move 请求
 ## 移动功能由 BotTaskMove 组件封装
-## 每个 Bot 保存自己的代码，默认与 player_code 相同
+## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 var _move_task: BotTaskMove
+var _code: String = ""
+
+var code: String:
+	get:
+		if _code.is_empty():
+			var default_file := FileAccess.open(DEFAULT_CODE_PATH, FileAccess.READ)
+			_code = default_file.get_as_text()
+		return _code
+	set(value):
+		_code = value
 var _current_task: BotTask
 
 func _ready() -> void:
@@ -32,27 +42,6 @@ func move(target: Vector2, callback: Callable) -> void:
 func cancel() -> void:
 	if _current_task:
 		_current_task.abort()
-
-
-func _get_code_path() -> String:
-	return "user://bot_code/%s.gd" % name
-
-
-func get_code() -> String:
-	var path := _get_code_path()
-	if FileAccess.file_exists(path):
-		var file := FileAccess.open(path, FileAccess.READ)
-		return file.get_as_text()
-	var default_file := FileAccess.open(DEFAULT_CODE_PATH, FileAccess.READ)
-	return default_file.get_as_text()
-
-
-func set_code(code: String) -> void:
-	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("bot_code"):
-		dir.make_dir("bot_code")
-	var file := FileAccess.open(_get_code_path(), FileAccess.WRITE)
-	file.store_string(code)
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -27,7 +27,7 @@ func _on_play_pressed() -> void:
 
 func _run_bot_script(bot_main: Node2D) -> void:
 	var gdscript := GDScript.new()
-	gdscript.source_code = bot_main.get_code()
+	gdscript.source_code = bot_main.code
 	gdscript.reload()
 	var instance: Object = gdscript.new()
 	instance.run(bot_main.get_bot_api())
