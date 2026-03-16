@@ -9,5 +9,5 @@ script = ExtResource("1_bot")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
 position = Vector2(0, 1.9073486e-06)
-scale = Vector2(40, 39.999996)
+scale = Vector2(32, 32)
 texture = SubResource("PlaceholderTexture2D_xqtm5")
