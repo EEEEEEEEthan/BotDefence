@@ -15,7 +15,7 @@ func move_to(target_x: float, target_y: float) -> void:
 	if _bot_main.is_cancelled():
 		return
 	var semaphore := Semaphore.new()
-	_bot_main.call_deferred("add_move", Vector2(target_x, target_y), semaphore)
+	_bot_main.call_deferred("move", Vector2(target_x, target_y), semaphore)
 	if _bot_main.is_cancelled():
 		return
 	semaphore.wait()
