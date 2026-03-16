@@ -19,3 +19,6 @@ offset_top = 101.0
 offset_right = 356.0
 offset_bottom = 132.0
 text = "Play"
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2118065095]
+unique_name_in_owner = true
