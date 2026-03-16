@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://bqx3dnnoqbjo5"]
+
+[ext_resource type="Script" uid="uid://0ju2aw02ursj" path="res://BotInspector.gd" id="1_inspector"]
+
+[node name="BotInspector" type="Window" unique_id=358476760]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(607, 477)
+script = ExtResource("1_inspector")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=372296523]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CodeEdit" type="CodeEdit" parent="VBoxContainer" unique_id=78532646]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+symbol_lookup_on_click = true
+symbol_tooltip_on_hover = true
+line_folding = true
+gutters_draw_breakpoints_gutter = true
+gutters_draw_bookmarks = true
+gutters_draw_executing_lines = true
+gutters_draw_line_numbers = true
+gutters_zero_pad_line_numbers = true
+gutters_draw_fold_gutter = true
+code_completion_enabled = true
+indent_automatic = true
+auto_brace_completion_enabled = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=351019982]
+layout_mode = 2
+text = "保存"

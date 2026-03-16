@@ -1,12 +1,11 @@
 extends Node
 
-## 玩家脚本在子线程运行，传入 bot 供其调用 move_to
-## 点 Play 后统一启动所有脚本
+## 每个 Bot 用各自保存的代码在子线程运行
+## 点 Play 后统一启动所有 Bot 的脚本
 
-@onready var bot: Node2D = $Bot
 @onready var play_button: Button = $Play
 
-var _player_thread: Thread
+var _player_threads: Array[Thread] = []
 var _game_started := false
 
 
@@ -21,20 +20,23 @@ func _on_play_pressed() -> void:
 	for child in get_children():
 		if child.get_script() == preload("res://BotMain.gd"):
 			child.set_process(true)
-	_player_thread = Thread.new()
-	_player_thread.start(_run_player_script)
+			var thread := Thread.new()
+			thread.start(_run_bot_script.bind(child))
+			_player_threads.append(thread)
 
 
-func _run_player_script() -> void:
-	var player_script: GDScript = load("res://player_code.gd") as GDScript
-	var player_instance: Object = player_script.new()
-	var bot_api: RefCounted = bot.get_bot_api()
-	player_instance.run(bot_api)
+func _run_bot_script(bot_main: Node2D) -> void:
+	var gdscript := GDScript.new()
+	gdscript.source_code = bot_main.get_code()
+	gdscript.reload()
+	var instance: Object = gdscript.new()
+	instance.run(bot_main.get_bot_api())
 
 
 func _exit_tree() -> void:
 	for child in get_children():
 		if child.get_script() == preload("res://BotMain.gd"):
 			child.cancel()
-	if _player_thread != null and _player_thread.is_started():
-		_player_thread.wait_to_finish()
+	for thread in _player_threads:
+		if thread.is_started():
+			thread.wait_to_finish()
