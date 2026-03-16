@@ -31,6 +31,7 @@ gutters_draw_fold_gutter = true
 code_completion_enabled = true
 indent_automatic = true
 auto_brace_completion_enabled = true
+auto_brace_completion_highlight_matching = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
 layout_mode = 2

@@ -1,6 +1,9 @@
 extends Window
 
 ## 点击 Bot 时弹出，用于编辑该 Bot 的代码
+## CodeEdit 启用 GDScript 语法高亮和断点槽
+
+const HIGHLIGHTER := preload("res://GDScriptHighlighter.tres")
 
 @onready var code_edit: CodeEdit = $VBoxContainer/CodeEdit
 @onready var save_button: Button = $VBoxContainer/HBoxContainer/SaveButton
@@ -11,6 +14,7 @@ var _bot_main: Node2D
 func _ready() -> void:
 	_bot_main = get_meta("bot_main")
 	code_edit.text = _bot_main.get_code()
+	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
 	save_button.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
 
