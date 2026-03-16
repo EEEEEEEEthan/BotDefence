@@ -4,6 +4,7 @@ extends Node2D
 ## 移动功能由 BotTaskMove 组件封装
 
 var _move_task: BotTaskMove
+var _current_task: BotTask
 
 
 func _ready() -> void:
@@ -12,7 +13,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_move_task.process(delta)
+	if _move_task.process(delta):
+		_current_task = null
 
 
 func get_bot_api() -> RefCounted:
@@ -25,9 +27,11 @@ func is_cancelled() -> bool:
 
 ## 由 Bot 通过 call_deferred 调用，抵达或取消时调用 callback
 func move(target: Vector2, callback: Callable) -> void:
+	_current_task = _move_task
 	_move_task.start(target, callback)
 
 
-## 退出时调用，通知当前移动任务结束
+## 退出时调用，中止当前任务
 func cancel() -> void:
-	_move_task.abort()
+	if _current_task:
+		_current_task.abort()
