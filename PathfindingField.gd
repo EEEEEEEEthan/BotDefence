@@ -1,3 +1,4 @@
+# todo: 改成 C# 版本（Queue/HashSet 性能更好）
 extends RefCounted
 class_name PathfindingField
 
