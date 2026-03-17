@@ -25,8 +25,7 @@ func start(target: Vector2, callback: Callable) -> void:
 	set_process(true)
 
 func abort() -> void:
-	_running = false
-	_finish()
+	_finish(false)
 
 func _process(delta: float) -> void:
 	if not _running:
@@ -36,10 +35,10 @@ func _process(delta: float) -> void:
 	host.position += direction * MOVE_SPEED * delta
 	if host.position.distance_to(_target) < ARRIVAL_THRESHOLD:
 		host.position = _target
-		_finish()
+		_finish(true)
 
-func _finish() -> void:
-	set_process(false)
+func _finish(result: bool) -> void:
+	_running = false
 	if _callback.is_valid():
-		_callback.call(not _aborted)
+		_callback.call(result)
 		_callback = Callable()

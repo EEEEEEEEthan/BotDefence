@@ -36,6 +36,7 @@ var game: Game:
 func start_bot() -> void:
 	# 先停止已有运行
 	if _running:
+		_running = false
 		if _current_state:
 			_current_state.abort()
 		if _player_thread and _player_thread.is_running():
@@ -49,11 +50,12 @@ func start_bot() -> void:
 	var instance: Object = gdscript.new()
 	var bot_api: Node = _bot_api
 	var report_line := func(line: int): self.call_deferred(&"_set_current_line", line)
+	var abort_check := func() -> bool: return not _running
 	_player_thread = Thread.new()
-	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line))
+	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line, abort_check))
 
-func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable) -> void:
-	instance.run(bot_api, report_line)
+func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable, abort_check: Callable) -> void:
+	instance.run(bot_api, report_line, abort_check)
 	call_deferred(&"_clear_execution_line")
 
 func _set_current_line(line: int) -> void:
@@ -63,10 +65,11 @@ func _set_current_line(line: int) -> void:
 	current_line_changed.emit(line)
 
 func _clear_execution_line() -> void:
+	_running = false
 	_set_current_line(-1)
 
-## 在所有顶层函数体内每行前注入 __report_line_internal.call(N)，用于执行行高亮
-## run() 接收 __report_line 参数并赋给 __report_line_internal，供全脚本使用
+## 在所有顶层函数体内每行前注入行号报告与 abort 检查
+## run() 接收 __report_line、__abort_check，每行执行前检查 abort 以支持协作式退出（含死循环）
 func _inject_line_tracking(source: String) -> String:
 	var lines := source.split("\n")
 	var result: Array[String] = []
@@ -93,7 +96,9 @@ func _inject_line_tracking(source: String) -> String:
 				var indent_str := line.substr(0, indent_len)
 				if in_run_func:
 					result.append(indent_str + "__report_line_internal = __report_line")
+					result.append(indent_str + "__abort_check_internal = __abort_check")
 					in_run_func = false
+				result.append(indent_str + "if __abort_check_internal.call(): return")
 				result.append(indent_str + "__report_line_internal.call(" + str(line_index) + ")")
 			result.append(line)
 			continue
@@ -101,6 +106,7 @@ func _inject_line_tracking(source: String) -> String:
 		if stripped.begins_with("func "):
 			if first_line_after_extends:
 				result.append("var __report_line_internal: Callable")
+				result.append("var __abort_check_internal: Callable")
 				first_line_after_extends = false
 			in_func_body = true
 			in_run_func = stripped.begins_with("func run")
@@ -108,11 +114,12 @@ func _inject_line_tracking(source: String) -> String:
 			if in_run_func:
 				var paren_idx := line.find(")")
 				if paren_idx >= 0:
-					line = line.substr(0, paren_idx) + ", __report_line" + line.substr(paren_idx)
+					line = line.substr(0, paren_idx) + ", __report_line, __abort_check" + line.substr(paren_idx)
 		elif first_line_after_extends and (stripped.begins_with("extends ") or stripped.begins_with("class_name ")):
 			result.append(line)
 			first_line_after_extends = false
 			result.append("var __report_line_internal: Callable")
+			result.append("var __abort_check_internal: Callable")
 			continue
 		result.append(line)
 	return "\n".join(result)
@@ -144,6 +151,7 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
+	_running = false
 	if _current_state:
 		_current_state.abort()
 	if _player_thread and _player_thread.is_running():
