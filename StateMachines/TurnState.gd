@@ -1,24 +1,46 @@
 extends Node
 class_name TurnState
 
-## 转向状态，立即更新 cardinal，无动画
-## 完成时调用 callback(success: bool)，success 恒为 true
+## 瞬时设置 cardinal 与 preferred_rotation，等待 TURN_DURATION 后 callback
+## 实际旋转由 BotMain 每帧插值
+
+const TURN_DURATION := 0.2
+const _CARDINAL_ANGLE := {
+	Consts.Cardinal.NORTH: -TAU / 4,
+	Consts.Cardinal.EAST: 0.0,
+	Consts.Cardinal.SOUTH: TAU / 4,
+	Consts.Cardinal.WEST: TAU / 2
+}
 
 var _callback: Callable
 var _running := false
+var _timer: Timer
+var _previous_cardinal: Consts.Cardinal
 
 func _ready() -> void:
-	pass
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
 
 func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
 	_running = true
 	var bot_main: Node = get_parent()
+	_previous_cardinal = bot_main.cardinal
 	bot_main.cardinal = new_cardinal
-	_finish(true)
+	bot_main.preferred_rotation = _CARDINAL_ANGLE[new_cardinal]
+	_timer.start(TURN_DURATION)
 
 func abort() -> void:
+	_timer.stop()
+	var bot_main: Node = get_parent()
+	bot_main.cardinal = _previous_cardinal
+	bot_main.preferred_rotation = _CARDINAL_ANGLE[_previous_cardinal]
 	_finish(false)
+
+func _on_timeout() -> void:
+	_finish(true)
 
 func _finish(result: bool) -> void:
 	_running = false

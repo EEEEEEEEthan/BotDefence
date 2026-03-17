@@ -1,37 +1,38 @@
 extends Node
 class_name MoveForwardState
 
-## 向前移动状态，沿当前 cardinal 方向移动一格
-## 抵达或 abort 时调用 callback(success: bool)
+## 瞬时设置 preferred_position，等待 MOVE_DURATION 后 callback
+## 实际位置由 BotMain 每帧插值
 
-const MOVE_SPEED := 200.0
-const ARRIVAL_THRESHOLD := 5.0
+const MOVE_DURATION := 0.3
 
-var _target: Vector2
 var _callback: Callable
 var _running := false
+var _timer: Timer
+var _previous_preferred_position: Vector2
 
 func _ready() -> void:
-	set_process(false)
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
 
 func start(target: Vector2, callback: Callable) -> void:
-	_target = target
 	_callback = callback
 	_running = true
-	set_process(true)
+	var bot_main: Node2D = get_parent()
+	_previous_preferred_position = bot_main.preferred_position
+	bot_main.preferred_position = target
+	_timer.start(MOVE_DURATION)
 
 func abort() -> void:
+	_timer.stop()
+	var bot_main: Node2D = get_parent()
+	bot_main.preferred_position = _previous_preferred_position
 	_finish(false)
 
-func _process(delta: float) -> void:
-	if not _running:
-		return
-	var host: Node2D = get_parent()
-	var direction := (_target - host.position).normalized()
-	host.position += direction * MOVE_SPEED * delta
-	if host.position.distance_to(_target) < ARRIVAL_THRESHOLD:
-		host.position = _target
-		_finish(true)
+func _on_timeout() -> void:
+	_finish(true)
 
 func _finish(result: bool) -> void:
 	_running = false

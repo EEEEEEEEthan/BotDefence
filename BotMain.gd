@@ -2,7 +2,7 @@ extends Node2D
 
 ## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move_forward/turn 请求
 ## 移动与转向由 MoveForwardState、TurnState 子节点封装
-## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
+## 移动/转向瞬时修改 preferred_position/preferred_rotation，等待后 callback，BotMain 每帧插值
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
@@ -12,6 +12,25 @@ signal current_line_changed(line: int)  ## -1 表示无执行行
 @onready var _turn_state: TurnState = $%TurnState
 @onready var _bot_api: Node = $%BotApi
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
+
+var preferred_position: Vector2:
+	get: return _preferred_position
+	set(value): _preferred_position = value
+var _preferred_position: Vector2
+
+var preferred_rotation: float:
+	get: return _preferred_rotation
+	set(value): _preferred_rotation = value
+var _preferred_rotation: float
+
+const _POSITION_LERP_SPEED := 8.0
+const _ROTATION_LERP_SPEED := 12.0
+const _CARDINAL_ANGLE := {
+	Consts.Cardinal.NORTH: -TAU / 4,
+	Consts.Cardinal.EAST: 0.0,
+	Consts.Cardinal.SOUTH: TAU / 4,
+	Consts.Cardinal.WEST: TAU / 2
+}
 var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 var _player_thread: Thread
 var _running := false
@@ -34,6 +53,15 @@ var game: Game:
 		if not game:
 			game = get_parent()
 		return game
+
+func _ready() -> void:
+	_preferred_position = position
+	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
+	rotation = _preferred_rotation
+
+func _process(delta: float) -> void:
+	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
+	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
 
 func start_bot() -> void:
 	abort()
