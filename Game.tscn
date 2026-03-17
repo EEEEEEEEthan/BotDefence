@@ -389,6 +389,11 @@ class_name PathfindingField
 		if Engine.is_editor_hint():
 			queue_redraw()
 
+@export var _bake_preview: bool = false:
+	set(value):
+		if value:
+			bake()
+
 ## 有 custom_data platform 的格子为不可走；有 custom_data target 的格子为终点
 ## 烘焙结果：瓦片坐标 -> 移动方向（Consts.Cardinal）
 var flow_map: Dictionary = {}
