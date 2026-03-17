@@ -7,8 +7,8 @@ var line: int = -1
 var _mutex: Mutex = Mutex.new()
 
 
-func _log_error(_function: String, _file: String, error_line: int, _code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
+func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
 	_mutex.lock()
-	message = rationale
+	message = rationale if rationale else code
 	line = error_line
 	_mutex.unlock()
