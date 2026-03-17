@@ -20,14 +20,14 @@ func _ready() -> void:
 func start(target: Vector2, callback: Callable) -> void:
 	_callback = callback
 	_running = true
-	var bot_main: Node2D = get_parent()
+	var bot_main: Node2D = owner as Node2D
 	_previous_preferred_position = bot_main.preferred_position
 	bot_main.preferred_position = target
 	_timer.start(MOVE_DURATION)
 
 func abort() -> void:
 	_timer.stop()
-	var bot_main: Node2D = get_parent()
+	var bot_main: Node2D = owner as Node2D
 	bot_main.preferred_position = _previous_preferred_position
 	_finish(false)
 
