@@ -34,15 +34,7 @@ var game: Game:
 		return game
 
 func start_bot() -> void:
-	# 先停止已有运行
-	if _running:
-		_running = false
-		if _current_state:
-			_current_state.abort()
-		if _player_thread and _player_thread.is_alive():
-			_player_thread.wait_to_finish()
-		_current_state = null
-
+	abort()
 	_running = true
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
@@ -153,8 +145,10 @@ func abort() -> void:
 	_running = false
 	if _current_state:
 		_current_state.abort()
+		_current_state = null
 	if _player_thread and _player_thread.is_alive():
 		_player_thread.wait_to_finish()
+		_player_thread = null
 
 func _exit_tree() -> void:
 	abort()
