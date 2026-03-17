@@ -129,7 +129,7 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 		Consts.Direction.EAST: offset = Vector2(1, 0)
 		Consts.Direction.WEST: offset = Vector2(-1, 0)
 		_: offset = Vector2.ZERO
-	var tile_size: Vector2 = Vector2(tile_set.tile_size)
+	var tile_size: Vector2 = Vector2(tile_set.tile_size) * game.tilemap.scale
 	var tile_x: float = floor(position.x / tile_size.x)
 	var tile_y: float = floor(position.y / tile_size.y)
 	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
