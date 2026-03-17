@@ -1,9 +1,10 @@
 extends RefCounted
 
 ## 玩家编写的控制逻辑，纯 GDScript 同步写法
-## bot.move_to 会阻塞直到抵达，但不影响 Godot 主循环
+## bot.move 会阻塞直到抵达，但不影响 Godot 主循环
 
 func run(bot) -> void:
-	bot.move_to(100, 200)
-	bot.move_to(400, 300)
-	bot.move_to(200, 100)
+	bot.move(Direction.NORTH)
+	bot.move(Direction.EAST)
+	bot.move(Direction.SOUTH)
+	bot.move(Direction.WEST)
