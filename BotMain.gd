@@ -123,7 +123,13 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 		push_error("TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源")
 		callback.call(false)
 		return
-	var offset := _direction_to_offset(direction)
+	var offset: Vector2
+	match direction:
+		Consts.Direction.NORTH: offset = Vector2(0, -1)
+		Consts.Direction.SOUTH: offset = Vector2(0, 1)
+		Consts.Direction.EAST: offset = Vector2(1, 0)
+		Consts.Direction.WEST: offset = Vector2(-1, 0)
+		_: offset = Vector2.ZERO
 	var tile_size: Vector2 = Vector2(tile_set.tile_size)
 	var tile_x: float = floor(position.x / tile_size.x)
 	var tile_y: float = floor(position.y / tile_size.y)
@@ -131,14 +137,6 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 	var target := current_center + offset * tile_size
 	_current_task = _move_task
 	_move_task.start(target, callback)
-
-func _direction_to_offset(direction: Consts.Direction) -> Vector2:
-	match direction:
-		Consts.Direction.NORTH: return Vector2(0, -1)
-		Consts.Direction.SOUTH: return Vector2(0, 1)
-		Consts.Direction.EAST: return Vector2(1, 0)
-		Consts.Direction.WEST: return Vector2(-1, 0)
-		_: return Vector2.ZERO
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
