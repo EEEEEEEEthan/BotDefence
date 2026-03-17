@@ -62,33 +62,29 @@ func _validate_syntax() -> void:
 
 func _check_syntax(source: String) -> Dictionary:
 	var empty_lines: Array[int] = []
-	var empty := {\"message\": \"\", \"lines\": empty_lines}
+	var empty: Dictionary = {\"message\": \"\", \"lines\": empty_lines}
 	if source.is_empty():
 		return empty
-	var capture: Logger = null
-	if ClassDB.class_exists(&\"Logger\"):
-		var CaptureClass := load(\"res://Inspector/ParseErrorCapture.gd\") as GDScript
-		capture = CaptureClass.new()
-		OS.add_logger(capture)
+	var CaptureClass := load(\"res://Inspector/ParseErrorCapture.gd\") as GDScript
+	var capture: Logger = CaptureClass.new()
+	OS.add_logger(capture)
 	var gdscript := GDScript.new()
 	gdscript.source_code = source
 	var err := gdscript.reload()
-	if capture:
-		OS.remove_logger(capture)
+	OS.remove_logger(capture)
 	if err == OK:
 		return empty
 	if err == ERR_PARSE_ERROR:
 		var lines: Array[int] = []
 		var msg_parts: Array[String] = []
-		if capture:
-			var cap_errors: Array = capture.get(\"errors\")
-			for err_item in cap_errors:
-				var item_msg: String = err_item.get(\"message\", \"\")
-				var item_line: int = err_item.get(\"line\", -1)
-				if item_msg:
-					msg_parts.append(\"第%d行: %s\" % [item_line, item_msg] if item_line > 0 else item_msg)
-				if item_line > 0:
-					lines.append(item_line)
+		var cap_errors: Array = capture.get(\"errors\")
+		for err_item in cap_errors:
+			var item_msg: String = err_item.get(\"message\", \"\")
+			var item_line: int = err_item.get(\"line\", -1)
+			if item_msg:
+				msg_parts.append(\"第%d行: %s\" % [item_line, item_msg] if item_line > 0 else item_msg)
+			if item_line > 0:
+				lines.append(item_line)
 		if msg_parts.is_empty():
 			msg_parts.append(\"语法错误\")
 		return {\"message\": \"\\n\".join(msg_parts), \"lines\": lines}
