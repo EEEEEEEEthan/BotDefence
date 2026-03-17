@@ -4,7 +4,6 @@ extends Node2D
 ## 移动功能由 BotTaskMove 组件封装
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
-const Direction := preload("res://Direction.gd")
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 var _move_task: BotTaskMove
@@ -39,23 +38,19 @@ func get_bot_api() -> RefCounted:
 func is_cancelled() -> bool:
 	return _move_task.aborted
 
-## 由 Bot 通过 call_deferred 调用，抵达或取消时调用 callback
-func move(target: Vector2, callback: Callable) -> void:
+## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
+func move(direction: Consts.Direction, callback: Callable) -> void:
+	var offset := _direction_to_offset(direction)
+	var target := position + offset * Bot.MOVE_STEP
 	_current_task = _move_task
 	_move_task.start(target, callback)
 
-## 四向移动：direction 为 Direction.NORTH/SOUTH/EAST/WEST
-func move_by(direction: int, callback: Callable) -> void:
-	var offset := _direction_to_offset(direction)
-	var target := position + offset * Bot.MOVE_STEP
-	move(target, callback)
-
-func _direction_to_offset(direction: int) -> Vector2:
+func _direction_to_offset(direction: Consts.Direction) -> Vector2:
 	match direction:
-		Direction.NORTH: return Vector2(0, -1)
-		Direction.SOUTH: return Vector2(0, 1)
-		Direction.EAST: return Vector2(1, 0)
-		Direction.WEST: return Vector2(-1, 0)
+		Consts.NORTH: return Vector2(0, -1)
+		Consts.SOUTH: return Vector2(0, 1)
+		Consts.EAST: return Vector2(1, 0)
+		Consts.WEST: return Vector2(-1, 0)
 		_: return Vector2.ZERO
 
 ## 退出时调用，中止当前任务

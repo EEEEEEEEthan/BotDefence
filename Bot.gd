@@ -22,7 +22,7 @@ func move(direction: int) -> bool:
 	var on_arrived := func(arrived: bool):
 		result[0] = arrived
 		semaphore.post()
-	_bot_main.call_deferred(&"move_by", direction, on_arrived)
+	_bot_main.call_deferred(&"move", direction, on_arrived)
 	if _bot_main.is_cancelled():
 		return false
 	semaphore.wait()

@@ -4,7 +4,7 @@ extends RefCounted
 ## bot.move 会阻塞直到抵达，但不影响 Godot 主循环
 
 func run(bot) -> void:
-	bot.move(Direction.NORTH)
-	bot.move(Direction.EAST)
-	bot.move(Direction.SOUTH)
-	bot.move(Direction.WEST)
+	bot.move(Consts.NORTH)
+	bot.move(Consts.EAST)
+	bot.move(Consts.SOUTH)
+	bot.move(Consts.WEST)
