@@ -8,8 +8,6 @@ const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
-@onready var _move_forward_state: MoveForwardState = $%MoveForwardState
-@onready var _turn_state: TurnState = $%TurnState
 @onready var _bot_api: Node = $%BotApi
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
@@ -167,8 +165,8 @@ func move_forward(callback: Callable) -> void:
 	var wrapped := func(arrived: bool):
 		_current_state = null
 		callback.call(arrived)
-	_current_state = _move_forward_state
-	_move_forward_state.start(target, wrapped)
+	_current_state = $%MoveForwardState
+	_current_state.start(target, wrapped)
 
 const _CARDINAL_ORDER := [Consts.Cardinal.NORTH, Consts.Cardinal.EAST, Consts.Cardinal.SOUTH, Consts.Cardinal.WEST]
 
@@ -178,8 +176,8 @@ func turn_left(callback: Callable) -> void:
 	var wrapped := func(arrived: bool):
 		_current_state = null
 		callback.call(arrived)
-	_current_state = _turn_state
-	_turn_state.start(new_cardinal, wrapped)
+	_current_state = $%TurnState
+	_current_state.start(new_cardinal, wrapped)
 
 func turn_right(callback: Callable) -> void:
 	var idx: int = _CARDINAL_ORDER.find(cardinal)
@@ -187,8 +185,8 @@ func turn_right(callback: Callable) -> void:
 	var wrapped := func(arrived: bool):
 		_current_state = null
 		callback.call(arrived)
-	_current_state = _turn_state
-	_turn_state.start(new_cardinal, wrapped)
+	_current_state = $%TurnState
+	_current_state.start(new_cardinal, wrapped)
 
 ## 退出时调用，中止当前任务
 func abort() -> void:

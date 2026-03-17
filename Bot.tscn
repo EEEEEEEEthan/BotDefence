@@ -1,10 +1,100 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
 [ext_resource type="Script" uid="uid://ca8c1rjqk8f7n" path="res://BotMain.gd" id="1_bot"]
-[ext_resource type="Script" uid="uid://oe40psgbsipx" path="res://StateMachines/MoveForwardState.gd" id="2_move_forward"]
-[ext_resource type="Script" uid="uid://dfw7w4rlxlhrs" path="res://StateMachines/TurnState.gd" id="3_turn"]
 [ext_resource type="Script" uid="uid://cvdce2m6xvan" path="res://Bot.gd" id="4_bot_api"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
+
+[sub_resource type="GDScript" id="GDScript_q6hsy"]
+script/source = "extends Node
+class_name MoveForwardState
+
+## 瞬时设置 preferred_position，等待 MOVE_DURATION 后 callback
+## 实际位置由 BotMain 每帧插值
+
+const MOVE_DURATION := 0.3
+
+var _callback: Callable
+var _running := false
+var _timer: Timer
+var _previous_preferred_position: Vector2
+
+func _ready() -> void:
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
+
+func start(target: Vector2, callback: Callable) -> void:
+	_callback = callback
+	_running = true
+	_previous_preferred_position = owner.preferred_position
+	owner.preferred_position = target
+	_timer.start(MOVE_DURATION)
+
+func abort() -> void:
+	_timer.stop()
+	owner.preferred_position = _previous_preferred_position
+	_finish(false)
+
+func _on_timeout() -> void:
+	_finish(true)
+
+func _finish(result: bool) -> void:
+	_running = false
+	if _callback.is_valid():
+		_callback.call(result)
+		_callback = Callable()
+"
+
+[sub_resource type="GDScript" id="GDScript_ybhwq"]
+script/source = "extends Node
+class_name TurnState
+
+## 瞬时设置 cardinal 与 preferred_rotation，等待 TURN_DURATION 后 callback
+## 实际旋转由 BotMain 每帧插值
+
+const TURN_DURATION := 0.2
+const _CARDINAL_ANGLE := {
+	Consts.Cardinal.NORTH: 0.0,
+	Consts.Cardinal.EAST: TAU / 4,
+	Consts.Cardinal.SOUTH: TAU / 2,
+	Consts.Cardinal.WEST: -TAU / 4
+}
+
+var _callback: Callable
+var _running := false
+var _timer: Timer
+var _previous_cardinal: Consts.Cardinal
+
+func _ready() -> void:
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
+
+func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
+	_callback = callback
+	_running = true
+	_previous_cardinal = owner.cardinal
+	owner.cardinal = new_cardinal
+	owner.preferred_rotation = _CARDINAL_ANGLE[new_cardinal]
+	_timer.start(TURN_DURATION)
+
+func abort() -> void:
+	_timer.stop()
+	owner.cardinal = _previous_cardinal
+	owner.preferred_rotation = _CARDINAL_ANGLE[_previous_cardinal]
+	_finish(false)
+
+func _on_timeout() -> void:
+	_finish(true)
+
+func _finish(result: bool) -> void:
+	_running = false
+	if _callback.is_valid():
+		_callback.call(result)
+		_callback = Callable()
+"
 
 [sub_resource type="Texture2D" id="Texture2D_ppfm4"]
 resource_local_to_scene = false
@@ -22,11 +112,11 @@ script = ExtResource("4_bot_api")
 
 [node name="MoveForwardState" type="Node" parent="." unique_id=395237652]
 unique_name_in_owner = true
-script = ExtResource("2_move_forward")
+script = SubResource("GDScript_q6hsy")
 
 [node name="TurnState" type="Node" parent="." unique_id=1961331314]
 unique_name_in_owner = true
-script = ExtResource("3_turn")
+script = SubResource("GDScript_ybhwq")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
 position = Vector2(0, 1.9073486e-06)
