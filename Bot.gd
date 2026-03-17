@@ -5,8 +5,6 @@ class_name Bot
 ## 子线程中通过 call_deferred 将移动交给 BotMain，抵达后 callback 解除阻塞
 ## 返回 true=抵达目标，false=被取消
 
-const MOVE_STEP := 32.0
-
 var _bot_main: Object
 var _cancel_flag: RefCounted
 
