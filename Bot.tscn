@@ -1,12 +1,16 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
 [ext_resource type="Script" uid="uid://ca8c1rjqk8f7n" path="res://BotMain.gd" id="1_bot"]
+[ext_resource type="Script" uid="uid://qfi8oo5mx5fn" path="res://MoveNode.gd" id="2_move"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xqtm5"]
 
 [node name="Bot" type="Node2D" unique_id=11366525]
-process_mode = 4
 script = ExtResource("1_bot")
+
+[node name="MoveNode" type="Node" parent="." unique_id=458745791]
+unique_name_in_owner = true
+script = ExtResource("2_move")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
 position = Vector2(0, 1.9073486e-06)
