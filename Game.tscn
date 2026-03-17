@@ -311,7 +311,7 @@ tile_map_data = PackedByteArray("AAAGAAEAAAAFAAQAAAAFAAEAAAABAAQAAAAEAAEAAAAGAAM
 tile_set = SubResource("TileSet_sb48q")
 
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
-position = Vector2(472, 288)
+position = Vector2(480, 288)
 
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)
