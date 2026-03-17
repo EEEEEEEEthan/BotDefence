@@ -20,10 +20,8 @@ class ParseErrorCapture extends Logger:
 		errors.append({\"message\": msg, \"line\": error_line})
 		_mutex.unlock()
 
-@onready var code_edit: CodeEdit = $VBoxContainer/CodeEdit
-@onready var play_button: Button = $VBoxContainer/HBoxContainer/Play
-@onready var save_button: Button = $VBoxContainer/HBoxContainer/SaveButton
-@onready var error_label: Label = $VBoxContainer/ErrorLabel
+@onready var code_edit: CodeEdit = $%CodeEdit
+@onready var error_label: Label = $%ErrorLabel
 
 var bot: Node2D
 var _validate_timer: Timer
@@ -33,8 +31,8 @@ func _ready() -> void:
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
 	bot.current_line_changed.connect(_on_current_line_changed)
 	_update_execution_line(bot.current_execution_line)
-	play_button.pressed.connect(_on_play_pressed)
-	save_button.pressed.connect(_on_save_pressed)
+	$%Switch.pressed.connect(_on_play_pressed)
+	$%Save.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
 	code_edit.text_changed.connect(_on_text_changed)
 	_validate_timer = Timer.new()
@@ -157,12 +155,12 @@ auto_brace_completion_highlight_matching = true
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
 layout_mode = 2
 
-[node name="Play" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768876]
+[node name="Switch" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768876]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Play"
+text = "▶"
 
-[node name="SaveButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=351019982]
+[node name="Save" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=351019982]
 unique_name_in_owner = true
 layout_mode = 2
 text = "保存"
