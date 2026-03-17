@@ -39,7 +39,7 @@ func start_bot() -> void:
 		_running = false
 		if _current_state:
 			_current_state.abort()
-		if _player_thread and _player_thread.is_running():
+		if _player_thread and _player_thread.is_alive():
 			_player_thread.wait_to_finish()
 		_current_state = null
 
@@ -154,7 +154,7 @@ func abort() -> void:
 	_running = false
 	if _current_state:
 		_current_state.abort()
-	if _player_thread and _player_thread.is_running():
+	if _player_thread and _player_thread.is_alive():
 		_player_thread.wait_to_finish()
 
 func _exit_tree() -> void:
