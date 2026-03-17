@@ -456,8 +456,10 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var tilemap_layer = owner.tilemap as TileMapLayer
-	if not Engine.is_editor_hint() or tilemap_layer == null:
+	if not Engine.is_editor_hint():
+		return
+	var tilemap_layer = owner.get_node(\"%TileMapLayer\") as TileMapLayer
+	if not tilemap_layer:
 		return
 	var cell_size: Vector2 = tilemap_layer.map_to_local(Vector2i(1, 0)) - tilemap_layer.map_to_local(Vector2i(0, 0))
 	var rect_origin: Vector2 = tilemap_layer.map_to_local(bake_range.position) - cell_size / 2
@@ -544,4 +546,4 @@ position = Vector2(800, 352)
 
 [node name="PathfindingField" type="Node2D" parent="." unique_id=1592008243]
 script = SubResource("GDScript_u44n3")
-bake_range = Rect2i(0, 0, 16, 47)
+bake_range = Rect2i(0, 0, 31, 51)
