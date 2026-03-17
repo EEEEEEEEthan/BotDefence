@@ -142,36 +142,13 @@ func _inject_line_tracking(source: String) -> String:
 		result.append(line)
 	return \"\\n\".join(result)
 
-## 由 Bot 通过 call_deferred 调用
-## Bot 只能在 platform 格子上移动，目标非 platform 则 return false
+## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
 func move_forward(callback: Callable) -> void:
-	var tile_set: TileSet = owner.tilemap.tile_set
-	if tile_set == null:
-		push_error(\"TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源\")
-		callback.call(false)
-		return
-	var offset: Vector2
-	match cardinal:
-		Consts.Cardinal.NORTH: offset = Vector2(0, -1)
-		Consts.Cardinal.SOUTH: offset = Vector2(0, 1)
-		Consts.Cardinal.EAST: offset = Vector2(1, 0)
-		Consts.Cardinal.WEST: offset = Vector2(-1, 0)
-		_: offset = Vector2.ZERO
-	var tile_size: Vector2 = Vector2(tile_set.tile_size) * owner.tilemap.scale
-	var tile_x: float = floor(position.x / tile_size.x)
-	var tile_y: float = floor(position.y / tile_size.y)
-	var target_tile := Vector2i(int(tile_x), int(tile_y)) + Vector2i(int(offset.x), int(offset.y))
-	var tile_data: TileData = owner.tilemap.get_cell_tile_data(target_tile)
-	if not tile_data or tile_data.get_custom_data(\"platform\") != true:
-		callback.call(false)
-		return
-	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
-	var target := current_center + offset * tile_size
 	var wrapped := func(arrived: bool):
 		_current_state = null
 		callback.call(arrived)
 	_current_state = $%MoveForwardState
-	_current_state.start(target, wrapped)
+	_current_state.start(cardinal, wrapped)
 
 const _CARDINAL_ORDER := [Consts.Cardinal.NORTH, Consts.Cardinal.EAST, Consts.Cardinal.SOUTH, Consts.Cardinal.WEST]
 
@@ -261,15 +238,15 @@ func _deferred_call(method: StringName) -> bool:
 script/source = "extends Node
 class_name MoveForwardState
 
-## 瞬时设置 preferred_position，等待 MOVE_DURATION 后 callback
-## 实际位置由 BotMain 每帧插值
+## 沿 direction 移动一格，目标为 platform 则抵达后 callback(true)，否则等待后 callback(false)
+## 无论是否 platform 都等待 MOVE_DURATION
 
-const MOVE_DURATION := 0.3
+const MOVE_DURATION := 1.0
 
 var _callback: Callable
-var _running := false
 var _timer: Timer
 var _previous_preferred_position: Vector2
+var _moved := false
 
 func _ready() -> void:
 	_timer = Timer.new()
@@ -277,23 +254,37 @@ func _ready() -> void:
 	add_child(_timer)
 	_timer.timeout.connect(_on_timeout)
 
-func start(target: Vector2, callback: Callable) -> void:
+func start(direction: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
-	_running = true
 	_previous_preferred_position = owner.preferred_position
-	owner.preferred_position = target
+	var tilemap: TileMapLayer = owner.owner.tilemap
+	var tile_set: TileSet = tilemap.tile_set
+	var offset: Vector2 = Consts.CARDINAL_TO_DIRECTION[direction]
+	var tile_size: Vector2 = Vector2(tile_set.tile_size) * tilemap.scale
+	var tile_x: float = floor(owner.position.x / tile_size.x)
+	var tile_y: float = floor(owner.position.y / tile_size.y)
+	var target_tile := Vector2i(int(tile_x), int(tile_y)) + Vector2i(int(offset.x), int(offset.y))
+	var tile_data: TileData = tilemap.get_cell_tile_data(target_tile)
+	var is_platform: bool = tile_data != null and tile_data.get_custom_data(\"platform\") == true
+	if is_platform:
+		var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
+		owner.preferred_position = current_center + offset * tile_size
+		_moved = true
+	else:
+		_moved = false
 	_timer.start(MOVE_DURATION)
 
 func abort() -> void:
 	_timer.stop()
-	owner.preferred_position = _previous_preferred_position
+	if _moved:
+		owner.preferred_position = _previous_preferred_position
 	_finish(false)
 
 func _on_timeout() -> void:
-	_finish(true)
+	var result: bool = _moved
+	_finish(result)
 
 func _finish(result: bool) -> void:
-	_running = false
 	if _callback.is_valid():
 		_callback.call(result)
 		_callback = Callable()
@@ -306,7 +297,7 @@ class_name TurnState
 ## 瞬时设置 cardinal 与 preferred_rotation，等待 TURN_DURATION 后 callback
 ## 实际旋转由 BotMain 每帧插值
 
-const TURN_DURATION := 0.2
+const TURN_DURATION := 0.5
 const _CARDINAL_ANGLE := {
 	Consts.Cardinal.NORTH: 0.0,
 	Consts.Cardinal.EAST: TAU / 4,
@@ -363,11 +354,13 @@ script = SubResource("GDScript_sck5o")
 unique_name_in_owner = true
 script = SubResource("GDScript_ro7h1")
 
-[node name="MoveForwardState" type="Node" parent="." unique_id=395237652]
+[node name="StateMachine" type="Node" parent="." unique_id=1363322939]
+
+[node name="MoveForwardState" type="Node" parent="StateMachine" unique_id=395237652]
 unique_name_in_owner = true
 script = SubResource("GDScript_q6hsy")
 
-[node name="TurnState" type="Node" parent="." unique_id=1961331314]
+[node name="TurnState" type="Node" parent="StateMachine" unique_id=1961331314]
 unique_name_in_owner = true
 script = SubResource("GDScript_ybhwq")
 
@@ -375,8 +368,6 @@ script = SubResource("GDScript_ybhwq")
 position = Vector2(0, 1.9073486e-06)
 scale = Vector2(8, 8)
 texture = SubResource("Texture2D_ppfm4")
-
-[node name="StateMachine" type="Node" parent="." unique_id=1363322939]
 
 [node name="BotInspector" parent="." unique_id=358476760 instance_placeholder="res://BotInspector.tscn"]
 unique_name_in_owner = true
