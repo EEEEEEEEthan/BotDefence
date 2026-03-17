@@ -31,7 +31,8 @@ func _ready() -> void:
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
 	bot.current_line_changed.connect(_on_current_line_changed)
 	_update_execution_line(bot.current_execution_line)
-	$%Switch.pressed.connect(_on_play_pressed)
+	_update_switch_text()
+	$%Switch.pressed.connect(_on_switch_pressed)
 	$%Save.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
 	code_edit.text_changed.connect(_on_text_changed)
@@ -43,6 +44,10 @@ func _ready() -> void:
 
 func _on_current_line_changed(line: int) -> void:
 	_update_execution_line(line)
+	_update_switch_text()
+
+func _update_switch_text() -> void:
+	$%Switch.text = \"🛑\" if bot.running else \"▶\"
 
 func _update_execution_line(line: int) -> void:
 	code_edit.clear_executing_lines()
@@ -102,11 +107,15 @@ func _parse_error_line(msg: String) -> int:
 	return int(result.get_string(1)) - 1 if result else -1
 
 
-func _on_play_pressed() -> void:
-	if not _check_syntax(code_edit.text).message.is_empty():
-		return
-	bot.code = code_edit.text
-	bot.start_bot()
+func _on_switch_pressed() -> void:
+	if bot.running:
+		bot.abort()
+	else:
+		if not _check_syntax(code_edit.text).message.is_empty():
+			return
+		bot.code = code_edit.text
+		bot.start_bot()
+	_update_switch_text()
 
 
 func _on_save_pressed() -> void:

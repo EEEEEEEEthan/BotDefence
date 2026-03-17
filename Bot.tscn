@@ -42,6 +42,9 @@ var _current_execution_line: int = -1
 var current_execution_line: int:
 	get: return _current_execution_line
 
+var running: bool:
+	get: return _running
+
 var code: String:
 	get:
 		if code.is_empty():
@@ -84,6 +87,7 @@ func _set_current_line(line: int) -> void:
 	current_line_changed.emit(line)
 
 func _clear_execution_line() -> void:
+	_running = false
 	_set_current_line(-1)
 
 ## 在所有顶层函数体内每行前注入行号报告与 abort 检查
