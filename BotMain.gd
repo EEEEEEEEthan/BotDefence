@@ -115,8 +115,8 @@ func _inject_line_tracking(source: String) -> String:
 		result.append(line)
 	return "\n".join(result)
 
-## 由 Bot 通过 call_deferred 调用，direction 为 Consts.Direction
-func move(direction: Consts.Direction, callback: Callable) -> void:
+## 由 Bot 通过 call_deferred 调用，direction 为 Consts.Cardinal
+func move(direction: Consts.Cardinal, callback: Callable) -> void:
 	var tile_set: TileSet = game.tilemap.tile_set
 	if tile_set == null:
 		push_error("TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源")
@@ -124,10 +124,10 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 		return
 	var offset: Vector2
 	match direction:
-		Consts.Direction.NORTH: offset = Vector2(0, -1)
-		Consts.Direction.SOUTH: offset = Vector2(0, 1)
-		Consts.Direction.EAST: offset = Vector2(1, 0)
-		Consts.Direction.WEST: offset = Vector2(-1, 0)
+		Consts.Cardinal.NORTH: offset = Vector2(0, -1)
+		Consts.Cardinal.SOUTH: offset = Vector2(0, 1)
+		Consts.Cardinal.EAST: offset = Vector2(1, 0)
+		Consts.Cardinal.WEST: offset = Vector2(-1, 0)
 		_: offset = Vector2.ZERO
 	var tile_size: Vector2 = Vector2(tile_set.tile_size) * game.tilemap.scale
 	var tile_x: float = floor(position.x / tile_size.x)
