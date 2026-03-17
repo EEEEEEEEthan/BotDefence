@@ -10,6 +10,7 @@ const MoveNodeScript := preload("res://MoveNode.gd")
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
 @onready var _move_node: MoveNodeScript = $%MoveNode
+@onready var _bot_api: Node = $%BotApi
 var _current_task: Object  ## BotTask 或 MoveNode，均有 abort()
 var _player_thread: Thread
 var _started := false
@@ -36,9 +37,6 @@ var game: Game:
 var aborted: bool:
 	get: return _move_node.aborted
 
-func new_bot_api() -> RefCounted:
-	return Bot.new(self)
-
 func start_bot() -> void:
 	# 先停止已有运行
 	if _started:
@@ -55,12 +53,12 @@ func start_bot() -> void:
 	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
 	var instance: Object = gdscript.new()
-	var bot_api: RefCounted = new_bot_api()
+	var bot_api: Node = _bot_api
 	var report_line := func(line: int): self.call_deferred(&"_set_current_line", line)
 	_player_thread = Thread.new()
 	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line))
 
-func _run_bot_script(instance: Object, bot_api: RefCounted, report_line: Callable) -> void:
+func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable) -> void:
 	instance.run(bot_api, report_line)
 	call_deferred(&"_clear_execution_line")
 
