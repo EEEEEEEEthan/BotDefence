@@ -334,11 +334,17 @@ class_name PathfindingField
 ## 终点瓦片的 atlas 坐标（可走且为目标）
 @export var destination_atlas_coords: Array[Vector2i] = []
 
-## 烘焙结果：瓦片坐标 -> 移动方向（单位向量）
+## 烘焙结果：瓦片坐标 -> 移动方向（Consts.Cardinal）
 var flow_map: Dictionary = {}
 
 var _cost_map: Dictionary = {}
 const _NEIGHBORS := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+const _OFFSET_TO_CARDINAL := {
+	Vector2i(0, -1): Consts.Cardinal.SOUTH,
+	Vector2i(1, 0): Consts.Cardinal.WEST,
+	Vector2i(0, 1): Consts.Cardinal.NORTH,
+	Vector2i(-1, 0): Consts.Cardinal.EAST,
+}
 
 
 func _ready() -> void:
@@ -360,13 +366,7 @@ func _draw() -> void:
 func bake() -> void:
 	flow_map.clear()
 	_cost_map.clear()
-	if tilemap_layer == null:
-		push_error(\"PathfindingField: tilemap_layer 未分配\")
-		return
 	var tile_set: TileSet = tilemap_layer.tile_set
-	if tile_set == null:
-		push_error(\"PathfindingField: TileMapLayer 未分配 tile_set\")
-		return
 
 	var unwalkable_set := _to_vector2i_set(unwalkable_atlas_coords)
 	var destination_set := _to_vector2i_set(destination_atlas_coords)
@@ -384,7 +384,6 @@ func bake() -> void:
 				continue
 			if atlas in destination_set:
 				_cost_map[coords] = 0
-				flow_map[coords] = Vector2.ZERO
 				frontier.append(coords)
 			elif atlas not in unwalkable_set:
 				_cost_map[coords] = -1
@@ -406,13 +405,12 @@ func bake() -> void:
 			if neighbor_source < 0 or neighbor_atlas in unwalkable_set:
 				continue
 			_cost_map[neighbor] = current_cost + 1
-			var direction: Vector2 = -Vector2(offset)
-			flow_map[neighbor] = direction.normalized()
+			flow_map[neighbor] = _OFFSET_TO_CARDINAL[offset]
 			frontier.append(neighbor)
 
 
-func get_flow_at(tile_coords: Vector2i) -> Vector2:
-	return flow_map.get(tile_coords, Vector2.ZERO)
+func get_flow_at(tile_coords: Vector2i) -> Variant:
+	return flow_map.get(tile_coords, null)
 
 
 func _to_vector2i_set(arr: Array) -> Dictionary:
@@ -441,10 +439,16 @@ class_name PathfindingField
 @onready var tilemap_layer: TileMapLayer = owner.tilemap
 @export var unwalkable_atlas_coords: Array[Vector2i] = []
 @export var destination_atlas_coords: Array[Vector2i] = []
-## 烘焙结果：瓦片坐标 -> 移动方向（单位向量）
+## 烘焙结果：瓦片坐标 -> 移动方向（Consts.Cardinal）
 var flow_map: Dictionary = {}
 var _cost_map: Dictionary = {}
 const _NEIGHBORS := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+const _OFFSET_TO_CARDINAL := {
+	Vector2i(0, -1): Consts.Cardinal.SOUTH,
+	Vector2i(1, 0): Consts.Cardinal.WEST,
+	Vector2i(0, 1): Consts.Cardinal.NORTH,
+	Vector2i(-1, 0): Consts.Cardinal.EAST,
+}
 
 
 func _ready() -> void:
@@ -466,13 +470,7 @@ func _draw() -> void:
 func bake() -> void:
 	flow_map.clear()
 	_cost_map.clear()
-	if tilemap_layer == null:
-		push_error(\"PathfindingField: tilemap_layer 未分配\")
-		return
 	var tile_set: TileSet = tilemap_layer.tile_set
-	if tile_set == null:
-		push_error(\"PathfindingField: TileMapLayer 未分配 tile_set\")
-		return
 
 	var unwalkable_set := _to_vector2i_set(unwalkable_atlas_coords)
 	var destination_set := _to_vector2i_set(destination_atlas_coords)
@@ -490,7 +488,6 @@ func bake() -> void:
 				continue
 			if atlas in destination_set:
 				_cost_map[coords] = 0
-				flow_map[coords] = Vector2.ZERO
 				frontier.append(coords)
 			elif atlas not in unwalkable_set:
 				_cost_map[coords] = -1
@@ -512,13 +509,12 @@ func bake() -> void:
 			if neighbor_source < 0 or neighbor_atlas in unwalkable_set:
 				continue
 			_cost_map[neighbor] = current_cost + 1
-			var direction: Vector2 = -Vector2(offset)
-			flow_map[neighbor] = direction.normalized()
+			flow_map[neighbor] = _OFFSET_TO_CARDINAL[offset]
 			frontier.append(neighbor)
 
 
-func get_flow_at(tile_coords: Vector2i) -> Vector2:
-	return flow_map.get(tile_coords, Vector2.ZERO)
+func get_flow_at(tile_coords: Vector2i) -> Variant:
+	return flow_map.get(tile_coords, null)
 
 
 func _to_vector2i_set(arr: Array) -> Dictionary:
@@ -548,3 +544,4 @@ position = Vector2(800, 352)
 
 [node name="PathfindingField" type="Node2D" parent="." unique_id=1592008243]
 script = SubResource("GDScript_u44n3")
+bake_range = Rect2i(0, 0, 16, 47)
