@@ -213,9 +213,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_inspector()
 
 func _open_inspector() -> void:
-	var inspector: Window = preload(\"res://Inspector/BotInspector.tscn\").instantiate()
+	var placeholder: InstancePlaceholder = $BotInspector
+	var inspector: Window = placeholder.create_instance()
+	inspector.reparent(get_tree().root)
 	inspector.set_meta(\"bot_main\", self)
-	get_tree().root.add_child(inspector)
 	inspector.popup_centered()
 "
 
@@ -370,3 +371,6 @@ scale = Vector2(8, 8)
 texture = SubResource("Texture2D_ppfm4")
 
 [node name="StateMachine" type="Node" parent="." unique_id=1363322939]
+
+[node name="BotInspector" parent="." unique_id=358476760 instance_placeholder="res://BotInspector.tscn"]
+unique_name_in_owner = true
