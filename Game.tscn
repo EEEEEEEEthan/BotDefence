@@ -397,7 +397,6 @@ class_name PathfindingField
 ## 有 custom_data platform 的格子为不可走；有 custom_data target 的格子为终点
 ## 烘焙结果：瓦片坐标 -> 移动方向（Consts.Cardinal）
 var flow_map: Dictionary = {}
-var _cost_map: Dictionary = {}
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		bake()
@@ -425,55 +424,86 @@ func _draw() -> void:
 	draw_rect(Rect2(rect_origin, rect_size), Color(1, 0.5, 0, 0.8), false)
 	# 在每个格子中心绘制流场方向
 	var arrow_length: float = cell_size.x * 0.35 * inv_scale
+	var head_length: float = arrow_length * 0.4
+	var head_width: float = arrow_length * 0.35
+	var arrow_color: Color = Color(1, 0.5, 0, 0.9)
 	for tile_coords in flow_map:
 		var cardinal: Consts.Cardinal = flow_map[tile_coords]
 		var direction: Vector2 = Consts.CARDINAL_TO_DIRECTION[cardinal]
 		var center: Vector2 = tilemap_layer.map_to_local(tile_coords) * inv_scale
 		var tip: Vector2 = center + direction * arrow_length
-		draw_line(center, tip, Color(1, 0.5, 0, 0.9))
+		draw_line(center, tip, arrow_color)
+		var ortho: Vector2 = direction.orthogonal()
+		var base_left: Vector2 = tip - direction * head_length + ortho * head_width * 0.5
+		var base_right: Vector2 = tip - direction * head_length - ortho * head_width * 0.5
+		draw_colored_polygon(PackedVector2Array([tip, base_left, base_right]), arrow_color)
 
 
 func bake() -> void:
 	flow_map.clear()
-	_cost_map.clear()
 	var tilemap_layer = owner.get_node(\"%TileMapLayer\") as TileMapLayer
+	var cost_map: Dictionary = {}
 
-	# 收集终点，初始化 cost
-	var frontier: Array[Vector2i] = []
+	# 收集终点（sources），初始化 cost
+	var sources: Array[Vector2i] = []
+	var open_list: Array[Dictionary] = []
+	var closed_set: Dictionary = {}
 	for x in range(bake_range.position.x, bake_range.position.x + bake_range.size.x):
 		for y in range(bake_range.position.y, bake_range.position.y + bake_range.size.y):
 			var coords := Vector2i(x, y)
 			if not _is_walkable(tilemap_layer, coords):
 				continue
 			if _is_destination(tilemap_layer, coords):
-				_cost_map[coords] = 0
-				frontier.append(coords)
+				cost_map[coords] = 0
+				sources.append(coords)
+				var heuristic := _heuristic_to_sources(coords, sources)
+				open_list.append({\"pos\": coords, \"f\": heuristic})
 			else:
-				_cost_map[coords] = -1
+				cost_map[coords] = -1
 
-	# BFS 扩散
-	var frontier_idx := 0
-	while frontier_idx < frontier.size():
-		var current: Vector2i = frontier[frontier_idx]
-		frontier_idx += 1
-		var current_cost: int = _cost_map[current]
+	# A* 扩散，启发函数为到最近 source 的欧氏距离
+	while open_list.size() > 0:
+		var best_idx := 0
+		for idx in range(1, open_list.size()):
+			if open_list[idx][\"f\"] < open_list[best_idx][\"f\"]:
+				best_idx = idx
+		var current_entry: Dictionary = open_list[best_idx]
+		open_list.remove_at(best_idx)
+		var current: Vector2i = current_entry[\"pos\"]
+		if current in closed_set:
+			continue
+		closed_set[current] = true
+		var current_cost: int = cost_map[current]
 		for offset in Consts.CARDINAL_OFFSETS:
 			var neighbor: Vector2i = current + offset
 			if not bake_range.has_point(neighbor):
 				continue
-			if neighbor in _cost_map and _cost_map[neighbor] >= 0:
+			if neighbor in closed_set:
 				continue
 			if not _is_walkable(tilemap_layer, neighbor):
 				continue
-			_cost_map[neighbor] = current_cost + 1
+			var tentative_cost: int = current_cost + 1
+			if neighbor in cost_map and cost_map[neighbor] >= 0 and cost_map[neighbor] <= tentative_cost:
+				continue
+			cost_map[neighbor] = tentative_cost
 			flow_map[neighbor] = Consts.OFFSET_TO_CARDINAL[offset]
-			frontier.append(neighbor)
+			var neighbor_heuristic := _heuristic_to_sources(neighbor, sources)
+			open_list.append({\"pos\": neighbor, \"f\": tentative_cost + neighbor_heuristic})
 	if Engine.is_editor_hint():
 		queue_redraw()
 
 
 func get_flow_at(tile_coords: Vector2i) -> Variant:
 	return flow_map.get(tile_coords, null)
+
+
+func _heuristic_to_sources(cell: Vector2i, sources: Array[Vector2i]) -> float:
+	var min_dist := INF
+	for source in sources:
+		var dist := Vector2(cell).distance_to(Vector2(source))
+		if dist < min_dist:
+			min_dist = dist
+	return min_dist
 
 
 func _is_walkable(tilemap_layer: TileMapLayer, coords: Vector2i) -> bool:
