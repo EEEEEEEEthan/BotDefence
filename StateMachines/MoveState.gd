@@ -9,11 +9,11 @@ const ARRIVAL_THRESHOLD := 5.0
 
 var _target: Vector2
 var _callback: Callable
-var _aborted := false
+var _running := false
 
-var aborted: bool:
+var running: bool:
 	get:
-		return _aborted
+		return _running
 
 func _ready() -> void:
 	set_process(false)
@@ -21,20 +21,16 @@ func _ready() -> void:
 func start(target: Vector2, callback: Callable) -> void:
 	_target = target
 	_callback = callback
-	_aborted = false
+	_running = true
 	set_process(true)
 
-func reset_aborted() -> void:
-	_aborted = false
-
 func abort() -> void:
-	_aborted = true
+	_running = false
 	_finish()
 
 func _process(delta: float) -> void:
-	if _aborted or not _callback.is_valid():
+	if not _running:
 		return
-
 	var host: Node2D = get_parent()
 	var direction := (_target - host.position).normalized()
 	host.position += direction * MOVE_SPEED * delta
@@ -45,5 +41,5 @@ func _process(delta: float) -> void:
 func _finish() -> void:
 	set_process(false)
 	if _callback.is_valid():
-		_callback.call(not _aborted)  # true=抵达, false=abort
+		_callback.call(not _aborted)
 		_callback = Callable()

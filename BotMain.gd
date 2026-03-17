@@ -43,7 +43,6 @@ func start_bot() -> void:
 		_current_state = null
 
 	_started = true
-	_move_state.reset_aborted()
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
