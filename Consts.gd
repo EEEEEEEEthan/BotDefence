@@ -1,11 +1,6 @@
 extends RefCounted
 class_name Consts
 
-## 四向移动 enum，用法：bot.move(Consts.NORTH)，参数类型 direction: Consts.Direction
-
+## 四向移动，用于 bot.move() 等 API
+## NORTH=上 SOUTH=下 EAST=右 WEST=左
 enum Direction { NORTH, SOUTH, EAST, WEST }
-
-const NORTH := Direction.NORTH
-const SOUTH := Direction.SOUTH
-const EAST := Direction.EAST
-const WEST := Direction.WEST

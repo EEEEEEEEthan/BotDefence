@@ -113,7 +113,7 @@ func _inject_line_tracking(source: String) -> String:
 		result.append(line)
 	return "\n".join(result)
 
-## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
+## 由 Bot 通过 call_deferred 调用，direction 为 Consts.Direction
 func move(direction: Consts.Direction, callback: Callable) -> void:
 	var tile_set: TileSet = game.tilemap.tile_set
 	if tile_set == null:
@@ -131,10 +131,10 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 
 func _direction_to_offset(direction: Consts.Direction) -> Vector2:
 	match direction:
-		Consts.NORTH: return Vector2(0, -1)
-		Consts.SOUTH: return Vector2(0, 1)
-		Consts.EAST: return Vector2(1, 0)
-		Consts.WEST: return Vector2(-1, 0)
+		Consts.Direction.NORTH: return Vector2(0, -1)
+		Consts.Direction.SOUTH: return Vector2(0, 1)
+		Consts.Direction.EAST: return Vector2(1, 0)
+		Consts.Direction.WEST: return Vector2(-1, 0)
 		_: return Vector2.ZERO
 
 ## 退出时调用，中止当前任务
