@@ -5,6 +5,7 @@
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xqtm5"]
 
 [node name="Bot" type="Node2D" unique_id=11366525]
+process_mode = 4
 script = ExtResource("1_bot")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]

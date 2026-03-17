@@ -37,7 +37,6 @@ var aborted: bool:
 
 func _ready() -> void:
 	_move_task = BotTaskMove.new(self)
-	set_process(false)
 
 func _process(delta: float) -> void:
 	if _move_task.process(delta):
