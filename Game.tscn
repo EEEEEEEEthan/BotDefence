@@ -3,6 +3,9 @@
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Script" uid="uid://yhpyx1haq1bj" path="res://Game.gd" id="2_game"]
 
+[sub_resource type="TileSet" id="TileSet_xkndl"]
+tile_size = Vector2i(48, 48)
+
 [node name="Game" type="Node" unique_id=684061255]
 script = ExtResource("2_game")
 
@@ -22,3 +25,4 @@ text = "Play"
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2118065095]
 unique_name_in_owner = true
+tile_set = SubResource("TileSet_xkndl")

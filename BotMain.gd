@@ -61,8 +61,13 @@ func _run_bot_script(instance: Object, bot_api: RefCounted) -> void:
 
 ## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
 func move(direction: Consts.Direction, callback: Callable) -> void:
+	var tile_set: TileSet = game.tilemap.tile_set
+	if tile_set == null:
+		push_error("TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源")
+		callback.call(false)
+		return
 	var offset := _direction_to_offset(direction)
-	var tile_size: Vector2 = Vector2(game.tilemap.tile_set.tile_size)
+	var tile_size: Vector2 = Vector2(tile_set.tile_size)
 	var tile_x: float = floor(position.x / tile_size.x)
 	var tile_y: float = floor(position.y / tile_size.y)
 	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
