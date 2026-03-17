@@ -6,6 +6,7 @@ extends Window
 const HIGHLIGHTER := preload("res://GDScriptHighlighter.tres")
 
 @onready var code_edit: CodeEdit = $VBoxContainer/CodeEdit
+@onready var play_button: Button = $VBoxContainer/HBoxContainer/Play
 @onready var save_button: Button = $VBoxContainer/HBoxContainer/SaveButton
 
 var _bot_main: Node2D
@@ -15,8 +16,13 @@ func _ready() -> void:
 	_bot_main = get_meta("bot_main")
 	code_edit.text = _bot_main.code
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
+	play_button.pressed.connect(_on_play_pressed)
 	save_button.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
+
+func _on_play_pressed() -> void:
+	_bot_main.code = code_edit.text
+	_bot_main.start_bot()
 
 
 func _on_save_pressed() -> void:

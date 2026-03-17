@@ -10,6 +10,8 @@ const CancelFlagScript := preload("res://CancelFlag.gd")
 var _move_task: BotTaskMove
 var _cancel_flag: RefCounted
 var _current_task: BotTask
+var _player_thread: Thread
+var _started := false
 
 var code: String:
 	get:
@@ -41,6 +43,22 @@ func _process(delta: float) -> void:
 func new_bot_api() -> RefCounted:
 	return Bot.new(self, _cancel_flag)
 
+func start_bot() -> void:
+	if _started:
+		return
+	_started = true
+	set_process(true)
+	var gdscript := GDScript.new()
+	gdscript.source_code = code
+	gdscript.reload()
+	var instance: Object = gdscript.new()
+	var bot_api: RefCounted = new_bot_api()
+	_player_thread = Thread.new()
+	_player_thread.start(_run_bot_script.bind(instance, bot_api))
+
+func _run_bot_script(instance: Object, bot_api: RefCounted) -> void:
+	instance.run(bot_api)
+
 ## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
 func move(direction: Consts.Direction, callback: Callable) -> void:
 	var offset := _direction_to_offset(direction)
@@ -65,6 +83,11 @@ func cancel() -> void:
 	_cancel_flag.aborted = true
 	if _current_task:
 		_current_task.abort()
+	if _player_thread and _player_thread.is_started():
+		_player_thread.wait_to_finish()
+
+func _exit_tree() -> void:
+	cancel()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):

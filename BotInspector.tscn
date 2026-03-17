@@ -35,6 +35,12 @@ auto_brace_completion_highlight_matching = true
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
 layout_mode = 2
 
+[node name="Play" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768876]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play"
+
 [node name="SaveButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=351019982]
+unique_name_in_owner = true
 layout_mode = 2
 text = "保存"
