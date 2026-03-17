@@ -141,7 +141,7 @@ func _direction_to_offset(direction: Consts.Direction) -> Vector2:
 		_: return Vector2.ZERO
 
 ## 退出时调用，中止当前任务
-func cancel() -> void:
+func abort() -> void:
 	_move_task.abort()
 	if _current_task:
 		_current_task.abort()
@@ -149,7 +149,7 @@ func cancel() -> void:
 		_player_thread.wait_to_finish()
 
 func _exit_tree() -> void:
-	cancel()
+	abort()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
