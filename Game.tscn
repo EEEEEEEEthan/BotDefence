@@ -436,7 +436,6 @@ class_name PathfindingField
 		if Engine.is_editor_hint():
 			queue_redraw()
 
-@onready var tilemap_layer: TileMapLayer = owner.tilemap
 @export var unwalkable_atlas_coords: Array[Vector2i] = []
 @export var destination_atlas_coords: Array[Vector2i] = []
 ## 烘焙结果：瓦片坐标 -> 移动方向（Consts.Cardinal）
@@ -457,6 +456,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	var tilemap_layer = owner.tilemap as TileMapLayer
 	if not Engine.is_editor_hint() or tilemap_layer == null:
 		return
 	var cell_size: Vector2 = tilemap_layer.map_to_local(Vector2i(1, 0)) - tilemap_layer.map_to_local(Vector2i(0, 0))
@@ -470,7 +470,7 @@ func _draw() -> void:
 func bake() -> void:
 	flow_map.clear()
 	_cost_map.clear()
-	var tile_set: TileSet = tilemap_layer.tile_set
+	var tilemap_layer = owner.tilemap as TileMapLayer
 
 	var unwalkable_set := _to_vector2i_set(unwalkable_atlas_coords)
 	var destination_set := _to_vector2i_set(destination_atlas_coords)
