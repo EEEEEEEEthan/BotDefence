@@ -65,7 +65,6 @@ func _set_current_line(line: int) -> void:
 	current_line_changed.emit(line)
 
 func _clear_execution_line() -> void:
-	_running = false
 	_set_current_line(-1)
 
 ## 在所有顶层函数体内每行前注入行号报告与 abort 检查
