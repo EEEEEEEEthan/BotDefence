@@ -7,11 +7,17 @@ extends Node2D
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 const CancelFlagScript := preload("res://CancelFlag.gd")
 
+signal current_line_changed(line: int)  ## -1 表示无执行行
+
 var _move_task: BotTaskMove
 var _cancel_flag: RefCounted
 var _current_task: BotTask
 var _player_thread: Thread
 var _started := false
+var _current_execution_line: int = -1
+
+var current_execution_line: int:
+	get: return _current_execution_line
 
 var code: String:
 	get:
@@ -58,7 +64,7 @@ func start_bot() -> void:
 	_cancel_flag = CancelFlagScript.new()
 	set_process(true)
 	var gdscript := GDScript.new()
-	gdscript.source_code = code
+	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
 	var instance: Object = gdscript.new()
 	var bot_api: RefCounted = new_bot_api()
@@ -67,6 +73,45 @@ func start_bot() -> void:
 
 func _run_bot_script(instance: Object, bot_api: RefCounted) -> void:
 	instance.run(bot_api)
+	call_deferred(&"_clear_execution_line")
+
+func _set_current_line(line: int) -> void:
+	if _current_execution_line == line:
+		return
+	_current_execution_line = line
+	current_line_changed.emit(line)
+
+func _clear_execution_line() -> void:
+	_set_current_line(-1)
+
+## 在 run() 函数体内每行前注入 bot._report_line(N)，用于执行行高亮
+func _inject_line_tracking(source: String) -> String:
+	var lines := source.split("\n")
+	var result: Array[String] = []
+	var in_run_body := false
+	var body_indent := 0
+	for line_index in lines.size():
+		var line: String = lines[line_index]
+		if in_run_body:
+			var line_stripped := line.strip_edges()
+			if line_stripped.is_empty():
+				result.append(line)
+				continue
+			var indent_len := line.length() - line.lstrip(" \t").length()
+			if indent_len <= body_indent and line_stripped.begins_with("func "):
+				in_run_body = false
+				result.append(line)
+				continue
+			if indent_len > body_indent:
+				var indent_str := line.substr(0, indent_len)
+				result.append(indent_str + "bot._report_line(" + str(line_index) + ")")
+			result.append(line)
+			continue
+		if line.strip_edges().begins_with("func run"):
+			in_run_body = true
+			body_indent = line.length() - line.lstrip(" \t").length()
+		result.append(line)
+	return "\n".join(result)
 
 ## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
 func move(direction: Consts.Direction, callback: Callable) -> void:

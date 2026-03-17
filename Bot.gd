@@ -14,6 +14,10 @@ func _init(bot_main: Object, cancel_flag: RefCounted) -> void:
 	_cancel_flag = cancel_flag
 
 
+## 由 BotMain 注入的代码调用，用于高亮当前执行行
+func _report_line(line: int) -> void:
+	_bot_main.call_deferred(&"_set_current_line", line)
+
 func move(direction: int) -> bool:
 	if _cancel_flag.aborted:
 		return false
