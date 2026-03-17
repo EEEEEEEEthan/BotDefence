@@ -5,13 +5,11 @@ extends Node2D
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
-const CancelFlagScript := preload("res://CancelFlag.gd")
 const LineTrackerScript := preload("res://LineTracker.gd")
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
 var _move_task: BotTaskMove
-var _cancel_flag: RefCounted
 var _current_task: BotTask
 var _player_thread: Thread
 var _started := false
@@ -39,7 +37,6 @@ var is_cancelled: bool:
 	get: return _move_task.aborted
 
 func _ready() -> void:
-	_cancel_flag = CancelFlagScript.new()
 	_move_task = BotTaskMove.new(self)
 	set_process(false)
 
@@ -48,12 +45,12 @@ func _process(delta: float) -> void:
 		_current_task = null
 
 func new_bot_api() -> RefCounted:
-	return Bot.new(self, _cancel_flag)
+	return Bot.new(self, _move_task)
 
 func start_bot() -> void:
 	# 先停止已有运行
 	if _started:
-		_cancel_flag.aborted = true
+		_move_task.abort()
 		if _current_task:
 			_current_task.abort()
 		if _player_thread and _player_thread.is_started():
@@ -62,7 +59,7 @@ func start_bot() -> void:
 		_current_task = null
 
 	_started = true
-	_cancel_flag = CancelFlagScript.new()
+	_move_task.reset_aborted()
 	set_process(true)
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
@@ -145,7 +142,7 @@ func _direction_to_offset(direction: Consts.Direction) -> Vector2:
 
 ## 退出时调用，中止当前任务
 func cancel() -> void:
-	_cancel_flag.aborted = true
+	_move_task.abort()
 	if _current_task:
 		_current_task.abort()
 	if _player_thread and _player_thread.is_started():

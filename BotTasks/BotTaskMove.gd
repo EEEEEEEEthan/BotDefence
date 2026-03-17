@@ -24,6 +24,9 @@ func start(target: Vector2, callback: Callable) -> void:
 	_callback = callback
 	_aborted = false
 
+func reset_aborted() -> void:
+	_aborted = false
+
 func abort() -> void:
 	_aborted = true
 	_finish()

@@ -6,15 +6,14 @@ class_name Bot
 ## 返回 true=抵达目标，false=被取消
 
 var _bot_main: Object
-var _cancel_flag: RefCounted
+var _move_task: BotTaskMove
 
-
-func _init(bot_main: Object, cancel_flag: RefCounted) -> void:
+func _init(bot_main: Object, move_task: BotTaskMove) -> void:
 	_bot_main = bot_main
-	_cancel_flag = cancel_flag
+	_move_task = move_task
 
 func move(direction: int) -> bool:
-	if _cancel_flag.aborted:
+	if _move_task.aborted:
 		return false
 	var semaphore := Semaphore.new()
 	var result := [false]
@@ -22,7 +21,7 @@ func move(direction: int) -> bool:
 		result[0] = arrived
 		semaphore.post()
 	_bot_main.call_deferred(&"move", direction, on_arrived)
-	if _cancel_flag.aborted:
+	if _move_task.aborted:
 		return false
 	semaphore.wait()
 	return result[0]
