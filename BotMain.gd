@@ -71,36 +71,55 @@ func _set_current_line(line: int) -> void:
 func _clear_execution_line() -> void:
 	_set_current_line(-1)
 
-## 在 run() 函数体内每行前注入 __report_line.call(N)，用于执行行高亮
-## __report_line 为注入的第二参数，不暴露在 Bot API 上
+## 在所有顶层函数体内每行前注入 __report_line_internal.call(N)，用于执行行高亮
+## run() 接收 __report_line 参数并赋给 __report_line_internal，供全脚本使用
 func _inject_line_tracking(source: String) -> String:
 	var lines := source.split("\n")
 	var result: Array[String] = []
-	var in_run_body := false
+	var in_func_body := false
+	var in_run_func := false
 	var body_indent := 0
+	var first_line_after_extends := true
 	for line_index in lines.size():
 		var line: String = lines[line_index]
-		if in_run_body:
+		if in_func_body:
 			var line_stripped := line.strip_edges()
 			if line_stripped.is_empty():
 				result.append(line)
 				continue
 			var indent_len := line.length() - line.lstrip(" \t").length()
 			if indent_len <= body_indent and line_stripped.begins_with("func "):
-				in_run_body = false
+				in_func_body = false
 				result.append(line)
+				in_func_body = true
+				in_run_func = line_stripped.begins_with("func run")
+				body_indent = indent_len
 				continue
 			if indent_len > body_indent:
 				var indent_str := line.substr(0, indent_len)
-				result.append(indent_str + "__report_line.call(" + str(line_index) + ")")
+				if in_run_func:
+					result.append(indent_str + "__report_line_internal = __report_line")
+					in_run_func = false
+				result.append(indent_str + "__report_line_internal.call(" + str(line_index) + ")")
 			result.append(line)
 			continue
-		if line.strip_edges().begins_with("func run"):
-			in_run_body = true
+		var stripped := line.strip_edges()
+		if stripped.begins_with("func "):
+			if first_line_after_extends:
+				result.append("var __report_line_internal: Callable")
+				first_line_after_extends = false
+			in_func_body = true
+			in_run_func = stripped.begins_with("func run")
 			body_indent = line.length() - line.lstrip(" \t").length()
-			var paren_idx := line.find(")")
-			if paren_idx >= 0:
-				line = line.substr(0, paren_idx) + ", __report_line" + line.substr(paren_idx)
+			if in_run_func:
+				var paren_idx := line.find(")")
+				if paren_idx >= 0:
+					line = line.substr(0, paren_idx) + ", __report_line" + line.substr(paren_idx)
+		elif first_line_after_extends and (stripped.begins_with("extends ") or stripped.begins_with("class_name ")):
+			result.append(line)
+			first_line_after_extends = false
+			result.append("var __report_line_internal: Callable")
+			continue
 		result.append(line)
 	return "\n".join(result)
 
