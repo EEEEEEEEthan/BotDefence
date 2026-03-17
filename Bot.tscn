@@ -249,7 +249,6 @@ const MOVE_DURATION := 1.0
 
 var _callback: Callable
 var _timer: Timer
-var _previous_preferred_position: Vector2
 var _moved := false
 
 func _ready() -> void:
@@ -260,7 +259,6 @@ func _ready() -> void:
 
 func start(direction: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
-	_previous_preferred_position = owner.preferred_position
 	var tilemap: TileMapLayer = owner.owner.tilemap
 	var tile_set: TileSet = tilemap.tile_set
 	var offset: Vector2 = Consts.CARDINAL_TO_DIRECTION[direction]
@@ -280,8 +278,6 @@ func start(direction: Consts.Cardinal, callback: Callable) -> void:
 
 func abort() -> void:
 	_timer.stop()
-	if _moved:
-		owner.preferred_position = _previous_preferred_position
 	_finish(false)
 
 func _on_timeout() -> void:
@@ -312,7 +308,6 @@ const _CARDINAL_ANGLE := {
 var _callback: Callable
 var _running := false
 var _timer: Timer
-var _previous_cardinal: Consts.Cardinal
 
 func _ready() -> void:
 	_timer = Timer.new()
@@ -323,15 +318,12 @@ func _ready() -> void:
 func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
 	_running = true
-	_previous_cardinal = owner.cardinal
 	owner.cardinal = new_cardinal
 	owner.preferred_rotation = _CARDINAL_ANGLE[new_cardinal]
 	_timer.start(TURN_DURATION)
 
 func abort() -> void:
 	_timer.stop()
-	owner.cardinal = _previous_cardinal
-	owner.preferred_rotation = _CARDINAL_ANGLE[_previous_cardinal]
 	_finish(false)
 
 func _on_timeout() -> void:
