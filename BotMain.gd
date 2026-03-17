@@ -5,8 +5,10 @@ extends Node2D
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
+const CancelFlagScript := preload("res://CancelFlag.gd")
 
 var _move_task: BotTaskMove
+var _cancel_flag: RefCounted
 
 var code: String:
 	get:
@@ -25,6 +27,7 @@ var game: Game:
 		return game
 
 func _ready() -> void:
+	_cancel_flag = CancelFlagScript.new()
 	_move_task = BotTaskMove.new(self)
 	set_process(false)
 
@@ -33,7 +36,7 @@ func _process(delta: float) -> void:
 		_current_task = null
 
 func get_bot_api() -> RefCounted:
-	return Bot.new(self)
+	return Bot.new(self, _cancel_flag)
 
 func is_cancelled() -> bool:
 	return _move_task.aborted
@@ -55,6 +58,7 @@ func _direction_to_offset(direction: Consts.Direction) -> Vector2:
 
 ## 退出时调用，中止当前任务
 func cancel() -> void:
+	_cancel_flag.aborted = true
 	if _current_task:
 		_current_task.abort()
 

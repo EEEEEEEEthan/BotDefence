@@ -19,16 +19,18 @@ func _on_play_pressed() -> void:
 	for child in get_children():
 		if child.get_script() == preload("res://BotMain.gd"):
 			child.set_process(true)
+			# GDScript.reload() 和实例化必须在主线程
+			var gdscript := GDScript.new()
+			gdscript.source_code = child.code
+			gdscript.reload()
+			var instance: Object = gdscript.new()
+			var bot_api: RefCounted = child.get_bot_api()
 			var thread := Thread.new()
-			thread.start(_run_bot_script.bind(child))
+			thread.start(_run_bot_script.bind(instance, bot_api))
 			_player_threads.append(thread)
 
-func _run_bot_script(bot_main: Node2D) -> void:
-	var gdscript := GDScript.new()
-	gdscript.source_code = bot_main.code
-	gdscript.reload()
-	var instance: Object = gdscript.new()
-	instance.run(bot_main.get_bot_api())
+func _run_bot_script(instance: Object, bot_api: RefCounted) -> void:
+	instance.run(bot_api)
 
 func _exit_tree() -> void:
 	for child in get_children():

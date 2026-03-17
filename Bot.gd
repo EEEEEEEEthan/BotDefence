@@ -8,14 +8,16 @@ class_name Bot
 const MOVE_STEP := 32.0
 
 var _bot_main: Object
+var _cancel_flag: RefCounted
 
 
-func _init(bot_main: Object) -> void:
+func _init(bot_main: Object, cancel_flag: RefCounted) -> void:
 	_bot_main = bot_main
+	_cancel_flag = cancel_flag
 
 
 func move(direction: int) -> bool:
-	if _bot_main.is_cancelled():
+	if _cancel_flag.aborted:
 		return false
 	var semaphore := Semaphore.new()
 	var result := [false]
@@ -23,7 +25,7 @@ func move(direction: int) -> bool:
 		result[0] = arrived
 		semaphore.post()
 	_bot_main.call_deferred(&"move", direction, on_arrived)
-	if _bot_main.is_cancelled():
+	if _cancel_flag.aborted:
 		return false
 	semaphore.wait()
 	return result[0]
