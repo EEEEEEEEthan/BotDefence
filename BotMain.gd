@@ -5,7 +5,6 @@ extends Node2D
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
-const LineTrackerScript := preload("res://LineTracker.gd")
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
@@ -66,12 +65,12 @@ func start_bot() -> void:
 	gdscript.reload()
 	var instance: Object = gdscript.new()
 	var bot_api: RefCounted = new_bot_api()
-	var line_tracker := LineTrackerScript.new(self)
+	var report_line := func(line: int): self.call_deferred(&"_set_current_line", line)
 	_player_thread = Thread.new()
-	_player_thread.start(_run_bot_script.bind(instance, bot_api, line_tracker))
+	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line))
 
-func _run_bot_script(instance: Object, bot_api: RefCounted, line_tracker: RefCounted) -> void:
-	instance.run(bot_api, line_tracker)
+func _run_bot_script(instance: Object, bot_api: RefCounted, report_line: Callable) -> void:
+	instance.run(bot_api, report_line)
 	call_deferred(&"_clear_execution_line")
 
 func _set_current_line(line: int) -> void:
@@ -83,8 +82,8 @@ func _set_current_line(line: int) -> void:
 func _clear_execution_line() -> void:
 	_set_current_line(-1)
 
-## 在 run() 函数体内每行前注入 __line_tracker.report(N)，用于执行行高亮
-## __line_tracker 为注入的第二参数，不暴露在 Bot API 上
+## 在 run() 函数体内每行前注入 __report_line.call(N)，用于执行行高亮
+## __report_line 为注入的第二参数，不暴露在 Bot API 上
 func _inject_line_tracking(source: String) -> String:
 	var lines := source.split("\n")
 	var result: Array[String] = []
@@ -104,7 +103,7 @@ func _inject_line_tracking(source: String) -> String:
 				continue
 			if indent_len > body_indent:
 				var indent_str := line.substr(0, indent_len)
-				result.append(indent_str + "__line_tracker.report(" + str(line_index) + ")")
+				result.append(indent_str + "__report_line.call(" + str(line_index) + ")")
 			result.append(line)
 			continue
 		if line.strip_edges().begins_with("func run"):
@@ -112,7 +111,7 @@ func _inject_line_tracking(source: String) -> String:
 			body_indent = line.length() - line.lstrip(" \t").length()
 			var paren_idx := line.find(")")
 			if paren_idx >= 0:
-				line = line.substr(0, paren_idx) + ", __line_tracker" + line.substr(paren_idx)
+				line = line.substr(0, paren_idx) + ", __report_line" + line.substr(paren_idx)
 		result.append(line)
 	return "\n".join(result)
 
