@@ -33,7 +33,6 @@ func _ready() -> void:
 	_update_execution_line(bot.current_execution_line)
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
-	$%Save.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
 	code_edit.text_changed.connect(_on_text_changed)
 	_validate_timer = Timer.new()
@@ -58,6 +57,7 @@ func _on_text_changed() -> void:
 	_validate_timer.start(VALIDATE_DEBOUNCE_SEC)
 
 func _validate_syntax() -> void:
+	bot.code = code_edit.text
 	var result := _check_syntax(code_edit.text)
 	error_label.text = result.message
 	code_edit.clear_bookmarked_lines()
@@ -118,10 +118,6 @@ func _on_switch_pressed() -> void:
 	_update_switch_text()
 
 
-func _on_save_pressed() -> void:
-	bot.code = code_edit.text
-
-
 func _on_close_requested() -> void:
 	_save_and_close()
 
@@ -168,11 +164,6 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "▶"
-
-[node name="Save" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=351019982]
-unique_name_in_owner = true
-layout_mode = 2
-text = "保存"
 
 [node name="ErrorLabel" type="Label" parent="VBoxContainer" unique_id=351019983]
 unique_name_in_owner = true

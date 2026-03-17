@@ -45,14 +45,8 @@ var current_execution_line: int:
 var running: bool:
 	get: return _running
 
-var code: String:
-	get:
-		if code.is_empty():
-			var default_file := FileAccess.open(DEFAULT_CODE_PATH, FileAccess.READ)
-			code = default_file.get_as_text()
-		return code
-	set(value):
-		code = value
+@export_multiline
+var code: String
 
 func _ready() -> void:
 	_preferred_position = position
@@ -345,6 +339,11 @@ metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = SubResource("GDScript_sck5o")
+code = "func run(bot) -> void:
+	while true:
+		bot.move_forward()
+		bot.turn_right()
+"
 
 [node name="BotApi" type="Node" parent="." unique_id=2036080268]
 unique_name_in_owner = true
