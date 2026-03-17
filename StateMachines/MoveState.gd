@@ -1,7 +1,7 @@
 extends Node
-class_name MoveNode
+class_name MoveState
 
-## 移动节点，BotMain 的子节点，封装主线程移动逻辑
+## 移动状态，BotMain 的子节点，封装主线程移动逻辑
 ## 抵达或 abort 时调用 callback(success: bool)，success=true 表示抵达，false 表示 abort
 
 const MOVE_SPEED := 200.0

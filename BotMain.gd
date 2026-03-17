@@ -1,17 +1,16 @@
 extends Node2D
 
 ## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move 请求
-## 移动功能由 MoveNode 子节点封装
+## 移动功能由 MoveState 子节点封装
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
-const MoveNodeScript := preload("res://StateMachines/MoveNode.gd")
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
-@onready var _move_node: MoveNodeScript = $%MoveNode
+@onready var _move_state: MoveState = $%MoveState
 @onready var _bot_api: Node = $%BotApi
-var _current_task: Object  ## BotTask 或 MoveNode，均有 abort()
+var _current_state: Object  ## BotTask 或 MoveState，均有 abort()
 var _player_thread: Thread
 var _started := false
 var _current_execution_line: int = -1
@@ -34,21 +33,17 @@ var game: Game:
 			game = get_parent()
 		return game
 
-var aborted: bool:
-	get: return _move_node.aborted
-
 func start_bot() -> void:
 	# 先停止已有运行
 	if _started:
-		_move_node.abort()
-		if _current_task:
-			_current_task.abort()
+		if _current_state:
+			_current_state.abort()
 		if _player_thread and _player_thread.is_started():
 			_player_thread.wait_to_finish()
-		_current_task = null
+		_current_state = null
 
 	_started = true
-	_move_node.reset_aborted()
+	_move_state.reset_aborted()
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
@@ -143,16 +138,15 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
 	var target := current_center + offset * tile_size
 	var wrapped := func(arrived: bool):
-		_current_task = null
+		_current_state = null
 		callback.call(arrived)
-	_current_task = _move_node
-	_move_node.start(target, wrapped)
+	_current_state = _move_state
+	_move_state.start(target, wrapped)
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
-	_move_node.abort()
-	if _current_task:
-		_current_task.abort()
+	if _current_state:
+		_current_state.abort()
 	if _player_thread and _player_thread.is_started():
 		_player_thread.wait_to_finish()
 
