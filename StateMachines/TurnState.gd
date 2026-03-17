@@ -1,4 +1,4 @@
-extends Node
+extends BaseState
 class_name TurnState
 
 ## 瞬时设置 cardinal 与 preferred_rotation，等待 TURN_DURATION 后 callback
@@ -26,7 +26,6 @@ func _ready() -> void:
 func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
 	_running = true
-	var bot_main: Node = owner
 	_previous_cardinal = bot_main.cardinal
 	bot_main.cardinal = new_cardinal
 	bot_main.preferred_rotation = _CARDINAL_ANGLE[new_cardinal]
@@ -34,7 +33,6 @@ func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
 
 func abort() -> void:
 	_timer.stop()
-	var bot_main: Node = owner
 	bot_main.cardinal = _previous_cardinal
 	bot_main.preferred_rotation = _CARDINAL_ANGLE[_previous_cardinal]
 	_finish(false)
