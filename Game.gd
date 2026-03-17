@@ -24,7 +24,7 @@ func _on_play_pressed() -> void:
 			gdscript.source_code = child.code
 			gdscript.reload()
 			var instance: Object = gdscript.new()
-			var bot_api: RefCounted = child.get_bot_api()
+			var bot_api: RefCounted = child.new_bot_api()
 			var thread := Thread.new()
 			thread.start(_run_bot_script.bind(instance, bot_api))
 			_player_threads.append(thread)

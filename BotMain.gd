@@ -35,11 +35,11 @@ func _process(delta: float) -> void:
 	if _move_task.process(delta):
 		_current_task = null
 
-func get_bot_api() -> RefCounted:
+func new_bot_api() -> RefCounted:
 	return Bot.new(self, _cancel_flag)
 
-func is_cancelled() -> bool:
-	return _move_task.aborted
+var is_cancelled: bool:
+	get: return _move_task.aborted
 
 ## 由 Bot 通过 call_deferred 调用，direction 为 Consts.NORTH/SOUTH/EAST/WEST
 func move(direction: Consts.Direction, callback: Callable) -> void:
