@@ -1,17 +1,18 @@
 extends Node2D
 
-## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move 请求
-## 移动功能由 MoveState 子节点封装
+## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move_forward/turn 请求
+## 移动与转向由 MoveForwardState、TurnState 子节点封装
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
-@onready var _move_state: MoveState = $%MoveState
+@onready var _move_forward_state: MoveForwardState = $%MoveForwardState
+@onready var _turn_state: TurnState = $%TurnState
 @onready var _bot_api: Node = $%BotApi
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
-var _current_state: Object  ## BotTask 或 MoveState，均有 abort()
+var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 var _player_thread: Thread
 var _running := false
 var _current_execution_line: int = -1
@@ -116,15 +117,15 @@ func _inject_line_tracking(source: String) -> String:
 		result.append(line)
 	return "\n".join(result)
 
-## 由 Bot 通过 call_deferred 调用，direction 为 Consts.Cardinal
-func move(direction: Consts.Cardinal, callback: Callable) -> void:
+## 由 Bot 通过 call_deferred 调用
+func move_forward(callback: Callable) -> void:
 	var tile_set: TileSet = game.tilemap.tile_set
 	if tile_set == null:
 		push_error("TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源")
 		callback.call(false)
 		return
 	var offset: Vector2
-	match direction:
+	match cardinal:
 		Consts.Cardinal.NORTH: offset = Vector2(0, -1)
 		Consts.Cardinal.SOUTH: offset = Vector2(0, 1)
 		Consts.Cardinal.EAST: offset = Vector2(1, 0)
@@ -137,11 +138,29 @@ func move(direction: Consts.Cardinal, callback: Callable) -> void:
 	var target := current_center + offset * tile_size
 	var wrapped := func(arrived: bool):
 		_current_state = null
-		if arrived:
-			cardinal = direction
 		callback.call(arrived)
-	_current_state = _move_state
-	_move_state.start(target, wrapped)
+	_current_state = _move_forward_state
+	_move_forward_state.start(target, wrapped)
+
+const _CARDINAL_ORDER := [Consts.Cardinal.NORTH, Consts.Cardinal.EAST, Consts.Cardinal.SOUTH, Consts.Cardinal.WEST]
+
+func turn_left(callback: Callable) -> void:
+	var idx: int = _CARDINAL_ORDER.find(cardinal)
+	var new_cardinal: Consts.Cardinal = _CARDINAL_ORDER[(idx + 3) % 4]
+	var wrapped := func(arrived: bool):
+		_current_state = null
+		callback.call(arrived)
+	_current_state = _turn_state
+	_turn_state.start(new_cardinal, wrapped)
+
+func turn_right(callback: Callable) -> void:
+	var idx: int = _CARDINAL_ORDER.find(cardinal)
+	var new_cardinal: Consts.Cardinal = _CARDINAL_ORDER[(idx + 1) % 4]
+	var wrapped := func(arrived: bool):
+		_current_state = null
+		callback.call(arrived)
+	_current_state = _turn_state
+	_turn_state.start(new_cardinal, wrapped)
 
 ## 退出时调用，中止当前任务
 func abort() -> void:

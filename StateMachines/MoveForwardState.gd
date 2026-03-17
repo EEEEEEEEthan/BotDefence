@@ -1,8 +1,8 @@
 extends Node
-class_name MoveState
+class_name MoveForwardState
 
-## 移动状态，BotMain 的子节点，封装主线程移动逻辑
-## 抵达或 abort 时调用 callback(success: bool)，success=true 表示抵达，false 表示 abort
+## 向前移动状态，沿当前 cardinal 方向移动一格
+## 抵达或 abort 时调用 callback(success: bool)
 
 const MOVE_SPEED := 200.0
 const ARRIVAL_THRESHOLD := 5.0
@@ -10,10 +10,6 @@ const ARRIVAL_THRESHOLD := 5.0
 var _target: Vector2
 var _callback: Callable
 var _running := false
-
-var running: bool:
-	get:
-		return _running
 
 func _ready() -> void:
 	set_process(false)
