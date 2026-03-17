@@ -47,16 +47,18 @@ func _validate_syntax() -> void:
 	var result := _check_syntax(code_edit.text)
 	error_label.text = result.message
 	code_edit.clear_bookmarked_lines()
-	var error_line: int = result.line
-	if error_line < 0:
-		error_line = _parse_error_line(result.message)
-	else:
-		error_line -= 1  ## Logger 行号 1-based，CodeEdit 0-based
-	if error_line >= 0 and error_line < code_edit.get_line_count():
-		code_edit.set_line_as_bookmarked(error_line, true)
+	var lines: Array[int] = result.lines
+	if lines.is_empty() and result.message:
+		var parsed_line: int = _parse_error_line(result.message)
+		if parsed_line >= 0:
+			lines.append(parsed_line + 1)  ## 0-based → 1-based 用于 bookmark
+	for line_one_based in lines:
+		var line_index: int = line_one_based - 1
+		if line_index >= 0 and line_index < code_edit.get_line_count():
+			code_edit.set_line_as_bookmarked(line_index, true)
 
 func _check_syntax(source: String) -> Dictionary:
-	var empty := {"message": "", "line": -1}
+	var empty := {"message": "", "lines": []}
 	if source.is_empty():
 		return empty
 	var capture: Logger = null
@@ -72,17 +74,21 @@ func _check_syntax(source: String) -> Dictionary:
 	if err == OK:
 		return empty
 	if err == ERR_PARSE_ERROR:
-		var msg := "语法错误"
-		var err_line := -1
+		var lines: Array[int] = []
+		var msg_parts: Array[String] = []
 		if capture:
-			var cap_msg: String = capture.get("message")
-			var cap_line: int = capture.get("line")
-			if cap_msg:
-				msg = cap_msg
-			if cap_line >= 0:
-				err_line = cap_line
-		return {"message": msg, "line": err_line}
-	return {"message": "加载失败 (错误码 %d)" % err, "line": -1}
+			var cap_errors: Array = capture.get("errors")
+			for err_item in cap_errors:
+				var item_msg: String = err_item.get("message", "")
+				var item_line: int = err_item.get("line", -1)
+				if item_msg:
+					msg_parts.append("第%d行: %s" % [item_line, item_msg] if item_line > 0 else item_msg)
+				if item_line > 0:
+					lines.append(item_line)
+		if msg_parts.is_empty():
+			msg_parts.append("语法错误")
+		return {"message": "\n".join(msg_parts), "lines": lines}
+	return {"message": "加载失败 (错误码 %d)" % err, "lines": []}
 
 func _parse_error_line(msg: String) -> int:
 	var regex := RegEx.new()
