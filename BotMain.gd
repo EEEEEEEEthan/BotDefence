@@ -32,7 +32,7 @@ var game: Game:
 			game = get_parent()
 		return game
 
-var is_cancelled: bool:
+var aborted: bool:
 	get: return _move_task.aborted
 
 func _ready() -> void:
