@@ -1,8 +1,17 @@
 [gd_scene format=4 uid="uid://ri6jg3hsmjys"]
 
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot.tscn" id="1_wbfu4"]
-[ext_resource type="Script" uid="uid://yhpyx1haq1bj" path="res://Game.gd" id="2_game"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
+
+[sub_resource type="GDScript" id="GDScript_xkndl"]
+script/source = "extends Node
+class_name Game
+
+## 每个 Bot 用各自保存的代码在子线程运行
+## 每个 Bot 通过自己的检视器 Play 按钮独立启动脚本
+
+@onready var tilemap: TileMapLayer = $%TileMapLayer
+"
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u44n3"]
 resource_name = "Platform"
@@ -302,7 +311,7 @@ navigation_layer_0/layers = 1
 sources/0 = SubResource("TileSetAtlasSource_u44n3")
 
 [node name="Game" type="Node" unique_id=684061255]
-script = ExtResource("2_game")
+script = SubResource("GDScript_xkndl")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2118065095]
 unique_name_in_owner = true

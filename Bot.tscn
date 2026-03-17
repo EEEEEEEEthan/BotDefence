@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
-[ext_resource type="Script" uid="uid://cvdce2m6xvan" path="res://Bot.gd" id="4_bot_api"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
 
 [sub_resource type="GDScript" id="GDScript_sck5o"]
@@ -51,12 +50,6 @@ var code: String:
 		return code
 	set(value):
 		code = value
-
-var game: Game:
-	get:
-		if not game:
-			game = get_parent()
-		return game
 
 func _ready() -> void:
 	_preferred_position = position
@@ -151,7 +144,7 @@ func _inject_line_tracking(source: String) -> String:
 
 ## 由 Bot 通过 call_deferred 调用
 func move_forward(callback: Callable) -> void:
-	var tile_set: TileSet = game.tilemap.tile_set
+	var tile_set: TileSet = owner.tilemap.tile_set
 	if tile_set == null:
 		push_error(\"TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源\")
 		callback.call(false)
@@ -163,7 +156,7 @@ func move_forward(callback: Callable) -> void:
 		Consts.Cardinal.EAST: offset = Vector2(1, 0)
 		Consts.Cardinal.WEST: offset = Vector2(-1, 0)
 		_: offset = Vector2.ZERO
-	var tile_size: Vector2 = Vector2(tile_set.tile_size) * game.tilemap.scale
+	var tile_size: Vector2 = Vector2(tile_set.tile_size) * owner.tilemap.scale
 	var tile_x: float = floor(position.x / tile_size.x)
 	var tile_y: float = floor(position.y / tile_size.y)
 	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
@@ -224,6 +217,37 @@ func _open_inspector() -> void:
 	inspector.set_meta(\"bot_main\", self)
 	get_tree().root.add_child(inspector)
 	inspector.popup_centered()
+"
+
+[sub_resource type="GDScript" id="GDScript_ro7h1"]
+script/source = "extends Node
+class_name Bot
+
+## 玩家可见的 Bot API，作为 BotMain 的子节点
+## 子线程中通过 call_deferred 将操作交给 BotMain，完成后 callback 解除阻塞
+## 返回 true=完成，false=被取消
+
+var cardinal: Consts.Cardinal:
+	get: return get_parent().cardinal
+
+func move_forward() -> bool:
+	return _deferred_call(\"move_forward\")
+
+func turn_left() -> bool:
+	return _deferred_call(\"turn_left\")
+
+func turn_right() -> bool:
+	return _deferred_call(\"turn_right\")
+
+func _deferred_call(method: StringName) -> bool:
+	var semaphore := Semaphore.new()
+	var result := [false]
+	var on_done := func(done: bool):
+		result[0] = done
+		semaphore.post()
+	owner.call_deferred(method, on_done)
+	semaphore.wait()
+	return result[0]
 "
 
 [sub_resource type="GDScript" id="GDScript_q6hsy"]
@@ -330,7 +354,7 @@ script = SubResource("GDScript_sck5o")
 
 [node name="BotApi" type="Node" parent="." unique_id=2036080268]
 unique_name_in_owner = true
-script = ExtResource("4_bot_api")
+script = SubResource("GDScript_ro7h1")
 
 [node name="MoveForwardState" type="Node" parent="." unique_id=395237652]
 unique_name_in_owner = true
