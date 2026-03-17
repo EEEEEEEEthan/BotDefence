@@ -2,14 +2,15 @@
 
 [ext_resource type="Script" uid="uid://ca8c1rjqk8f7n" path="res://BotMain.gd" id="1_bot"]
 [ext_resource type="Script" uid="uid://qfi8oo5mx5fn" path="res://MoveNode.gd" id="2_move"]
-[ext_resource type="Script" path="res://Bot.gd" id="3_bot_api"]
+[ext_resource type="Script" uid="uid://cvdce2m6xvan" path="res://Bot.gd" id="3_bot_api"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xqtm5"]
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_bot")
 
-[node name="BotApi" type="Node" parent="." unique_name_in_owner = true]
+[node name="BotApi" type="Node" parent="." unique_id=2036080268]
+unique_name_in_owner = true
 script = ExtResource("3_bot_api")
 
 [node name="MoveNode" type="Node" parent="." unique_id=458745791]
