@@ -1,8 +1,230 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
-[ext_resource type="Script" uid="uid://ca8c1rjqk8f7n" path="res://BotMain.gd" id="1_bot"]
 [ext_resource type="Script" uid="uid://cvdce2m6xvan" path="res://Bot.gd" id="4_bot_api"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
+
+[sub_resource type="GDScript" id="GDScript_sck5o"]
+script/source = "extends Node2D
+
+## 主线程 Bot 逻辑，通过 call_deferred 接收 Bot 的 move_forward/turn 请求
+## 移动与转向由 MoveForwardState、TurnState 子节点封装
+## 移动/转向瞬时修改 preferred_position/preferred_rotation，等待后 callback，BotMain 每帧插值
+
+const DEFAULT_CODE_PATH := \"res://player_code.gd\"
+
+signal current_line_changed(line: int)  ## -1 表示无执行行
+
+@onready var _bot_api: Node = $%BotApi
+var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
+
+var preferred_position: Vector2:
+	get: return _preferred_position
+	set(value): _preferred_position = value
+var _preferred_position: Vector2
+
+var preferred_rotation: float:
+	get: return _preferred_rotation
+	set(value): _preferred_rotation = value
+var _preferred_rotation: float
+
+const _POSITION_LERP_SPEED := 8.0
+const _ROTATION_LERP_SPEED := 12.0
+const _CARDINAL_ANGLE := {
+	Consts.Cardinal.NORTH: 0.0,
+	Consts.Cardinal.EAST: TAU / 4,
+	Consts.Cardinal.SOUTH: TAU / 2,
+	Consts.Cardinal.WEST: -TAU / 4
+}
+var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
+var _player_thread: Thread
+var _running := false
+var _current_execution_line: int = -1
+
+var current_execution_line: int:
+	get: return _current_execution_line
+
+var code: String:
+	get:
+		if code.is_empty():
+			var default_file := FileAccess.open(DEFAULT_CODE_PATH, FileAccess.READ)
+			code = default_file.get_as_text()
+		return code
+	set(value):
+		code = value
+
+var game: Game:
+	get:
+		if not game:
+			game = get_parent()
+		return game
+
+func _ready() -> void:
+	_preferred_position = position
+	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
+	rotation = _preferred_rotation
+
+func _process(delta: float) -> void:
+	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
+	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
+
+func start_bot() -> void:
+	abort()
+	_running = true
+	var gdscript := GDScript.new()
+	gdscript.source_code = _inject_line_tracking(code)
+	gdscript.reload()
+	var instance: Object = gdscript.new()
+	var bot_api: Node = _bot_api
+	var report_line := func(line: int): self.call_deferred(&\"_set_current_line\", line)
+	var abort_check := func() -> bool: return not _running
+	_player_thread = Thread.new()
+	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line, abort_check))
+
+func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable, abort_check: Callable) -> void:
+	instance.run(bot_api, report_line, abort_check)
+	call_deferred(&\"_clear_execution_line\")
+
+func _set_current_line(line: int) -> void:
+	if _current_execution_line == line:
+		return
+	_current_execution_line = line
+	current_line_changed.emit(line)
+
+func _clear_execution_line() -> void:
+	_set_current_line(-1)
+
+## 在所有顶层函数体内每行前注入行号报告与 abort 检查
+## run() 接收 __report_line、__abort_check，每行执行前检查 abort 以支持协作式退出（含死循环）
+func _inject_line_tracking(source: String) -> String:
+	var lines := source.split(\"\\n\")
+	var result: Array[String] = []
+	var in_func_body := false
+	var in_run_func := false
+	var body_indent := 0
+	var first_line_after_extends := true
+	for line_index in lines.size():
+		var line: String = lines[line_index]
+		if in_func_body:
+			var line_stripped := line.strip_edges()
+			if line_stripped.is_empty():
+				result.append(line)
+				continue
+			var indent_len := line.length() - line.lstrip(\" \\t\").length()
+			if indent_len <= body_indent and line_stripped.begins_with(\"func \"):
+				in_func_body = false
+				result.append(line)
+				in_func_body = true
+				in_run_func = line_stripped.begins_with(\"func run\")
+				body_indent = indent_len
+				continue
+			if indent_len > body_indent:
+				var indent_str := line.substr(0, indent_len)
+				if in_run_func:
+					result.append(indent_str + \"__report_line_internal = __report_line\")
+					result.append(indent_str + \"__abort_check_internal = __abort_check\")
+					in_run_func = false
+				result.append(indent_str + \"if __abort_check_internal.call(): return\")
+				result.append(indent_str + \"__report_line_internal.call(\" + str(line_index) + \")\")
+			result.append(line)
+			continue
+		var stripped := line.strip_edges()
+		if stripped.begins_with(\"func \"):
+			if first_line_after_extends:
+				result.append(\"var __report_line_internal: Callable\")
+				result.append(\"var __abort_check_internal: Callable\")
+				first_line_after_extends = false
+			in_func_body = true
+			in_run_func = stripped.begins_with(\"func run\")
+			body_indent = line.length() - line.lstrip(\" \\t\").length()
+			if in_run_func:
+				var paren_idx := line.find(\")\")
+				if paren_idx >= 0:
+					line = line.substr(0, paren_idx) + \", __report_line, __abort_check\" + line.substr(paren_idx)
+		elif first_line_after_extends and (stripped.begins_with(\"extends \") or stripped.begins_with(\"class_name \")):
+			result.append(line)
+			first_line_after_extends = false
+			result.append(\"var __report_line_internal: Callable\")
+			result.append(\"var __abort_check_internal: Callable\")
+			continue
+		result.append(line)
+	return \"\\n\".join(result)
+
+## 由 Bot 通过 call_deferred 调用
+func move_forward(callback: Callable) -> void:
+	var tile_set: TileSet = game.tilemap.tile_set
+	if tile_set == null:
+		push_error(\"TileMapLayer 未分配 tile_set，请在 Game 场景中为 TileMapLayer 指定 TileSet 资源\")
+		callback.call(false)
+		return
+	var offset: Vector2
+	match cardinal:
+		Consts.Cardinal.NORTH: offset = Vector2(0, -1)
+		Consts.Cardinal.SOUTH: offset = Vector2(0, 1)
+		Consts.Cardinal.EAST: offset = Vector2(1, 0)
+		Consts.Cardinal.WEST: offset = Vector2(-1, 0)
+		_: offset = Vector2.ZERO
+	var tile_size: Vector2 = Vector2(tile_set.tile_size) * game.tilemap.scale
+	var tile_x: float = floor(position.x / tile_size.x)
+	var tile_y: float = floor(position.y / tile_size.y)
+	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
+	var target := current_center + offset * tile_size
+	var wrapped := func(arrived: bool):
+		_current_state = null
+		callback.call(arrived)
+	_current_state = $%MoveForwardState
+	_current_state.start(target, wrapped)
+
+const _CARDINAL_ORDER := [Consts.Cardinal.NORTH, Consts.Cardinal.EAST, Consts.Cardinal.SOUTH, Consts.Cardinal.WEST]
+
+func turn_left(callback: Callable) -> void:
+	var idx: int = _CARDINAL_ORDER.find(cardinal)
+	var new_cardinal: Consts.Cardinal = _CARDINAL_ORDER[(idx + 3) % 4]
+	var wrapped := func(arrived: bool):
+		_current_state = null
+		callback.call(arrived)
+	_current_state = $%TurnState
+	_current_state.start(new_cardinal, wrapped)
+
+func turn_right(callback: Callable) -> void:
+	var idx: int = _CARDINAL_ORDER.find(cardinal)
+	var new_cardinal: Consts.Cardinal = _CARDINAL_ORDER[(idx + 1) % 4]
+	var wrapped := func(arrived: bool):
+		_current_state = null
+		callback.call(arrived)
+	_current_state = $%TurnState
+	_current_state.start(new_cardinal, wrapped)
+
+## 退出时调用，中止当前任务
+func abort() -> void:
+	_running = false
+	if _current_state:
+		_current_state.abort()
+		_current_state = null
+	if _player_thread and _player_thread.is_alive():
+		_player_thread.wait_to_finish()
+		_player_thread = null
+
+func _exit_tree() -> void:
+	abort()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	var sprite: Sprite2D = $Sprite2D
+	var rect: Rect2 = sprite.get_rect()
+	var global_rect := Rect2(
+		sprite.global_position + rect.position * sprite.global_scale,
+		rect.size * sprite.global_scale
+	)
+	if global_rect.has_point(get_global_mouse_position()):
+		_open_inspector()
+
+func _open_inspector() -> void:
+	var inspector: Window = preload(\"res://Inspector/BotInspector.tscn\").instantiate()
+	inspector.set_meta(\"bot_main\", self)
+	get_tree().root.add_child(inspector)
+	inspector.popup_centered()
+"
 
 [sub_resource type="GDScript" id="GDScript_q6hsy"]
 script/source = "extends Node
@@ -104,7 +326,7 @@ _hex_data = "89504e470d0a1a0a0000000d4948445200000008000000080806000000c40fbe8b0
 metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 
 [node name="Bot" type="Node2D" unique_id=11366525]
-script = ExtResource("1_bot")
+script = SubResource("GDScript_sck5o")
 
 [node name="BotApi" type="Node" parent="." unique_id=2036080268]
 unique_name_in_owner = true
