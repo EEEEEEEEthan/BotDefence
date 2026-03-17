@@ -10,6 +10,16 @@ script/source = "extends Window
 const HIGHLIGHTER := preload(\"res://GDScriptHighlighter.tres\")
 const VALIDATE_DEBOUNCE_SEC := 0.3
 
+class ParseErrorCapture extends Logger:
+	var errors: Array[Dictionary] = []
+	var _mutex: Mutex = Mutex.new()
+
+	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
+		_mutex.lock()
+		var msg: String = rationale if rationale else code
+		errors.append({\"message\": msg, \"line\": error_line})
+		_mutex.unlock()
+
 @onready var code_edit: CodeEdit = $VBoxContainer/CodeEdit
 @onready var play_button: Button = $VBoxContainer/HBoxContainer/Play
 @onready var save_button: Button = $VBoxContainer/HBoxContainer/SaveButton
@@ -65,8 +75,7 @@ func _check_syntax(source: String) -> Dictionary:
 	var empty: Dictionary = {\"message\": \"\", \"lines\": empty_lines}
 	if source.is_empty():
 		return empty
-	var CaptureClass := load(\"res://Inspector/ParseErrorCapture.gd\") as GDScript
-	var capture: Logger = CaptureClass.new()
+	var capture: ParseErrorCapture = ParseErrorCapture.new()
 	OS.add_logger(capture)
 	var gdscript := GDScript.new()
 	gdscript.source_code = source
@@ -77,7 +86,7 @@ func _check_syntax(source: String) -> Dictionary:
 	if err == ERR_PARSE_ERROR:
 		var lines: Array[int] = []
 		var msg_parts: Array[String] = []
-		var cap_errors: Array = capture.get(\"errors\")
+		var cap_errors: Array[Dictionary] = capture.errors
 		for err_item in cap_errors:
 			var item_msg: String = err_item.get(\"message\", \"\")
 			var item_line: int = err_item.get(\"line\", -1)
