@@ -10,6 +10,7 @@ signal current_line_changed(line: int)  ## -1 表示无执行行
 
 @onready var _move_state: MoveState = $%MoveState
 @onready var _bot_api: Node = $%BotApi
+var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 var _current_state: Object  ## BotTask 或 MoveState，均有 abort()
 var _player_thread: Thread
 var _running := false
@@ -136,6 +137,8 @@ func move(direction: Consts.Cardinal, callback: Callable) -> void:
 	var target := current_center + offset * tile_size
 	var wrapped := func(arrived: bool):
 		_current_state = null
+		if arrived:
+			cardinal = direction
 		callback.call(arrived)
 	_current_state = _move_state
 	_move_state.start(target, wrapped)

@@ -5,6 +5,9 @@ class_name Bot
 ## 子线程中通过 call_deferred 将移动交给 BotMain，抵达后 callback 解除阻塞
 ## 返回 true=抵达目标，false=被取消
 
+var cardinal: Consts.Cardinal:
+	get: return get_parent().cardinal
+
 func move(direction: int) -> bool:
 	var semaphore := Semaphore.new()
 	var result := [false]
