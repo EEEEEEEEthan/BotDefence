@@ -37,7 +37,7 @@ var aborted: bool:
 	get: return _move_node.aborted
 
 func new_bot_api() -> RefCounted:
-	return Bot.new(self, _move_node)
+	return Bot.new(self)
 
 func start_bot() -> void:
 	# 先停止已有运行
