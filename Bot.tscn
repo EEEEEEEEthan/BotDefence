@@ -143,6 +143,7 @@ func _inject_line_tracking(source: String) -> String:
 	return \"\\n\".join(result)
 
 ## 由 Bot 通过 call_deferred 调用
+## Bot 只能在 platform 格子上移动，目标非 platform 则 return false
 func move_forward(callback: Callable) -> void:
 	var tile_set: TileSet = owner.tilemap.tile_set
 	if tile_set == null:
@@ -159,6 +160,11 @@ func move_forward(callback: Callable) -> void:
 	var tile_size: Vector2 = Vector2(tile_set.tile_size) * owner.tilemap.scale
 	var tile_x: float = floor(position.x / tile_size.x)
 	var tile_y: float = floor(position.y / tile_size.y)
+	var target_tile := Vector2i(int(tile_x), int(tile_y)) + Vector2i(int(offset.x), int(offset.y))
+	var tile_data: TileData = owner.tilemap.get_cell_tile_data(target_tile)
+	if not tile_data or tile_data.get_custom_data(\"platform\") != true:
+		callback.call(false)
+		return
 	var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
 	var target := current_center + offset * tile_size
 	var wrapped := func(arrived: bool):
