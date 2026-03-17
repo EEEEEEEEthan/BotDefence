@@ -438,18 +438,11 @@ class_name PathfindingField
 		if Engine.is_editor_hint():
 			queue_redraw()
 
-## 引用的 TileMapLayer
-@export var tilemap_layer: TileMapLayer
-
-## 不可走的瓦片 atlas 坐标（如墙体）
+@onready var tilemap_layer: TileMapLayer = owner.tilemap
 @export var unwalkable_atlas_coords: Array[Vector2i] = []
-
-## 终点瓦片的 atlas 坐标（可走且为目标）
 @export var destination_atlas_coords: Array[Vector2i] = []
-
 ## 烘焙结果：瓦片坐标 -> 移动方向（单位向量）
 var flow_map: Dictionary = {}
-
 var _cost_map: Dictionary = {}
 const _NEIGHBORS := [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
 
