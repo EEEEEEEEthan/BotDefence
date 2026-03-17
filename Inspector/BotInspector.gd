@@ -63,7 +63,7 @@ func _check_syntax(source: String) -> Dictionary:
 		return empty
 	var capture: Logger = null
 	if ClassDB.class_exists(&"Logger"):
-		var CaptureClass := load("res://ParseErrorCapture.gd") as GDScript
+		var CaptureClass := load("res://Inspector/ParseErrorCapture.gd") as GDScript
 		capture = CaptureClass.new()
 		OS.add_logger(capture)
 	var gdscript := GDScript.new()

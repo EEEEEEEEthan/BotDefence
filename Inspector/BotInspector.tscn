@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bqx3dnnoqbjo5"]
 
-[ext_resource type="Script" uid="uid://0ju2aw02ursj" path="res://BotInspector.gd" id="1_inspector"]
+[ext_resource type="Script" uid="uid://coc7tuf66qci7" path="res://Inspector/BotInspector.gd" id="1_inspector"]
 
 [node name="BotInspector" type="Window" unique_id=358476760]
 oversampling_override = 1.0

@@ -5,7 +5,7 @@ extends Node2D
 ## 每个 Bot 在内存中保存自己的代码，默认与 player_code 相同
 
 const DEFAULT_CODE_PATH := "res://player_code.gd"
-const MoveNodeScript := preload("res://MoveNode.gd")
+const MoveNodeScript := preload("res://StateMachines/MoveNode.gd")
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
 
@@ -172,7 +172,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_inspector()
 
 func _open_inspector() -> void:
-	var inspector: Window = preload("res://BotInspector.tscn").instantiate()
+	var inspector: Window = preload("res://Inspector/BotInspector.tscn").instantiate()
 	inspector.set_meta("bot_main", self)
 	get_tree().root.add_child(inspector)
 	inspector.popup_centered()
