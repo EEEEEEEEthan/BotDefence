@@ -12,7 +12,7 @@ signal current_line_changed(line: int)  ## -1 表示无执行行
 @onready var _bot_api: Node = $%BotApi
 var _current_state: Object  ## BotTask 或 MoveState，均有 abort()
 var _player_thread: Thread
-var _started := false
+var _running := false
 var _current_execution_line: int = -1
 
 var current_execution_line: int:
@@ -35,14 +35,14 @@ var game: Game:
 
 func start_bot() -> void:
 	# 先停止已有运行
-	if _started:
+	if _running:
 		if _current_state:
 			_current_state.abort()
-		if _player_thread and _player_thread.is_started():
+		if _player_thread and _player_thread.is_running():
 			_player_thread.wait_to_finish()
 		_current_state = null
 
-	_started = true
+	_running = true
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
@@ -146,7 +146,7 @@ func move(direction: Consts.Direction, callback: Callable) -> void:
 func abort() -> void:
 	if _current_state:
 		_current_state.abort()
-	if _player_thread and _player_thread.is_started():
+	if _player_thread and _player_thread.is_running():
 		_player_thread.wait_to_finish()
 
 func _exit_tree() -> void:
