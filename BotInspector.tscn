@@ -25,16 +25,14 @@ class ParseErrorCapture extends Logger:
 @onready var save_button: Button = $VBoxContainer/HBoxContainer/SaveButton
 @onready var error_label: Label = $VBoxContainer/ErrorLabel
 
-var _bot_main: Node2D
+var bot: Node2D
 var _validate_timer: Timer
 
-
 func _ready() -> void:
-	_bot_main = get_meta(\"bot_main\")
-	code_edit.text = _bot_main.code
+	code_edit.text = bot.code
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
-	_bot_main.current_line_changed.connect(_on_current_line_changed)
-	_update_execution_line(_bot_main.current_execution_line)
+	bot.current_line_changed.connect(_on_current_line_changed)
+	_update_execution_line(bot.current_execution_line)
 	play_button.pressed.connect(_on_play_pressed)
 	save_button.pressed.connect(_on_save_pressed)
 	close_requested.connect(_on_close_requested)
@@ -109,12 +107,12 @@ func _parse_error_line(msg: String) -> int:
 func _on_play_pressed() -> void:
 	if not _check_syntax(code_edit.text).message.is_empty():
 		return
-	_bot_main.code = code_edit.text
-	_bot_main.start_bot()
+	bot.code = code_edit.text
+	bot.start_bot()
 
 
 func _on_save_pressed() -> void:
-	_bot_main.code = code_edit.text
+	bot.code = code_edit.text
 
 
 func _on_close_requested() -> void:
@@ -122,7 +120,7 @@ func _on_close_requested() -> void:
 
 
 func _save_and_close() -> void:
-	_bot_main.code = code_edit.text
+	bot.code = code_edit.text
 	queue_free()
 "
 

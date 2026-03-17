@@ -215,8 +215,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _open_inspector() -> void:
 	var placeholder: InstancePlaceholder = $BotInspector
 	var inspector: Window = placeholder.create_instance()
+	inspector.bot = self
 	inspector.reparent(get_tree().root)
-	inspector.set_meta(\"bot_main\", self)
 	inspector.popup_centered()
 "
 
