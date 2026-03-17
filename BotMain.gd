@@ -44,9 +44,18 @@ func new_bot_api() -> RefCounted:
 	return Bot.new(self, _cancel_flag)
 
 func start_bot() -> void:
+	# 先停止已有运行
 	if _started:
-		return
+		_cancel_flag.aborted = true
+		if _current_task:
+			_current_task.abort()
+		if _player_thread and _player_thread.is_started():
+			_player_thread.wait_to_finish()
+		set_process(false)
+		_current_task = null
+
 	_started = true
+	_cancel_flag = CancelFlagScript.new()
 	set_process(true)
 	var gdscript := GDScript.new()
 	gdscript.source_code = code
