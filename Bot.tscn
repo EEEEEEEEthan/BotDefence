@@ -4,8 +4,14 @@
 [ext_resource type="Script" uid="uid://oe40psgbsipx" path="res://StateMachines/MoveForwardState.gd" id="2_move_forward"]
 [ext_resource type="Script" uid="uid://dfw7w4rlxlhrs" path="res://StateMachines/TurnState.gd" id="3_turn"]
 [ext_resource type="Script" uid="uid://cvdce2m6xvan" path="res://Bot.gd" id="4_bot_api"]
+[ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xqtm5"]
+[sub_resource type="Texture2D" id="Texture2D_ppfm4"]
+resource_local_to_scene = false
+resource_name = ""
+script = ExtResource("5_r3adq")
+_hex_data = "89504e470d0a1a0a0000000d4948445200000008000000080806000000c40fbe8b000000017352474200aece1ce900000035494441541895636020001891d8ffb1c931218bfcff3c89e1ffe74928aa600ad075c3c5e02620eb4466a35881cf91d8ac4096c70d001e030e19f89cab100000000049454e44ae426082"
+metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_bot")
@@ -24,7 +30,7 @@ script = ExtResource("3_turn")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
 position = Vector2(0, 1.9073486e-06)
-scale = Vector2(32, 32)
-texture = SubResource("PlaceholderTexture2D_xqtm5")
+scale = Vector2(8, 8)
+texture = SubResource("Texture2D_ppfm4")
 
 [node name="StateMachine" type="Node" parent="." unique_id=1363322939]

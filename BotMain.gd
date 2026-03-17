@@ -26,10 +26,10 @@ var _preferred_rotation: float
 const _POSITION_LERP_SPEED := 8.0
 const _ROTATION_LERP_SPEED := 12.0
 const _CARDINAL_ANGLE := {
-	Consts.Cardinal.NORTH: -TAU / 4,
-	Consts.Cardinal.EAST: 0.0,
-	Consts.Cardinal.SOUTH: TAU / 4,
-	Consts.Cardinal.WEST: TAU / 2
+	Consts.Cardinal.NORTH: 0.0,
+	Consts.Cardinal.EAST: TAU / 4,
+	Consts.Cardinal.SOUTH: TAU / 2,
+	Consts.Cardinal.WEST: -TAU / 4
 }
 var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 var _player_thread: Thread

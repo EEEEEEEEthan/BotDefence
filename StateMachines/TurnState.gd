@@ -6,10 +6,10 @@ class_name TurnState
 
 const TURN_DURATION := 0.2
 const _CARDINAL_ANGLE := {
-	Consts.Cardinal.NORTH: -TAU / 4,
-	Consts.Cardinal.EAST: 0.0,
-	Consts.Cardinal.SOUTH: TAU / 4,
-	Consts.Cardinal.WEST: TAU / 2
+	Consts.Cardinal.NORTH: 0.0,
+	Consts.Cardinal.EAST: TAU / 4,
+	Consts.Cardinal.SOUTH: TAU / 2,
+	Consts.Cardinal.WEST: -TAU / 4
 }
 
 var _callback: Callable

@@ -23,6 +23,6 @@ func _deferred_call(method: StringName) -> bool:
 	var on_done := func(done: bool):
 		result[0] = done
 		semaphore.post()
-	get_parent().call_deferred(method, on_done)
+	owner.call_deferred(method, on_done)
 	semaphore.wait()
 	return result[0]

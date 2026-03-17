@@ -24,6 +24,10 @@ project/assembly_name="UnnamedProject"
 naming/scene_name_casing=1
 naming/script_name_casing=1
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/editable_texture/plugin.cfg")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
