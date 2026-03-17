@@ -58,7 +58,8 @@ func _validate_syntax() -> void:
 			code_edit.set_line_as_bookmarked(line_index, true)
 
 func _check_syntax(source: String) -> Dictionary:
-	var empty := {"message": "", "lines": []}
+	var empty_lines: Array[int] = []
+	var empty := {"message": "", "lines": empty_lines}
 	if source.is_empty():
 		return empty
 	var capture: Logger = null
@@ -88,7 +89,7 @@ func _check_syntax(source: String) -> Dictionary:
 		if msg_parts.is_empty():
 			msg_parts.append("语法错误")
 		return {"message": "\n".join(msg_parts), "lines": lines}
-	return {"message": "加载失败 (错误码 %d)" % err, "lines": []}
+	return {"message": "加载失败 (错误码 %d)" % err, "lines": empty_lines}
 
 func _parse_error_line(msg: String) -> int:
 	var regex := RegEx.new()
