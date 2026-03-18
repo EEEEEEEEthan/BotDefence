@@ -18,6 +18,10 @@ const _PROTOCOL_PRINT := 1
 var cardinal: Consts.Cardinal:
 	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
 
+func _init(peer: StreamPeerTCP = null) -> void:
+	if peer:
+		stream = peer
+
 func _print_error(_what: Variant) -> void:
 	pass
 

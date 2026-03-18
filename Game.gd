@@ -50,7 +50,6 @@ func _accept_bot_connections() -> void:
 	var peer: StreamPeerTCP = _tcp_server.take_connection()
 	if not peer:
 		return
-	var bridge: BotBridge = BotBridge.new()
+	var bridge: BotBridge = BotBridge.new(peer)
 	bridge.name = "BotBridge"
 	add_child(bridge)
-	bridge.attach_stream(peer)
