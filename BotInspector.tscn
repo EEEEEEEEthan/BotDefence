@@ -140,10 +140,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CodeEdit" type="CodeEdit" parent="VBoxContainer" unique_id=78532646]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
+layout_mode = 2
+
+[node name="Switch" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768876]
 unique_name_in_owner = true
 layout_mode = 2
+text = "▶"
+
+[node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
+layout_mode = 2
 size_flags_vertical = 3
+
+[node name="CodeEdit" type="CodeEdit" parent="VBoxContainer/VSplitContainer" unique_id=78532646]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 12
 symbol_lookup_on_click = true
 symbol_tooltip_on_hover = true
 line_folding = true
@@ -157,18 +171,22 @@ indent_automatic = true
 auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1925316650]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/VSplitContainer" unique_id=761171935]
 layout_mode = 2
 
-[node name="Switch" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768876]
+[node name="ErrorLabel" type="Label" parent="VBoxContainer/VSplitContainer/VBoxContainer" unique_id=351019983]
 unique_name_in_owner = true
-layout_mode = 2
-text = "▶"
-
-[node name="ErrorLabel" type="Label" parent="VBoxContainer" unique_id=351019983]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_constants/line_spacing = 2
-autowrap_mode = 2
+
+[node name="Console" type="RichTextLabel" parent="VBoxContainer/VSplitContainer/VBoxContainer" unique_id=396074706]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "printed messages"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer" unique_id=211775745]
+layout_mode = 2
+scroll_following = true
