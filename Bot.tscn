@@ -43,13 +43,9 @@ class RuntimeErrorLogger extends Logger:
 		if not bot_ref:
 			return
 		var bot: Object = bot_ref.get_ref()
-		if not bot or not bot.has_method(\"_print_message\"):
+		if not bot or not bot.has_method(\"_print_runtime_error\"):
 			return
-		var msg: String = rationale if rationale else code
-		if error_line > 0:
-			msg = \"第%d行: %s\" % [error_line, msg]
-		bot.call_deferred(\"_print_message\", msg, ConsoleLogEntry.Type.ERROR)
-		bot.call_deferred(\"_clear_execution_line\")
+		bot.call_deferred(\"_print_runtime_error\", rationale if rationale else code, error_line)
 		RuntimeErrorLogger.clear_active_bot()
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
@@ -91,6 +87,7 @@ var running: bool:
 var code: String
 
 var _print_buffer: Array[ConsoleLogEntry] = []  ## 记录所有 print，供中途打开的 Inspector 显示
+var _injected_to_original: Dictionary = {}  ## 注入后行号(1-based) -> 原始行号(1-based)，供运行时错误映射
 
 func _ready() -> void:
 	_preferred_position = position
@@ -104,6 +101,7 @@ func _process(delta: float) -> void:
 func start_bot() -> void:
 	abort()
 	_print_buffer.clear()
+	_injected_to_original.clear()
 	_running = true
 	RuntimeErrorLogger.ensure_registered()
 	var gdscript := GDScript.new()
@@ -140,11 +138,29 @@ func _print_message(text: String, entry_type: ConsoleLogEntry.Type) -> void:
 	_print_buffer.append(entry)
 	printed.emit(entry)
 
+func _print_runtime_error(msg: String, injected_line: int) -> void:
+	## 引擎有时报告下一行，优先用 injected_line-1 的映射
+	var original_line: int = _injected_to_original.get(injected_line - 1, -1)
+	if original_line < 0:
+		original_line = _injected_to_original.get(injected_line, -1)
+	if original_line < 0:
+		var best_key: int = 0
+		for key in _injected_to_original:
+			if key <= injected_line and key > best_key:
+				best_key = key
+		original_line = _injected_to_original[best_key] if best_key > 0 else injected_line
+	if original_line > 0:
+		msg = \"第%d行: %s\" % [original_line, msg]
+	_print_message(msg, ConsoleLogEntry.Type.ERROR)
+	_clear_execution_line()
+	RuntimeErrorLogger.clear_active_bot()
+
 func get_print_history() -> Array[ConsoleLogEntry]:
 	return _print_buffer.duplicate()
 
 ## 在所有顶层函数体内每行前注入行号报告与 abort 检查
 ## run() 接收 __report_line、__abort_check，每行执行前检查 abort 以支持协作式退出（含死循环）
+## 同时填充 _injected_to_original：注入后行号(1-based) -> 原始行号(1-based)
 func _inject_line_tracking(source: String) -> String:
 	var lines := source.split(\"\\n\")
 	var result: Array[String] = []
@@ -152,17 +168,24 @@ func _inject_line_tracking(source: String) -> String:
 	var in_run_func := false
 	var body_indent := 0
 	var first_line_after_extends := true
+	var result_line := 0
+	var record_mapping := func(original: int) -> void:
+		result_line += 1
+		if original >= 0:
+			_injected_to_original[result_line] = original + 1
 	for line_index in lines.size():
 		var line: String = lines[line_index]
 		if in_func_body:
 			var line_stripped := line.strip_edges()
 			if line_stripped.is_empty():
 				result.append(line)
+				record_mapping.call(line_index)
 				continue
 			var indent_len := line.length() - line.lstrip(\" \\t\").length()
 			if indent_len <= body_indent and line_stripped.begins_with(\"func \"):
 				in_func_body = false
 				result.append(line)
+				record_mapping.call(line_index)
 				in_func_body = true
 				in_run_func = line_stripped.begins_with(\"func run\")
 				body_indent = indent_len
@@ -171,17 +194,24 @@ func _inject_line_tracking(source: String) -> String:
 				var indent_str := line.substr(0, indent_len)
 				if in_run_func:
 					result.append(indent_str + \"__report_line_internal = __report_line\")
+					record_mapping.call(line_index)
 					result.append(indent_str + \"__abort_check_internal = __abort_check\")
+					record_mapping.call(line_index)
 					in_run_func = false
 				result.append(indent_str + \"if __abort_check_internal.call(): return\")
+				record_mapping.call(line_index)
 				result.append(indent_str + \"__report_line_internal.call(\" + str(line_index) + \")\")
+				record_mapping.call(line_index)
 			result.append(line)
+			record_mapping.call(line_index)
 			continue
 		var stripped := line.strip_edges()
 		if stripped.begins_with(\"func \"):
 			if first_line_after_extends:
 				result.append(\"var __report_line_internal: Callable\")
+				record_mapping.call(-1)
 				result.append(\"var __abort_check_internal: Callable\")
+				record_mapping.call(-1)
 				first_line_after_extends = false
 			in_func_body = true
 			in_run_func = stripped.begins_with(\"func run\")
@@ -192,11 +222,15 @@ func _inject_line_tracking(source: String) -> String:
 					line = line.substr(0, paren_idx) + \", __report_line, __abort_check\" + line.substr(paren_idx)
 		elif first_line_after_extends and (stripped.begins_with(\"extends \") or stripped.begins_with(\"class_name \")):
 			result.append(line)
+			record_mapping.call(line_index)
 			first_line_after_extends = false
 			result.append(\"var __report_line_internal: Callable\")
+			record_mapping.call(-1)
 			result.append(\"var __abort_check_internal: Callable\")
+			record_mapping.call(-1)
 			continue
 		result.append(line)
+		record_mapping.call(line_index)
 	return \"\\n\".join(result)
 
 ## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
