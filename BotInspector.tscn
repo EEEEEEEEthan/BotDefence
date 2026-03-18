@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://bqx3dnnoqbjo5"]
 
+[ext_resource type="Theme" uid="uid://c8bqnrg3ipj5v" path="res://Theme.tres" id="1_2vjwb"]
+
 [sub_resource type="GDScript" id="GDScript_mlno3"]
 script/source = "extends Window
 
@@ -78,6 +80,7 @@ func _validate_syntax() -> void:
 	if not text:
 		error_label.visible = false
 	else:
+		error_label.visible = true
 		error_label.text = result.message
 	code_edit.clear_bookmarked_lines()
 	var lines: Array[int] = result.lines
@@ -151,6 +154,7 @@ func _save_and_close() -> void:
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(607, 477)
+theme = ExtResource("1_2vjwb")
 script = SubResource("GDScript_mlno3")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=372296523]
@@ -194,22 +198,28 @@ indent_automatic = true
 auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/VSplitContainer" unique_id=761171935]
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/VSplitContainer" unique_id=290838898]
 layout_mode = 2
 
-[node name="ErrorLabel" type="Label" parent="VBoxContainer/VSplitContainer/VBoxContainer" unique_id=351019983]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/VSplitContainer/ScrollContainer" unique_id=761171935]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ErrorLabel" type="Label" parent="VBoxContainer/VSplitContainer/ScrollContainer/VBoxContainer" unique_id=351019983]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_constants/line_spacing = 2
 text = "ERROR!"
 
-[node name="Console" type="RichTextLabel" parent="VBoxContainer/VSplitContainer/VBoxContainer" unique_id=396074706]
+[node name="Console" type="RichTextLabel" parent="VBoxContainer/VSplitContainer/ScrollContainer/VBoxContainer" unique_id=396074706]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 focus_mode = 2
+theme_type_variation = &"Console"
 bbcode_enabled = true
 text = "PrintedMessages"
 scroll_following = true
