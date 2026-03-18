@@ -72,11 +72,11 @@ func turn_right(callback: Callable) -> void:
 	_current_state = $%TurnState
 	_current_state.start(new_cardinal, wrapped)
 
-## 由 BotBridge 通过协议 1 触发，输出到 Godot 控制台，延迟后回调
-func print_with_delay(what: Variant, on_done: Callable) -> void:
+## 由 BotBridge 通过协议 1 触发，输出到 Godot 控制台，延迟 1 秒后返回
+func print_with_delay(what: Variant) -> void:
 	print_rich(str(what))
 	var timer := get_tree().create_timer(1.0)
-	timer.timeout.connect(on_done)
+	await timer.timeout
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
