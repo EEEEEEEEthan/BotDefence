@@ -2,20 +2,10 @@ extends Window
 
 ## 点击 Bot 时弹出，用于编辑该 Bot 的代码
 ## CodeEdit 启用 GDScript 语法高亮和断点槽
-## 实时校验语法并在 ErrorLabel 显示错误
+## 实时校验 Python 语法并在 ErrorLabel 显示错误
 
 const HIGHLIGHTER := preload("res://GDScriptHighlighter.tres")
-const VALIDATE_DEBOUNCE_SEC := 0.3
-
-class ParseErrorCapture extends Logger:
-	var errors: Array[Dictionary] = []
-	var _mutex: Mutex = Mutex.new()
-
-	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
-		_mutex.lock()
-		var msg: String = rationale if rationale else code
-		errors.append({"message": msg, "line": error_line})
-		_mutex.unlock()
+const VALIDATE_DEBOUNCE_SEC := 0.5
 
 @onready var code_edit: CodeEdit = $%CodeEdit
 @onready var error_label: Label = $%ErrorLabel
@@ -24,6 +14,8 @@ class ParseErrorCapture extends Logger:
 var bot: Node2D
 var _validate_timer: Timer
 var _poll_timer: Timer
+var _closing: bool = false
+var _validate_version: int = 0
 
 func _ready() -> void:
 	code_edit.text = bot.code
@@ -73,11 +65,24 @@ func _on_text_changed() -> void:
 
 func _validate_syntax() -> void:
 	bot.code = code_edit.text
-	if bot is Bot and (bot as Bot).code_language != "gdscript":
-		error_label.visible = false
-		code_edit.clear_bookmarked_lines()
+	if not (bot is Bot) or (bot as Bot).code_language != "python":
+		_apply_syntax_result({"message": "", "lines": []})
 		return
-	var result := _check_syntax(code_edit.text)
+	_validate_version += 1
+	var version: int = _validate_version
+	var thread := Thread.new()
+	thread.start(_thread_check_syntax.bind(code_edit.text, version))
+
+func _thread_check_syntax(source: String, version: int) -> void:
+	var result: Dictionary = _check_python_syntax_impl(source)
+	call_deferred("_on_check_done", result, version)
+
+func _on_check_done(result: Dictionary, version: int) -> void:
+	if _closing or version != _validate_version:
+		return
+	_apply_syntax_result(result)
+
+func _apply_syntax_result(result: Dictionary) -> void:
 	var text: String = result.message
 	if not text:
 		error_label.visible = false
@@ -85,7 +90,9 @@ func _validate_syntax() -> void:
 		error_label.visible = true
 		error_label.text = result.message
 	code_edit.clear_bookmarked_lines()
-	var lines: Array[int] = result.lines
+	var lines: Array[int] = []
+	for item in result.get("lines", []):
+		lines.append(int(item))
 	if lines.is_empty() and result.message:
 		var parsed_line: int = _parse_error_line(result.message)
 		if parsed_line >= 0:
@@ -95,34 +102,32 @@ func _validate_syntax() -> void:
 		if line_index >= 0 and line_index < code_edit.get_line_count():
 			code_edit.set_line_as_bookmarked(line_index, true)
 
-func _check_syntax(source: String) -> Dictionary:
+func _check_python_syntax_impl(source: String) -> Dictionary:
 	var empty_lines: Array[int] = []
 	var empty: Dictionary = {"message": "", "lines": empty_lines}
 	if source.is_empty():
 		return empty
-	var capture: ParseErrorCapture = ParseErrorCapture.new()
-	OS.add_logger(capture)
-	var gdscript := GDScript.new()
-	gdscript.source_code = source
-	var err := gdscript.reload()
-	OS.remove_logger(capture)
-	if err == OK:
+	var temp_path: String = OS.get_cache_dir().path_join("bot_inspector_check.py")
+	var file := FileAccess.open(temp_path, FileAccess.WRITE)
+	if not file:
+		return {"message": "无法创建临时文件", "lines": empty_lines}
+	file.store_string(source)
+	file.close()
+	var output: Array = []
+	var exit_code: int = OS.execute("python", PackedStringArray(["-m", "py_compile", temp_path]), output, true, true)
+	if exit_code == 0:
 		return empty
-	if err == ERR_PARSE_ERROR:
-		var lines: Array[int] = []
-		var msg_parts: Array[String] = []
-		var cap_errors: Array[Dictionary] = capture.errors
-		for err_item in cap_errors:
-			var item_msg: String = err_item.get("message", "")
-			var item_line: int = err_item.get("line", -1)
-			if item_msg:
-				msg_parts.append("第%d行: %s" % [item_line, item_msg] if item_line > 0 else item_msg)
-			if item_line > 0:
-				lines.append(item_line)
-		if msg_parts.is_empty():
-			msg_parts.append("语法错误")
-		return {"message": "\n".join(msg_parts), "lines": lines}
-	return {"message": "加载失败 (错误码 %d)" % err, "lines": empty_lines}
+	var parts: PackedStringArray = PackedStringArray()
+	for item in output:
+		parts.append(str(item))
+	var err_text: String = "\n".join(parts) if parts.size() > 0 else ""
+	if err_text.is_empty():
+		err_text = "编译失败"
+	err_text = err_text.strip_edges()
+	var parsed_line: int = _parse_error_line(err_text)
+	if parsed_line >= 0:
+		return {"message": err_text, "lines": [parsed_line + 1]}
+	return {"message": err_text, "lines": empty_lines}
 
 func _parse_error_line(msg: String) -> int:
 	var regex := RegEx.new()
@@ -159,5 +164,6 @@ func _on_close_requested() -> void:
 
 
 func _save_and_close() -> void:
+	_closing = true
 	bot.code = code_edit.text
 	queue_free()
