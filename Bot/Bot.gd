@@ -9,7 +9,7 @@ const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 @export var bot_id: int = -1
 
-@onready var _bot_api: Node = $%BotApi
+@onready var _bot_api: Node = $%BotBridge
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
 var preferred_position: Vector2:

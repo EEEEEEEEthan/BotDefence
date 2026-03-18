@@ -118,7 +118,7 @@ code = "func run(bot) -> void:
 		bot.turn_right()
 "
 
-[node name="BotApi" type="Node" parent="." unique_id=2036080268]
+[node name="BotBridge" type="Node" parent="." unique_id=2036080268]
 unique_name_in_owner = true
 process_thread_group = 2
 process_thread_group_order = 0

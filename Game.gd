@@ -12,7 +12,7 @@ var _pending_bot_apis: Array[Node] = []
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
 
-## BotInspector 启动 runner 前调用，将下一个到达的连接分配给该 BotApi
+## BotInspector 启动 runner 前调用，将下一个到达的连接分配给该 BotBridge
 func request_connection_for(bot_api: Node) -> void:
 	_pending_bot_apis.append(bot_api)
 

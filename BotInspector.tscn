@@ -31,7 +31,7 @@ var _validate_timer: Timer
 var _poll_timer: Timer
 
 func _get_bot_api() -> Node:
-	return bot.get_node(\"%BotApi\")
+	return bot.get_node(\"%BotBridge\")
 
 func _ready() -> void:
 	code_edit.text = bot.code
