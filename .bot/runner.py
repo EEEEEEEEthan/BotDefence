@@ -50,10 +50,8 @@ def main() -> None:
     code: str = reader.read_string()
     print("收到代码 (%d 字符)" % len(code))
     bot: Bot = Bot(sock)
-    count: int = 0
-    while True:
-        count += 1
-        bot.print("runner tick %d" % count)
+    namespace: dict[str, object] = {"bot": bot, "__name__": "__main__"}
+    exec(code, namespace)
 
 
 if __name__ == "__main__":

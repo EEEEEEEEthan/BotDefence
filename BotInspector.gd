@@ -73,6 +73,10 @@ func _on_text_changed() -> void:
 
 func _validate_syntax() -> void:
 	bot.code = code_edit.text
+	if bot is Bot and (bot as Bot).code_language != "gdscript":
+		error_label.visible = false
+		code_edit.clear_bookmarked_lines()
+		return
 	var result := _check_syntax(code_edit.text)
 	var text: String = result.message
 	if not text:

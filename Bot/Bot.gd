@@ -36,6 +36,7 @@ var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 
 @export_multiline
 var code: String
+@export var code_language: String = "python"  ## "python" | "gdscript"，影响 Inspector 语法校验
 
 ## 日志列表，每项为 ConsoleLogEntry
 var logs: Array[ConsoleLogEntry] = []
