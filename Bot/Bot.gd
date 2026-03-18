@@ -37,6 +37,9 @@ var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 @export_multiline
 var code: String
 
+## 日志列表，每项为 {timestamp: float, type: String, message: String}，type 为 "log" 或 "error"
+var logs: Array[Dictionary] = []
+
 func _ready() -> void:
 	_preferred_position = position
 	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
@@ -76,8 +79,20 @@ func turn_right(callback: Callable) -> void:
 	_current_state = $%TurnState
 	_current_state.start(new_cardinal, wrapped)
 
+func _add_log(log_type: String, message: String) -> void:
+	logs.append({
+		"timestamp": Time.get_unix_time_from_system(),
+		"type": log_type,
+		"message": message
+	})
+
+func log_error(message: String) -> void:
+	_add_log("error", message)
+
 func print_with_delay(what: Variant) -> void:
-	print_rich(str(what))
+	var message := str(what)
+	_add_log("log", message)
+	print_rich(message)
 	var timer := get_tree().create_timer(1)
 	await timer.timeout
 
