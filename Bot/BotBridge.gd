@@ -54,9 +54,7 @@ func _parse_buffer() -> void:
 		_receive_buffer = _receive_buffer.slice(_LENGTH_SIZE + payload_length)
 		_handle_protocol_message(payload)
 
-func _handle_print(package: PackedByteArray) -> void:
-	var reader := PacketReader.new(package)
-	reader.read_byte()  # 跳过协议头
+func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
 	await owner.print_with_delay(message)
 	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
@@ -69,7 +67,7 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 	var reader := PacketReader.new(payload)
 	var header: int = reader.read_byte()
 	if header == _PROTOCOL_PRINT:
-		_handle_print(payload)
+		_handle_print(reader)
 
 func _exit_tree() -> void:
 	disconnect_stream()
