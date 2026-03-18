@@ -17,6 +17,9 @@ const _PROTOCOL_PRINT_ERROR := 4
 var cardinal: Consts.Cardinal:
 	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
 
+var is_running: bool:
+	get: return python_pid >= 0 and OS.is_process_running(python_pid)
+
 func _ready() -> void:
 	target_bot = owner as Bot
 
@@ -30,10 +33,21 @@ func disconnect_stream() -> void:
 		stream = null
 	_receive_buffer.clear()
 
-## 清理所有资源，断开连接并重置状态
+## 清理所有资源：终结进程、断开连接、重置状态
 func close() -> void:
+	if python_pid >= 0 and OS.is_process_running(python_pid):
+		OS.kill(python_pid)
 	disconnect_stream()
 	python_pid = -1
+
+## 启动 Python 进程，需 target_bot 已就绪
+func start_process(bot_server_port: int) -> bool:
+	if not target_bot:
+		return false
+	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
+	var script_path: String = project_root + "/.bot/runner.py"
+	python_pid = OS.create_process("python", PackedStringArray([script_path, str(bot_server_port), str(target_bot.bot_id)]))
+	return python_pid >= 0
 
 func poll() -> void:
 	_receive_protocol()

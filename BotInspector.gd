@@ -56,16 +56,14 @@ func _on_log_added(entry: ConsoleLogEntry) -> void:
 
 func _update_switch_text() -> void:
 	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
-	var running: bool = bridge and bridge.python_pid >= 0 and OS.is_process_running(bridge.python_pid)
+	var running: bool = bridge and bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
 
 func _poll_python_process() -> void:
 	if not (bot is Bot):
 		return
 	var bridge: BotBridge = (bot as Bot).bridge
-	if bridge.python_pid < 0:
-		return
-	if not OS.is_process_running(bridge.python_pid):
+	if not bridge.is_running and bridge.python_pid >= 0:
 		bridge.close()
 		_poll_timer.stop()
 	_update_switch_text()
@@ -134,14 +132,14 @@ func _parse_error_line(msg: String) -> int:
 
 
 func _on_switch_pressed() -> void:
-	if bot is Bot:
-		var bridge: BotBridge = (bot as Bot).bridge
-		if bridge.python_pid >= 0 and OS.is_process_running(bridge.python_pid):
-			OS.kill(bridge.python_pid)
-			bridge.close()
-			_poll_timer.stop()
-			_update_switch_text()
-			return
+	if not (bot is Bot):
+		return
+	var bridge: BotBridge = (bot as Bot).bridge
+	if bridge.is_running:
+		bridge.close()
+		_poll_timer.stop()
+		_update_switch_text()
+		return
 	var game: Game = bot.get_parent() as Game
 	if not game or game.bot_server_port < 0:
 		push_error("Bot 服务器未就绪")
@@ -149,13 +147,10 @@ func _on_switch_pressed() -> void:
 	if bot.bot_id < 0:
 		push_error("Bot 的 bot_id 未设置")
 		return
-	if bot is Bot:
-		(bot as Bot).logs.clear()
-		console.text = ""
-	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
-	var script_path: String = project_root + "/.bot/runner.py"
-	(bot as Bot).bridge.python_pid = OS.create_process("python", PackedStringArray([script_path, str(game.bot_server_port), str(bot.bot_id)]))
-	_poll_timer.start()
+	(bot as Bot).logs.clear()
+	console.text = ""
+	if bridge.start_process(game.bot_server_port):
+		_poll_timer.start()
 	_update_switch_text()
 
 
