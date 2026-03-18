@@ -25,7 +25,10 @@ func _init(peer: StreamPeerTCP = null, game: Game = null) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
-		disconnect_stream()
+		if stream:
+			stream.disconnect_from_host()
+			stream = null
+		_receive_buffer.clear()
 
 func attach_stream(peer: StreamPeerTCP) -> void:
 	disconnect_stream()
