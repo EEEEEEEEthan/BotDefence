@@ -11,6 +11,47 @@ script/source = "extends Node2D
 
 const DEFAULT_CODE_PATH := \"res://player_code.gd\"
 
+## 运行时错误 Logger：将玩家脚本抛出的错误转发到 printed，供 Inspector Console 显示
+## start_bot 会先 abort() 等待前一线程，故同一时刻仅一个 Bot 在跑，用 _active_bot 即可
+class RuntimeErrorLogger extends Logger:
+	static var _active_bot: WeakRef
+	static var _mutex: Mutex = Mutex.new()
+	static var _instance: RuntimeErrorLogger
+	static var _registered: bool = false
+
+	static func ensure_registered() -> void:
+		if _registered:
+			return
+		_instance = RuntimeErrorLogger.new()
+		OS.add_logger(_instance)
+		_registered = true
+
+	static func set_active_bot(bot_ref: WeakRef) -> void:
+		_mutex.lock()
+		_active_bot = bot_ref
+		_mutex.unlock()
+
+	static func clear_active_bot() -> void:
+		_mutex.lock()
+		_active_bot = null
+		_mutex.unlock()
+
+	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
+		_mutex.lock()
+		var bot_ref: WeakRef = _active_bot
+		_mutex.unlock()
+		if not bot_ref:
+			return
+		var bot: Object = bot_ref.get_ref()
+		if not bot or not bot.has_method(\"_print_message\"):
+			return
+		var msg: String = rationale if rationale else code
+		if error_line > 0:
+			msg = \"第%d行: %s\" % [error_line, msg]
+		bot.call_deferred(\"_print_message\", msg, ConsoleLogEntry.Type.ERROR)
+		bot.call_deferred(\"_clear_execution_line\")
+		RuntimeErrorLogger.clear_active_bot()
+
 signal current_line_changed(line: int)  ## -1 表示无执行行
 signal printed(entry: ConsoleLogEntry)  ## BotApi.print/print_error 转发，供 Inspector Console 显示
 
@@ -64,6 +105,7 @@ func start_bot() -> void:
 	abort()
 	_print_buffer.clear()
 	_running = true
+	RuntimeErrorLogger.ensure_registered()
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
 	gdscript.reload()
@@ -75,8 +117,13 @@ func start_bot() -> void:
 	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line, abort_check))
 
 func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable, abort_check: Callable) -> void:
+	RuntimeErrorLogger.set_active_bot(weakref(self))
 	instance.run(bot_api, report_line, abort_check)
-	call_deferred(&\"_clear_execution_line\")
+	call_deferred(&\"_on_thread_finished\")
+
+func _on_thread_finished() -> void:
+	RuntimeErrorLogger.clear_active_bot()
+	_clear_execution_line()
 
 func _set_current_line(line: int) -> void:
 	if _current_execution_line == line:
