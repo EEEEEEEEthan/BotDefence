@@ -10,6 +10,8 @@ var python_pid: int = -1
 var stream: StreamPeerTCP = null
 var _receive_buffer: PackedByteArray = PackedByteArray()
 const _LENGTH_SIZE := 4
+## 协议头：1=打印字符串，其余待定
+const _PROTOCOL_PRINT := 1
 
 var cardinal: Consts.Cardinal:
 	get: return get_parent().cardinal
@@ -23,8 +25,9 @@ func turn_left() -> bool:
 func turn_right() -> bool:
 	return _deferred_call("turn_right")
 
-func print(_what: Variant) -> void:
-	pass
+func print(what: Variant) -> void:
+	# 由 Python 端通过协议 1 触发，输出到 Godot 控制台
+	print_rich(str(what))
 
 func print_error(_what: Variant) -> void:
 	pass
@@ -64,9 +67,16 @@ func _parse_buffer() -> void:
 		_receive_buffer = _receive_buffer.slice(_LENGTH_SIZE + payload_length)
 		_handle_protocol_message(payload)
 
-func _handle_protocol_message(_payload: PackedByteArray) -> void:
-	# 协议处理，解析完整 payload
-	pass
+func _handle_protocol_message(payload: PackedByteArray) -> void:
+	if payload.size() < 1:
+		return
+	var header: int = payload[0]
+	if header == _PROTOCOL_PRINT:
+		var text_bytes: PackedByteArray = payload.slice(1, payload.size())
+		var text: String = text_bytes.get_string_from_utf8()
+		if text.is_empty() and text_bytes.size() > 0:
+			text = "<invalid utf-8>"
+		print(text)
 
 func _exit_tree() -> void:
 	disconnect_stream()

@@ -5,12 +5,23 @@
 import struct
 import sys
 import socket
+import time
 
 
-def send_message(sock: socket.socket, payload: bytes) -> None:
+## 协议头：1=打印字符串，其余待定
+PROTOCOL_PRINT: int = 1
+
+
+def __send_message(sock: socket.socket, payload: bytes) -> None:
     """发送协议消息：4 字节长度（uint32 小端）+ payload"""
     length_bytes: bytes = struct.pack("<I", len(payload))
     sock.sendall(length_bytes + payload)
+
+
+def send_print(sock: socket.socket, text: str) -> None:
+    """协议头 1：发送打印字符串，剩余部分为 UTF-8 编码的字符串"""
+    payload: bytes = bytes([PROTOCOL_PRINT]) + text.encode("utf-8")
+    __send_message(sock, payload)
 
 
 def main() -> None:
@@ -26,8 +37,11 @@ def main() -> None:
     except OSError as error:
         print("连接失败: %s" % error, file=sys.stderr)
         sys.exit(1)
+    count: int = 0
     while True:
-        pass
+        count += 1
+        send_print(sock, "runner tick %d" % count)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
