@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
 [ext_resource type="Script" uid="uid://ctbi5c4jqt75p" path="res://Bot/Bot.gd" id="1_sck5o"]
-[ext_resource type="Script" uid="uid://b26tqahhl3bqo" path="res://Bot/BotBridge.gd" id="2_q6hsy"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
 
 [sub_resource type="GDScript" id="GDScript_q6hsy"]
@@ -117,13 +116,6 @@ code = "func run(bot) -> void:
 		bot.move_forward()
 		bot.turn_right()
 "
-
-[node name="BotBridge" type="Node" parent="." unique_id=2036080268]
-unique_name_in_owner = true
-process_thread_group = 2
-process_thread_group_order = 0
-process_thread_messages = 0
-script = ExtResource("2_q6hsy")
 
 [node name="StateMachine" type="Node" parent="." unique_id=1363322939]
 

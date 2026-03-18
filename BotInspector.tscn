@@ -31,7 +31,7 @@ var _validate_timer: Timer
 var _poll_timer: Timer
 
 func _get_bot_api() -> Node:
-	return bot.get_node(\"%BotBridge\")
+	return bot.get_node_or_null(\"BotBridge\")
 
 func _ready() -> void:
 	code_edit.text = bot.code
@@ -52,18 +52,20 @@ func _ready() -> void:
 
 func _update_switch_text() -> void:
 	var bot_api: Node = _get_bot_api()
-	var running: bool = bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid)
+	var running: bool = bot_api and bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid)
 	$%Switch.text = \"🛑\" if running else \"▶\"
 
 func _poll_python_process() -> void:
 	var bot_api: Node = _get_bot_api()
+	if not bot_api:
+		return
 	if bot_api.python_pid >= 0 and not OS.is_process_running(bot_api.python_pid):
 		bot_api.python_pid = -1
-		bot_api.disconnect_stream()
 		var game: Game = bot.get_parent() as Game
 		if game:
 			game.cancel_connection_request(bot_api)
 		_poll_timer.stop()
+		bot_api.queue_free()
 	_update_switch_text()
 
 func _on_text_changed() -> void:
@@ -127,20 +129,24 @@ func _parse_error_line(msg: String) -> int:
 
 func _on_switch_pressed() -> void:
 	var bot_api: Node = _get_bot_api()
-	if bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid):
+	if bot_api and bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid):
 		OS.kill(bot_api.python_pid)
 		bot_api.python_pid = -1
-		bot_api.disconnect_stream()
 		var game: Game = bot.get_parent() as Game
 		if game:
 			game.cancel_connection_request(bot_api)
 		_poll_timer.stop()
+		bot_api.queue_free()
 		_update_switch_text()
 		return
 	var game: Game = bot.get_parent() as Game
 	if not game or game.bot_server_port < 0:
 		push_error(\"Bot 服务器未就绪\")
 		return
+	if not bot_api:
+		bot_api = BotBridge.new()
+		bot_api.name = \"BotBridge\"
+		bot.add_child(bot_api)
 	game.request_connection_for(bot_api)
 	var project_root: String = ProjectSettings.globalize_path(\"res://\").trim_suffix(\"/\")
 	var script_path: String = project_root + \"/.bot/runner.py\"

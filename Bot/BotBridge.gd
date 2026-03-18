@@ -16,6 +16,9 @@ const _PROTOCOL_PRINT := 1
 var cardinal: Consts.Cardinal:
 	get: return get_parent().cardinal
 
+func _ready() -> void:
+	process_thread_group = 2
+
 func _print_error(_what: Variant) -> void:
 	pass
 
@@ -56,7 +59,7 @@ func _parse_buffer() -> void:
 
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
-	await owner.print_with_delay(message)
+	await get_parent().print_with_delay(message)
 	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		var writer := PacketWriter.new()
 		writer.send(stream)
@@ -78,6 +81,6 @@ func _deferred_call(method: StringName) -> bool:
 	var on_done := func(done: bool):
 		result[0] = done
 		semaphore.post()
-	owner.call_deferred(method, on_done)
+	get_parent().call_deferred(method, on_done)
 	semaphore.wait()
 	return result[0]
