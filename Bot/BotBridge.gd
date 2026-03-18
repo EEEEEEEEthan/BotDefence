@@ -33,8 +33,6 @@ func disconnect_stream() -> void:
 ## 清理所有资源，断开连接并重置状态
 func close() -> void:
 	disconnect_stream()
-	if target_bot:
-		target_bot.python_pid = -1
 	python_pid = -1
 
 func poll() -> void:

@@ -48,6 +48,5 @@ func poll() -> bool:
 	var bridge: BotBridge = bot.get_node("BotBridge") as BotBridge
 	if bridge:
 		bridge.attach_stream(stream)
-		bridge.python_pid = bot.python_pid
 		print("Bot %d 已连接" % bot_id)
 	return false

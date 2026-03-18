@@ -55,17 +55,19 @@ func _on_log_added(entry: ConsoleLogEntry) -> void:
 	console.append_text(entry.to_bbcode_line() + "\n")
 
 func _update_switch_text() -> void:
-	var running: bool = bot.python_pid >= 0 and OS.is_process_running(bot.python_pid)
+	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
+	var running: bool = bridge and bridge.python_pid >= 0 and OS.is_process_running(bridge.python_pid)
 	$%Switch.text = "🛑" if running else "▶"
 
 func _poll_python_process() -> void:
-	if bot.python_pid < 0:
+	if not (bot is Bot):
 		return
-	if not OS.is_process_running(bot.python_pid):
-		bot.python_pid = -1
+	var bridge: BotBridge = (bot as Bot).bridge
+	if bridge.python_pid < 0:
+		return
+	if not OS.is_process_running(bridge.python_pid):
+		bridge.close()
 		_poll_timer.stop()
-		if bot is Bot:
-			(bot as Bot).bridge.close()
 	_update_switch_text()
 
 func _on_text_changed() -> void:
@@ -132,14 +134,14 @@ func _parse_error_line(msg: String) -> int:
 
 
 func _on_switch_pressed() -> void:
-	if bot.python_pid >= 0 and OS.is_process_running(bot.python_pid):
-		OS.kill(bot.python_pid)
-		bot.python_pid = -1
-		_poll_timer.stop()
-		if bot is Bot:
-			(bot as Bot).bridge.close()
-		_update_switch_text()
-		return
+	if bot is Bot:
+		var bridge: BotBridge = (bot as Bot).bridge
+		if bridge.python_pid >= 0 and OS.is_process_running(bridge.python_pid):
+			OS.kill(bridge.python_pid)
+			bridge.close()
+			_poll_timer.stop()
+			_update_switch_text()
+			return
 	var game: Game = bot.get_parent() as Game
 	if not game or game.bot_server_port < 0:
 		push_error("Bot 服务器未就绪")
@@ -152,7 +154,7 @@ func _on_switch_pressed() -> void:
 		console.text = ""
 	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
 	var script_path: String = project_root + "/.bot/runner.py"
-	bot.python_pid = OS.create_process("python", PackedStringArray([script_path, str(game.bot_server_port), str(bot.bot_id)]))
+	(bot as Bot).bridge.python_pid = OS.create_process("python", PackedStringArray([script_path, str(game.bot_server_port), str(bot.bot_id)]))
 	_poll_timer.start()
 	_update_switch_text()
 

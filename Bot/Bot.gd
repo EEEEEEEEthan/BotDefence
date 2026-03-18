@@ -8,7 +8,6 @@ class_name Bot
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 @export var bot_id: int = -1
-var python_pid: int = -1
 
 @onready var bridge: BotBridge = $BotBridge as BotBridge
 
