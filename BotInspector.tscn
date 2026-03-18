@@ -133,6 +133,7 @@ func _on_switch_pressed() -> void:
 		if not _check_syntax(code_edit.text).message.is_empty():
 			return
 		bot.code = code_edit.text
+		console.text = \"\"
 		bot.start_bot()
 	_update_switch_text()
 
