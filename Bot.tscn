@@ -36,7 +36,7 @@ class RuntimeErrorLogger extends Logger:
 		_active_bot = null
 		_mutex.unlock()
 
-	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, _script_backtraces: Array) -> void:
+	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, script_backtraces: Array) -> void:
 		_mutex.lock()
 		var bot_ref: WeakRef = _active_bot
 		_mutex.unlock()
@@ -45,7 +45,7 @@ class RuntimeErrorLogger extends Logger:
 		var bot: Object = bot_ref.get_ref()
 		if not bot or not bot.has_method(\"_print_runtime_error\"):
 			return
-		bot.call_deferred(\"_print_runtime_error\", rationale if rationale else code, error_line)
+		bot.call_deferred(\"_print_runtime_error\", rationale if rationale else code, error_line, script_backtraces)
 		RuntimeErrorLogger.clear_active_bot()
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
@@ -138,7 +138,7 @@ func _print_message(text: String, entry_type: ConsoleLogEntry.Type) -> void:
 	_print_buffer.append(entry)
 	printed.emit(entry)
 
-func _print_runtime_error(msg: String, injected_line: int) -> void:
+func _print_runtime_error(msg: String, injected_line: int, script_backtraces: Array = []) -> void:
 	## 引擎有时报告下一行，优先用 injected_line-1 的映射
 	var original_line: int = _injected_to_original.get(injected_line - 1, -1)
 	if original_line < 0:
@@ -151,9 +151,37 @@ func _print_runtime_error(msg: String, injected_line: int) -> void:
 		original_line = _injected_to_original[best_key] if best_key > 0 else injected_line
 	if original_line > 0:
 		msg = \"第%d行: %s\" % [original_line, msg]
+	var stack_str: String = _format_user_stack_only(script_backtraces)
+	if stack_str:
+		msg += \"\\n\" + stack_str
 	_print_message(msg, ConsoleLogEntry.Type.ERROR)
 	_clear_execution_line()
 	RuntimeErrorLogger.clear_active_bot()
+
+## 只保留 gdscript:// 动态脚本的调用帧，过滤掉 res:// 等引擎/项目脚本，行号映射到原始源码
+func _format_user_stack_only(script_backtraces: Array) -> String:
+	var lines: PackedStringArray = []
+	for bt in script_backtraces:
+		if bt.has_method(\"is_empty\") and bt.is_empty():
+			continue
+		if not bt.has_method(\"get_frame_count\") or not bt.has_method(\"get_frame_file\"):
+			continue
+		var frame_count: int = bt.get_frame_count()
+		for frame_idx in frame_count:
+			var file_path: String = bt.get_frame_file(frame_idx)
+			if not file_path.begins_with(\"gdscript://\"):
+				continue
+			var func_name: String = bt.get_frame_function(frame_idx) if bt.has_method(\"get_frame_function\") else \"?\"
+			var injected_line: int = bt.get_frame_line(frame_idx) if bt.has_method(\"get_frame_line\") else 0
+			var original_line: int = _injected_to_original.get(injected_line - 1, -1)
+			if original_line < 0:
+				original_line = _injected_to_original.get(injected_line, -1)
+			if original_line <= 0:
+				original_line = injected_line
+			lines.append(\"  %s (第%d行)\" % [func_name, original_line])
+	if lines.is_empty():
+		return \"\"
+	return \"GDScript backtrace (most recent call first):\\n\" + \"\\n\".join(lines)
 
 func get_print_history() -> Array[ConsoleLogEntry]:
 	return _print_buffer.duplicate()
