@@ -528,13 +528,6 @@ bake_range = Rect2i(0, 0, 18, 10)
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
 position = Vector2(480, 288)
 bot_id = 1
-code = "## 全局 bot 已注入，直接使用
-
-count = 0
-while True:
-    count += 1
-    print(\"tick\", count)
-"
 
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)
