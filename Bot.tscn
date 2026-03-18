@@ -88,6 +88,7 @@ var code: String
 
 var _print_buffer: Array[ConsoleLogEntry] = []  ## 记录所有 print，供中途打开的 Inspector 显示
 var _injected_to_original: Dictionary = {}  ## 注入后行号(1-based) -> 原始行号(1-based)，供运行时错误映射
+var _error_occurred: bool = false  ## 报错后置 true，阻止后续 deferred print
 
 func _ready() -> void:
 	_preferred_position = position
@@ -102,6 +103,7 @@ func start_bot() -> void:
 	abort()
 	_print_buffer.clear()
 	_injected_to_original.clear()
+	_error_occurred = false
 	_running = true
 	RuntimeErrorLogger.ensure_registered()
 	var gdscript := GDScript.new()
@@ -134,11 +136,14 @@ func _clear_execution_line() -> void:
 	_set_current_line(-1)
 
 func _print_message(text: String, entry_type: ConsoleLogEntry.Type) -> void:
+	if _error_occurred and entry_type == ConsoleLogEntry.Type.LOG:
+		return
 	var entry: ConsoleLogEntry = ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, text)
 	_print_buffer.append(entry)
 	printed.emit(entry)
 
 func _print_runtime_error(msg: String, injected_line: int, script_backtraces: Array = []) -> void:
+	_error_occurred = true
 	## 引擎有时报告下一行，优先用 injected_line-1 的映射
 	var original_line: int = _injected_to_original.get(injected_line - 1, -1)
 	if original_line < 0:
@@ -160,6 +165,10 @@ func _print_runtime_error(msg: String, injected_line: int, script_backtraces: Ar
 
 ## 只保留 gdscript:// 动态脚本的调用帧，过滤掉 res:// 等引擎/项目脚本，行号映射到原始源码
 func _format_user_stack_only(script_backtraces: Array) -> String:
+	var max_original: int = 0
+	for val in _injected_to_original.values():
+		if val > max_original:
+			max_original = val
 	var lines: PackedStringArray = []
 	for bt in script_backtraces:
 		if bt.has_method(\"is_empty\") and bt.is_empty():
@@ -167,21 +176,71 @@ func _format_user_stack_only(script_backtraces: Array) -> String:
 		if not bt.has_method(\"get_frame_count\") or not bt.has_method(\"get_frame_file\"):
 			continue
 		var frame_count: int = bt.get_frame_count()
+		var prev_func_name: String = \"\"
 		for frame_idx in frame_count:
 			var file_path: String = bt.get_frame_file(frame_idx)
 			if not file_path.begins_with(\"gdscript://\"):
 				continue
 			var func_name: String = bt.get_frame_function(frame_idx) if bt.has_method(\"get_frame_function\") else \"?\"
-			var injected_line: int = bt.get_frame_line(frame_idx) if bt.has_method(\"get_frame_line\") else 0
-			var original_line: int = _injected_to_original.get(injected_line - 1, -1)
-			if original_line < 0:
-				original_line = _injected_to_original.get(injected_line, -1)
+			var frame_line: int = bt.get_frame_line(frame_idx) if bt.has_method(\"get_frame_line\") else 0
+			var original_line: int = -1
+			if frame_idx == 0:
+				## 顶层帧（错误发生处）：用映射
+				for offset in [0, -1, 1]:
+					var key: int = frame_line + offset
+					if key > 0:
+						original_line = _injected_to_original.get(key, -1)
+						if original_line > 0:
+							break
+				if original_line <= 0:
+					var best_key: int = 0
+					for key in _injected_to_original:
+						if key <= frame_line and key > best_key:
+							best_key = key
+					original_line = _injected_to_original[best_key] if best_key > 0 else frame_line
+			else:
+				## 调用者帧：引擎常返回错误行，需从源码推断调用行
+				original_line = _find_call_line(func_name, prev_func_name)
+				if original_line <= 0 and frame_line >= 1 and frame_line <= max_original:
+					original_line = frame_line
+				if original_line <= 0:
+					for offset in [0, -1, 1]:
+						var key: int = frame_line + offset
+						if key > 0:
+							original_line = _injected_to_original.get(key, -1)
+							if original_line > 0:
+								break
+				if original_line <= 0:
+					original_line = frame_line
+			prev_func_name = func_name
 			if original_line <= 0:
-				original_line = injected_line
+				original_line = frame_line
 			lines.append(\"  %s (第%d行)\" % [func_name, original_line])
 	if lines.is_empty():
 		return \"\"
 	return \"GDScript backtrace (most recent call first):\\n\" + \"\\n\".join(lines)
+
+## 在 caller_func 体内查找调用 callee_func 的行号（1-based）
+func _find_call_line(caller_func: String, callee_func: String) -> int:
+	if callee_func.is_empty():
+		return -1
+	var source_lines: PackedStringArray = code.split(\"\\n\")
+	var in_caller: bool = false
+	var caller_indent: int = -1
+	for line_index in source_lines.size():
+		var line: String = source_lines[line_index]
+		var stripped: String = line.strip_edges()
+		if stripped.begins_with(\"func \") and stripped.contains(caller_func + \"(\"):
+			in_caller = true
+			caller_indent = line.length() - line.lstrip(\" \\t\").length()
+			continue
+		if in_caller:
+			var indent: int = line.length() - line.lstrip(\" \\t\").length()
+			if indent <= caller_indent and stripped.begins_with(\"func \"):
+				break
+			if indent > caller_indent and (callee_func + \"(\") in stripped:
+				return line_index + 1
+	return -1
 
 func get_print_history() -> Array[ConsoleLogEntry]:
 	return _print_buffer.duplicate()
