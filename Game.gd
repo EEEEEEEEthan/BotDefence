@@ -10,6 +10,7 @@ var bot_server_port: int = -1
 var _tcp_server: TCPServer
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
+@onready var clients: Node = $%Clients
 
 ## 根据 bot_id 查找 Bot，供 BotBridge 握手后绑定
 func get_bot(bot_id: int) -> Bot:
@@ -18,9 +19,9 @@ func get_bot(bot_id: int) -> Bot:
 			return child as Bot
 	return null
 
-## 根据 target_bot 查找 BotBridge（bridge 常驻 Game 下）
+## 根据 target_bot 查找 BotBridge（bridge 常驻 Clients 下）
 func get_bridge_for_bot(bot_node: Bot) -> BotBridge:
-	for child in get_children():
+	for child in clients.get_children():
 		if child is BotBridge and child.target_bot == bot_node:
 			return child as BotBridge
 	return null
@@ -48,4 +49,4 @@ func _accept_bot_connections() -> void:
 		return
 	var bridge: BotBridge = BotBridge.new(peer)
 	bridge.name = "BotBridge"
-	add_child(bridge)
+	clients.add_child(bridge)

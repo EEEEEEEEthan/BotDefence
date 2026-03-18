@@ -66,7 +66,7 @@ func _parse_buffer() -> void:
 
 func _handle_handshake(reader: PacketReader) -> void:
 	var bot_id: int = reader.read_int()
-	var game: Game = get_parent() as Game
+	var game: Game = get_parent().get_parent() as Game
 	if not game:
 		return
 	var bot: Bot = game.get_bot(bot_id)
