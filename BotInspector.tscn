@@ -38,6 +38,7 @@ func _ready() -> void:
 	_update_execution_line(bot.current_execution_line)
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
+	$%PythonBtn.pressed.connect(_on_python_button_pressed)
 	close_requested.connect(_on_close_requested)
 	code_edit.text_changed.connect(_on_text_changed)
 	_validate_timer = Timer.new()
@@ -129,6 +130,12 @@ func _parse_error_line(msg: String) -> int:
 	return int(result.get_string(1)) - 1 if result else -1
 
 
+func _on_python_button_pressed() -> void:
+	var project_root: String = ProjectSettings.globalize_path(\"res://\").trim_suffix(\"/\")
+	var script_path: String = project_root + \"/.bot/runner.py\"
+	OS.create_process(\"python\", PackedStringArray([script_path]))
+
+
 func _on_switch_pressed() -> void:
 	if bot.running:
 		bot.abort()
@@ -171,6 +178,11 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "▶"
+
+[node name="PythonBtn" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768877]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🐍"
 
 [node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
 layout_mode = 2
