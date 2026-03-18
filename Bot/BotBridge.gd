@@ -77,14 +77,20 @@ func _handle_handshake(reader: PacketReader) -> void:
 	if not _game:
 		return
 	_game.pending_bridges.erase(self)
+	if not stream or stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+		return
 	var bot: Bot = _game.get_bot(bot_id)
+	var writer := PacketWriter.new()
 	if bot:
 		target_bot = bot
 		python_pid = bot.python_pid
 		print("Bot %d 已连接" % bot_id)
 		bot.bridge = self
+		writer.write_string(bot.code)
 	else:
 		push_error("未找到 bot_id=%d 的 Bot" % bot_id)
+		writer.write_string("")
+	writer.send(stream)
 
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()

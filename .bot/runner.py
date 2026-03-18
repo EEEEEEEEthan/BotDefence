@@ -5,7 +5,7 @@
 import sys
 import socket
 
-from packet import PacketWriter, receive_packet
+from packet import PacketWriter, PacketReader, receive_packet
 
 ## 协议头：1=打印字符串，2=握手(id)，其余待定
 PROTOCOL_HANDSHAKE: int = 2
@@ -45,6 +45,10 @@ def main() -> None:
     writer.write_byte(PROTOCOL_HANDSHAKE)
     writer.write_int(bot_id)
     writer.send(sock)
+    payload: bytes = receive_packet(sock)
+    reader: PacketReader = PacketReader(payload)
+    code: str = reader.read_string()
+    print("收到代码 (%d 字符)" % len(code))
     bot: Bot = Bot(sock)
     count: int = 0
     while True:
