@@ -15,7 +15,7 @@ const _PROTOCOL_PRINT := 1
 const _PROTOCOL_MOVE_FORWARD := 3
 
 var cardinal: Consts.Cardinal:
-	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
+	get: return target_bot.cardinal
 
 var _game: Game = null
 
@@ -95,16 +95,12 @@ func _handle_handshake(reader: PacketReader) -> void:
 
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
-	if target_bot:
-		await target_bot.print_with_delay(message)
+	await target_bot.print_with_delay(message)
 	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		var writer := PacketWriter.new()
 		writer.send(stream)
 
 func _handle_move_forward(_reader: PacketReader) -> void:
-	if not target_bot:
-		_send_bool_response(false)
-		return
 	var on_done := func(arrived: bool) -> void:
 		_send_bool_response(arrived)
 	target_bot.move_forward(on_done)
