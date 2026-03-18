@@ -16,16 +16,7 @@ const _PROTOCOL_PRINT := 1
 var cardinal: Consts.Cardinal:
 	get: return get_parent().cardinal
 
-func move_forward() -> bool:
-	return _deferred_call("move_forward")
-
-func turn_left() -> bool:
-	return _deferred_call("turn_left")
-
-func turn_right() -> bool:
-	return _deferred_call("turn_right")
-
-func print_error(_what: Variant) -> void:
+func _print_error(_what: Variant) -> void:
 	pass
 
 func attach_stream(peer: StreamPeerTCP) -> void:
