@@ -11,46 +11,6 @@ script/source = "extends Node2D
 
 const DEFAULT_CODE_PATH := \"res://player_code.gd\"
 
-## 运行时错误 Logger：将玩家脚本抛出的错误转发到 printed，供 Inspector Console 显示
-## start_bot 会先 abort() 等待前一线程，故同一时刻仅一个 Bot 在跑，用 _active_bot 即可
-class RuntimeErrorLogger extends Logger:
-	static var _active_bot: WeakRef
-	static var _mutex: Mutex = Mutex.new()
-	static var _instance: RuntimeErrorLogger
-	static var _registered: bool = false
-
-	static func ensure_registered() -> void:
-		if _registered:
-			return
-		_instance = RuntimeErrorLogger.new()
-		OS.add_logger(_instance)
-		_registered = true
-
-	static func set_active_bot(bot_ref: WeakRef) -> void:
-		_mutex.lock()
-		_active_bot = bot_ref
-		_mutex.unlock()
-
-	static func clear_active_bot() -> void:
-		_mutex.lock()
-		_active_bot = null
-		_mutex.unlock()
-
-	func _log_error(_function: String, _file: String, error_line: int, code: String, rationale: String, _editor_notify: bool, _error_type: int, script_backtraces: Array) -> void:
-		_mutex.lock()
-		var bot_ref: WeakRef = _active_bot
-		_mutex.unlock()
-		if not bot_ref:
-			return
-		var bot: Object = bot_ref.get_ref()
-		if not bot or not bot.has_method(\"_print_runtime_error\"):
-			return
-		bot.call_deferred(\"_print_runtime_error\", rationale if rationale else code, error_line, script_backtraces)
-		RuntimeErrorLogger.clear_active_bot()
-
-signal current_line_changed(line: int)  ## -1 表示无执行行
-signal printed(entry: ConsoleLogEntry)  ## BotApi.print/print_error 转发，供 Inspector Console 显示
-
 @onready var _bot_api: Node = $%BotApi
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
@@ -73,22 +33,9 @@ const _CARDINAL_ANGLE := {
 	Consts.Cardinal.WEST: -TAU / 4
 }
 var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
-var _player_thread: Thread
-var _running := false
-var _current_execution_line: int = -1
-
-var current_execution_line: int:
-	get: return _current_execution_line
-
-var running: bool:
-	get: return _running
 
 @export_multiline
 var code: String
-
-var _print_buffer: Array[ConsoleLogEntry] = []  ## 记录所有 print，供中途打开的 Inspector 显示
-var _injected_to_original: Dictionary = {}  ## 注入后行号(1-based) -> 原始行号(1-based)，供运行时错误映射
-var _error_occurred: bool = false  ## 报错后置 true，阻止后续 deferred print
 
 func _ready() -> void:
 	_preferred_position = position
@@ -98,222 +45,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
 	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
-
-func start_bot() -> void:
-	abort()
-	_print_buffer.clear()
-	_injected_to_original.clear()
-	_error_occurred = false
-	_running = true
-	RuntimeErrorLogger.ensure_registered()
-	var gdscript := GDScript.new()
-	gdscript.source_code = _inject_line_tracking(code)
-	print(gdscript.source_code)
-	gdscript.reload()
-	var instance: Object = gdscript.new()
-	var bot_api: Node = _bot_api
-	var on_line := func(line: int) -> bool:
-		if not _running:
-			return true
-		self.call_deferred(&\"_set_current_line\", line)
-		return false
-	_player_thread = Thread.new()
-	_player_thread.start(_run_bot_script.bind(instance, bot_api, on_line))
-
-func _run_bot_script(instance: Object, bot_api: Node, on_line: Callable) -> void:
-	RuntimeErrorLogger.set_active_bot(weakref(self))
-	instance.run(bot_api, on_line)
-	call_deferred(&\"_on_thread_finished\")
-
-func _on_thread_finished() -> void:
-	RuntimeErrorLogger.clear_active_bot()
-	_clear_execution_line()
-
-func _set_current_line(line: int) -> void:
-	if _current_execution_line == line:
-		return
-	_current_execution_line = line
-	current_line_changed.emit(line)
-
-func _clear_execution_line() -> void:
-	_running = false
-	_set_current_line(-1)
-
-func _print_message(text: String, entry_type: ConsoleLogEntry.Type) -> void:
-	if _error_occurred and entry_type == ConsoleLogEntry.Type.LOG:
-		return
-	var entry: ConsoleLogEntry = ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, text)
-	_print_buffer.append(entry)
-	printed.emit(entry)
-
-func _print_runtime_error(msg: String, injected_line: int, script_backtraces: Array = []) -> void:
-	_error_occurred = true
-	## 引擎有时报告下一行，优先用 injected_line-1 的映射
-	var original_line: int = _injected_to_original.get(injected_line - 1, -1)
-	if original_line < 0:
-		original_line = _injected_to_original.get(injected_line, -1)
-	if original_line < 0:
-		var best_key: int = 0
-		for key in _injected_to_original:
-			if key <= injected_line and key > best_key:
-				best_key = key
-		original_line = _injected_to_original[best_key] if best_key > 0 else injected_line
-	if original_line > 0:
-		msg = \"第%d行: %s\" % [original_line, msg]
-	var stack_str: String = _format_user_stack_only(script_backtraces)
-	if stack_str:
-		msg += \"\\n\" + stack_str
-	_print_message(msg, ConsoleLogEntry.Type.ERROR)
-	_clear_execution_line()
-	RuntimeErrorLogger.clear_active_bot()
-
-## 只保留 gdscript:// 动态脚本的调用帧，过滤掉 res:// 等引擎/项目脚本，行号映射到原始源码
-func _format_user_stack_only(script_backtraces: Array) -> String:
-	var max_original: int = 0
-	for val in _injected_to_original.values():
-		if val > max_original:
-			max_original = val
-	var lines: PackedStringArray = []
-	for bt in script_backtraces:
-		if bt.has_method(\"is_empty\") and bt.is_empty():
-			continue
-		if not bt.has_method(\"get_frame_count\") or not bt.has_method(\"get_frame_file\"):
-			continue
-		var frame_count: int = bt.get_frame_count()
-		var prev_func_name: String = \"\"
-		for frame_idx in frame_count:
-			var file_path: String = bt.get_frame_file(frame_idx)
-			if not file_path.begins_with(\"gdscript://\"):
-				continue
-			var func_name: String = bt.get_frame_function(frame_idx) if bt.has_method(\"get_frame_function\") else \"?\"
-			var frame_line: int = bt.get_frame_line(frame_idx) if bt.has_method(\"get_frame_line\") else 0
-			var original_line: int = -1
-			if frame_idx == 0:
-				## 顶层帧（错误发生处）：用映射
-				for offset in [0, -1, 1]:
-					var key: int = frame_line + offset
-					if key > 0:
-						original_line = _injected_to_original.get(key, -1)
-						if original_line > 0:
-							break
-				if original_line <= 0:
-					var best_key: int = 0
-					for key in _injected_to_original:
-						if key <= frame_line and key > best_key:
-							best_key = key
-					original_line = _injected_to_original[best_key] if best_key > 0 else frame_line
-			else:
-				## 调用者帧：引擎常返回错误行，需从源码推断调用行
-				original_line = _find_call_line(func_name, prev_func_name)
-				if original_line <= 0 and frame_line >= 1 and frame_line <= max_original:
-					original_line = frame_line
-				if original_line <= 0:
-					for offset in [0, -1, 1]:
-						var key: int = frame_line + offset
-						if key > 0:
-							original_line = _injected_to_original.get(key, -1)
-							if original_line > 0:
-								break
-				if original_line <= 0:
-					original_line = frame_line
-			prev_func_name = func_name
-			if original_line <= 0:
-				original_line = frame_line
-			lines.append(\"  %s (第%d行)\" % [func_name, original_line])
-	if lines.is_empty():
-		return \"\"
-	return \"GDScript backtrace (most recent call first):\\n\" + \"\\n\".join(lines)
-
-## 在 caller_func 体内查找调用 callee_func 的行号（1-based）
-func _find_call_line(caller_func: String, callee_func: String) -> int:
-	if callee_func.is_empty():
-		return -1
-	var source_lines: PackedStringArray = code.split(\"\\n\")
-	var in_caller: bool = false
-	var caller_indent: int = -1
-	for line_index in source_lines.size():
-		var line: String = source_lines[line_index]
-		var stripped: String = line.strip_edges()
-		if stripped.begins_with(\"func \") and stripped.contains(caller_func + \"(\"):
-			in_caller = true
-			caller_indent = line.length() - line.lstrip(\" \\t\").length()
-			continue
-		if in_caller:
-			var indent: int = line.length() - line.lstrip(\" \\t\").length()
-			if indent <= caller_indent and stripped.begins_with(\"func \"):
-				break
-			if indent > caller_indent and (callee_func + \"(\") in stripped:
-				return line_index + 1
-	return -1
-
-func get_print_history() -> Array[ConsoleLogEntry]:
-	return _print_buffer.duplicate()
-
-## 在所有顶层函数体内每行前注入行号报告与 abort 检查
-## run() 接收 __on_line(line) -> bool，每行执行前调用，返回 true 表示应 abort（协作式退出，含死循环）
-## 同时填充 _injected_to_original：注入后行号(1-based) -> 原始行号(1-based)
-func _inject_line_tracking(source: String) -> String:
-	var lines := source.split(\"\\n\")
-	var result: Array[String] = []
-	var result_line := 0
-	var emit := func(line: String, original: int) -> void:
-		result.append(line)
-		result_line += 1
-		if original >= 0:
-			_injected_to_original[result_line] = original + 1
-	var ensure_vars := func() -> void:
-		emit.call(\"var __on_line_internal: Callable\", -1)
-	var in_func_body := false
-	var in_run_func := false
-	var body_indent := 0
-	var vars_added := false
-	for line_index in lines.size():
-		var line: String = lines[line_index]
-		var stripped := line.strip_edges()
-		var indent_len := line.length() - line.lstrip(\" \\t\").length()
-		if in_func_body:
-			if stripped.is_empty():
-				emit.call(line, line_index)
-				continue
-			if indent_len <= body_indent:
-				in_func_body = stripped.begins_with(\"func \")
-				if in_func_body:
-					in_run_func = stripped.begins_with(\"func run\")
-					body_indent = indent_len
-					if not vars_added:
-						ensure_vars.call()
-						vars_added = true
-					if in_run_func:
-						var paren_idx := line.find(\")\")
-						if paren_idx >= 0:
-							line = line.substr(0, paren_idx) + \", __on_line\" + line.substr(paren_idx)
-				emit.call(line, line_index)
-				continue
-			var indent_str := line.substr(0, indent_len)
-			if in_run_func:
-				emit.call(indent_str + \"__on_line_internal = __on_line\", line_index)
-				in_run_func = false
-			emit.call(indent_str + \"if __on_line_internal.call(\" + str(line_index) + \"): return\", line_index)
-			emit.call(line, line_index)
-			continue
-		if stripped.begins_with(\"func \"):
-			if not vars_added:
-				ensure_vars.call()
-				vars_added = true
-			in_func_body = true
-			in_run_func = stripped.begins_with(\"func run\")
-			body_indent = indent_len
-			if in_run_func:
-				var paren_idx := line.find(\")\")
-				if paren_idx >= 0:
-					line = line.substr(0, paren_idx) + \", __on_line\" + line.substr(paren_idx)
-		elif not vars_added and (stripped.begins_with(\"extends \") or stripped.begins_with(\"class_name \")):
-			emit.call(line, line_index)
-			ensure_vars.call()
-			vars_added = true
-			continue
-		emit.call(line, line_index)
-	return \"\\n\".join(result)
 
 ## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
 func move_forward(callback: Callable) -> void:
@@ -345,13 +76,9 @@ func turn_right(callback: Callable) -> void:
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
-	_running = false
 	if _current_state:
 		_current_state.abort()
 		_current_state = null
-	if _player_thread and _player_thread.is_alive():
-		_player_thread.wait_to_finish()
-		_player_thread = null
 
 func _exit_tree() -> void:
 	abort()
@@ -384,6 +111,8 @@ class_name Bot
 ## 子线程中通过 call_deferred 将操作交给 BotMain，完成后 callback 解除阻塞
 ## 返回 true=完成，false=被取消
 
+var python_pid: int = -1
+
 var cardinal: Consts.Cardinal:
 	get: return get_parent().cardinal
 
@@ -396,11 +125,11 @@ func turn_left() -> bool:
 func turn_right() -> bool:
 	return _deferred_call(\"turn_right\")
 
-func print(what: Variant) -> void:
-	get_parent().call_deferred(\"_print_message\", str(what), ConsoleLogEntry.Type.LOG)
+func print(_what: Variant) -> void:
+	pass
 
-func print_error(what: Variant) -> void:
-	get_parent().call_deferred(\"_print_message\", str(what), ConsoleLogEntry.Type.ERROR)
+func print_error(_what: Variant) -> void:
+	pass
 
 func _deferred_call(method: StringName) -> bool:
 	var semaphore := Semaphore.new()

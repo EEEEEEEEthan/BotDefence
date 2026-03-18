@@ -28,18 +28,21 @@ class ParseErrorCapture extends Logger:
 
 var bot: Node2D
 var _validate_timer: Timer
+var _poll_timer: Timer
+
+func _get_bot_api() -> Node:
+	return bot.get_node(\"%BotApi\")
 
 func _ready() -> void:
 	code_edit.text = bot.code
 	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
-	bot.current_line_changed.connect(_on_current_line_changed)
-	bot.printed.connect(_on_bot_printed)
-	_refresh_console_from_history(bot.get_print_history())
-	_update_execution_line(bot.current_execution_line)
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
-	$%PythonBtn.pressed.connect(_on_python_button_pressed)
 	close_requested.connect(_on_close_requested)
+	_poll_timer = Timer.new()
+	_poll_timer.wait_time = 0.3
+	_poll_timer.timeout.connect(_poll_python_process)
+	add_child(_poll_timer)
 	code_edit.text_changed.connect(_on_text_changed)
 	_validate_timer = Timer.new()
 	_validate_timer.one_shot = true
@@ -47,29 +50,17 @@ func _ready() -> void:
 	add_child(_validate_timer)
 	_validate_syntax()
 
-func _on_current_line_changed(line: int) -> void:
-	_update_execution_line(line)
-	_update_switch_text()
-
-func _on_bot_printed(entry: ConsoleLogEntry) -> void:
-	console.append_text(entry.to_bbcode_line() + \"\\n\")
-
-func _refresh_console_from_history(history: Array) -> void:
-	var lines: PackedStringArray = []
-	for entry in history:
-		lines.append((entry as ConsoleLogEntry).to_bbcode_line())
-	if not lines:
-		console.text = \"\"
-	else:
-		console.text = \"\\n\".join(lines) + \"\\n\"
-
 func _update_switch_text() -> void:
-	$%Switch.text = \"🛑\" if bot.running else \"▶\"
+	var bot_api: Node = _get_bot_api()
+	var running: bool = bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid)
+	$%Switch.text = \"🛑\" if running else \"▶\"
 
-func _update_execution_line(line: int) -> void:
-	code_edit.clear_executing_lines()
-	if line >= 0 and line < code_edit.get_line_count():
-		code_edit.set_line_as_executing(line, true)
+func _poll_python_process() -> void:
+	var bot_api: Node = _get_bot_api()
+	if bot_api.python_pid >= 0 and not OS.is_process_running(bot_api.python_pid):
+		bot_api.python_pid = -1
+		_poll_timer.stop()
+	_update_switch_text()
 
 func _on_text_changed() -> void:
 	_validate_timer.start(VALIDATE_DEBOUNCE_SEC)
@@ -130,21 +121,18 @@ func _parse_error_line(msg: String) -> int:
 	return int(result.get_string(1)) - 1 if result else -1
 
 
-func _on_python_button_pressed() -> void:
+func _on_switch_pressed() -> void:
+	var bot_api: Node = _get_bot_api()
+	if bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid):
+		OS.kill(bot_api.python_pid)
+		bot_api.python_pid = -1
+		_poll_timer.stop()
+		_update_switch_text()
+		return
 	var project_root: String = ProjectSettings.globalize_path(\"res://\").trim_suffix(\"/\")
 	var script_path: String = project_root + \"/.bot/runner.py\"
-	OS.create_process(\"python\", PackedStringArray([script_path]))
-
-
-func _on_switch_pressed() -> void:
-	if bot.running:
-		bot.abort()
-	else:
-		if not _check_syntax(code_edit.text).message.is_empty():
-			return
-		bot.code = code_edit.text
-		console.text = \"\"
-		bot.start_bot()
+	bot_api.python_pid = OS.create_process(\"python\", PackedStringArray([script_path]))
+	_poll_timer.start()
 	_update_switch_text()
 
 
@@ -178,11 +166,6 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "▶"
-
-[node name="PythonBtn" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=271768877]
-unique_name_in_owner = true
-layout_mode = 2
-text = "🐍"
 
 [node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
 layout_mode = 2
