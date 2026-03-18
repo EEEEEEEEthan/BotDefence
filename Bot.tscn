@@ -359,7 +359,7 @@ metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 script = SubResource("GDScript_sck5o")
 code = "func run(bot) -> void:
 	while true:
-		bot.print(bot.cardinal)
+		bot.print(Consts.Cardinal.keys()[bot.cardinal])
 		bot.move_forward()
 		bot.turn_right()
 "

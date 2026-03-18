@@ -48,9 +48,8 @@ func _on_current_line_changed(line: int) -> void:
 	_update_execution_line(line)
 	_update_switch_text()
 
-func _on_bot_printed(entry: ConsoleLogEntry) -> void:
-	var prefix: String = \"\\n\" if not console.text.is_empty() and not console.text.ends_with(\"\\n\") else \"\"
-	console.append_text(prefix + entry.to_bbcode_line() + \"\\n\")
+func _on_bot_printed(_entry: ConsoleLogEntry) -> void:
+	_refresh_console_from_history(bot.get_print_history())
 
 func _refresh_console_from_history(history: Array) -> void:
 	var lines: PackedStringArray = []
