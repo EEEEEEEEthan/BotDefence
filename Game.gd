@@ -11,23 +11,19 @@ var _tcp_server: TCPServer
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
 
-## 根据 target_bot 查找对应的 BotBridge
+## 根据 bot_id 查找 Bot，供 BotBridge 握手后绑定
+func get_bot(bot_id: int) -> Bot:
+	for child in get_children():
+		if child is Bot and child.bot_id == bot_id:
+			return child as Bot
+	return null
+
+## 根据 target_bot 查找 BotBridge（bridge 常驻 Game 下）
 func get_bridge_for_bot(bot_node: Bot) -> BotBridge:
 	for child in get_children():
 		if child is BotBridge and child.target_bot == bot_node:
 			return child as BotBridge
 	return null
-
-## BotBridge 收到握手后调用，绑定 bridge 到对应 bot_id 的 Bot
-func assign_bridge_to_bot(bridge: BotBridge, bot_id: int) -> void:
-	for child in get_children():
-		if child is Bot and child.bot_id == bot_id:
-			bridge.target_bot = child
-			bridge.python_pid = child.python_pid
-			print("Bot %d 已连接" % bot_id)
-			return
-	push_error("未找到 bot_id=%d 的 Bot" % bot_id)
-	bridge.queue_free()
 
 func _ready() -> void:
 	_start_bot_server()

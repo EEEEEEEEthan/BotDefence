@@ -527,7 +527,7 @@ bake_range = Rect2i(0, 0, 18, 10)
 
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
 position = Vector2(480, 288)
-bot_id = 0
+bot_id = 1
 
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)

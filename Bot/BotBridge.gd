@@ -67,8 +67,16 @@ func _parse_buffer() -> void:
 func _handle_handshake(reader: PacketReader) -> void:
 	var bot_id: int = reader.read_int()
 	var game: Game = get_parent() as Game
-	if game:
-		game.assign_bridge_to_bot(self, bot_id)
+	if not game:
+		return
+	var bot: Bot = game.get_bot(bot_id)
+	if bot:
+		target_bot = bot
+		python_pid = bot.python_pid
+		print("Bot %d 已连接" % bot_id)
+	else:
+		push_error("未找到 bot_id=%d 的 Bot" % bot_id)
+		queue_free()
 
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
