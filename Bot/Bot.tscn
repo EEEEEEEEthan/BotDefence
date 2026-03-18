@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://k4afs5cov1dn"]
 
 [ext_resource type="Script" uid="uid://ctbi5c4jqt75p" path="res://Bot/Bot.gd" id="1_sck5o"]
+[ext_resource type="Script" path="res://Bot/BotBridge.gd" id="2_bridge"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
 
 [sub_resource type="GDScript" id="GDScript_q6hsy"]
@@ -117,6 +118,10 @@ while True:
     count += 1
     bot.print(\"tick\", count)
 "
+
+[node name="BotBridge" type="Node" parent="." unique_id=0]
+script = ExtResource("2_bridge")
+unique_name_in_owner = true
 
 [node name="StateMachine" type="Node" parent="." unique_id=1363322939]
 

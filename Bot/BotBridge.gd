@@ -1,9 +1,8 @@
-extends RefCounted
+extends Node
 class_name BotBridge
 
-## 玩家可见的 Bot API，作为 Bot 的字段
-## 主线程运行，持有 stream 并负责收协议
-## 赋值为 null 即解引用，NOTIFICATION_PREDELETE 时自动 disconnect_stream
+## Bot 的固定子节点，持有 stream 并负责收协议
+## 通过 attach_stream 绑定连接，通过 close() 清理资源
 
 var python_pid: int = -1
 var stream: StreamPeerTCP = null
@@ -16,21 +15,10 @@ const _PROTOCOL_MOVE_FORWARD := 3
 const _PROTOCOL_PRINT_ERROR := 4
 
 var cardinal: Consts.Cardinal:
-	get: return target_bot.cardinal
+	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
 
-var _game: Game = null
-
-func _init(peer: StreamPeerTCP = null, game: Game = null) -> void:
-	if peer:
-		stream = peer
-	_game = game
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_PREDELETE:
-		if stream:
-			stream.disconnect_from_host()
-			stream = null
-		_receive_buffer.clear()
+func _ready() -> void:
+	target_bot = owner as Bot
 
 func attach_stream(peer: StreamPeerTCP) -> void:
 	disconnect_stream()
@@ -42,6 +30,13 @@ func disconnect_stream() -> void:
 		stream = null
 	_receive_buffer.clear()
 
+## 清理所有资源，断开连接并重置状态
+func close() -> void:
+	disconnect_stream()
+	if target_bot:
+		target_bot.python_pid = -1
+	python_pid = -1
+
 func poll() -> void:
 	_receive_protocol()
 
@@ -49,11 +44,7 @@ func _receive_protocol() -> void:
 	if not stream:
 		return
 	if stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-		if target_bot == null and _game:
-			_game.pending_bridges.erase(self)
-		elif target_bot:
-			target_bot.python_pid = -1
-			target_bot.bridge = null  ## 解引用，NOTIFICATION_PREDELETE 时 disconnect_stream
+		close()
 		return
 	var available: int = stream.get_available_bytes()
 	if available <= 0:
@@ -73,26 +64,6 @@ func _parse_buffer() -> void:
 		var payload: PackedByteArray = _receive_buffer.slice(_LENGTH_SIZE, _LENGTH_SIZE + payload_length)
 		_receive_buffer = _receive_buffer.slice(_LENGTH_SIZE + payload_length)
 		_handle_protocol_message(payload)
-
-func _handle_handshake(reader: PacketReader) -> void:
-	var bot_id: int = reader.read_int()
-	if not _game:
-		return
-	_game.pending_bridges.erase(self)
-	if not stream or stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-		return
-	var bot: Bot = _game.get_bot(bot_id)
-	var writer := PacketWriter.new()
-	if bot:
-		target_bot = bot
-		python_pid = bot.python_pid
-		print("Bot %d 已连接" % bot_id)
-		bot.bridge = self
-		writer.write_string(bot.code)
-	else:
-		push_error("未找到 bot_id=%d 的 Bot" % bot_id)
-		writer.write_string("")
-	writer.send(stream)
 
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
@@ -125,20 +96,10 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 	var reader := PacketReader.new(payload)
 	var header: int = reader.read_byte()
 	if header == _PROTOCOL_HANDSHAKE:
-		_handle_handshake(reader)
+		pass  ## 握手由 PendingConnection 处理
 	elif header == _PROTOCOL_PRINT:
 		_handle_print(reader)
 	elif header == _PROTOCOL_PRINT_ERROR:
 		_handle_print_error(reader)
 	elif header == _PROTOCOL_MOVE_FORWARD:
 		_handle_move_forward(reader)
-
-func _deferred_call(method: StringName) -> bool:
-	var semaphore := Semaphore.new()
-	var result := [false]
-	var on_done := func(done: bool):
-		result[0] = done
-		semaphore.post()
-	target_bot.get_parent().call_deferred(method, on_done)
-	semaphore.wait()
-	return result[0]

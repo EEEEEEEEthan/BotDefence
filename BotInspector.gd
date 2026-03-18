@@ -65,7 +65,7 @@ func _poll_python_process() -> void:
 		bot.python_pid = -1
 		_poll_timer.stop()
 		if bot is Bot:
-			(bot as Bot).bridge = null
+			(bot as Bot).bridge.close()
 	_update_switch_text()
 
 func _on_text_changed() -> void:
@@ -137,7 +137,7 @@ func _on_switch_pressed() -> void:
 		bot.python_pid = -1
 		_poll_timer.stop()
 		if bot is Bot:
-			(bot as Bot).bridge = null
+			(bot as Bot).bridge.close()
 		_update_switch_text()
 		return
 	var game: Game = bot.get_parent() as Game

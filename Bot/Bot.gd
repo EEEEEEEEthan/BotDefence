@@ -10,7 +10,7 @@ const DEFAULT_CODE_PATH := "res://player_code.gd"
 @export var bot_id: int = -1
 var python_pid: int = -1
 
-var bridge: BotBridge = null  ## 赋值为 null 即解引用，自动断开 stream
+@onready var bridge: BotBridge = $BotBridge as BotBridge
 
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
@@ -51,8 +51,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
 	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
-	if bridge:
-		bridge.poll()
+	bridge.poll()
 
 ## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
 func move_forward(callback: Callable) -> void:
