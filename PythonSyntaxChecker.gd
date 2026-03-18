@@ -25,21 +25,23 @@ func set_targets(p_code_edit: CodeEdit, p_error_label: Label) -> void:
 func set_closing(value: bool) -> void:
 	_closing = value
 
-## 立即执行检查（如初始加载）
-func check_now(source: String) -> void:
-	_validate_version += 1
-	var version: int = _validate_version
-	var thread := Thread.new()
-	thread.start(_thread_check_syntax.bind(source, version))
-
-## 防抖后执行检查（用于 text_changed）
-func request_check(source: String) -> void:
+## 防抖后执行检查；immediate 为 true 时跳过防抖立即执行（如初始加载）
+func request_check(source: String, immediate: bool = false) -> void:
+	if immediate:
+		_check_now(source)
+		return
 	set_meta("pending_source", source)
 	_validate_timer.start(VALIDATE_DEBOUNCE_SEC)
 
 func _on_timer_timeout() -> void:
 	var source: String = get_meta("pending_source", "")
-	check_now(source)
+	_check_now(source)
+
+func _check_now(source: String) -> void:
+	_validate_version += 1
+	var version: int = _validate_version
+	var thread := Thread.new()
+	thread.start(_thread_check_syntax.bind(source, version))
 
 func _thread_check_syntax(source: String, version: int) -> void:
 	var result: Dictionary = _check_python_syntax_impl(source)

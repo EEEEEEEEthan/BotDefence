@@ -27,13 +27,10 @@ func _ready() -> void:
 	add_child(_poll_timer)
 	syntax_checker.set_targets(code_edit, error_label)
 	code_edit.text_changed.connect(_on_text_changed)
-	if _is_python_bot():
-		syntax_checker.check_now(code_edit.text)
+	if not (bot as Bot).bridge.is_running:
+		syntax_checker.request_check(code_edit.text, true)
 	bot.log_added.connect(_on_log_added)
 	_display_all_logs()
-
-func _is_python_bot() -> bool:
-	return bot is Bot and (bot as Bot).code_language == "python"
 
 func _display_all_logs() -> void:
 	var bot_logs: Array = (bot as Bot).logs
@@ -61,7 +58,7 @@ func _poll_python_process() -> void:
 
 func _on_text_changed() -> void:
 	bot.code = code_edit.text
-	if _is_python_bot():
+	if not (bot as Bot).bridge.is_running:
 		syntax_checker.request_check(code_edit.text)
 
 func _on_switch_pressed() -> void:
