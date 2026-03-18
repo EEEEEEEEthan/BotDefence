@@ -26,28 +26,20 @@ func set_closing(value: bool) -> void:
 	_closing = value
 
 ## 立即执行检查（如初始加载）
-func check_now(source: String, is_python: bool) -> void:
-	if not is_python:
-		_apply_syntax_result({"message": "", "lines": []})
-		return
+func check_now(source: String) -> void:
 	_validate_version += 1
 	var version: int = _validate_version
 	var thread := Thread.new()
 	thread.start(_thread_check_syntax.bind(source, version))
 
 ## 防抖后执行检查（用于 text_changed）
-func request_check(source: String, is_python: bool) -> void:
-	if not is_python:
-		_apply_syntax_result({"message": "", "lines": []})
-		return
+func request_check(source: String) -> void:
 	set_meta("pending_source", source)
-	set_meta("pending_is_python", is_python)
 	_validate_timer.start(VALIDATE_DEBOUNCE_SEC)
 
 func _on_timer_timeout() -> void:
 	var source: String = get_meta("pending_source", "")
-	var is_python: bool = get_meta("pending_is_python", false)
-	check_now(source, is_python)
+	check_now(source)
 
 func _thread_check_syntax(source: String, version: int) -> void:
 	var result: Dictionary = _check_python_syntax_impl(source)

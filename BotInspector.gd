@@ -27,7 +27,8 @@ func _ready() -> void:
 	add_child(_poll_timer)
 	syntax_checker.set_targets(code_edit, error_label)
 	code_edit.text_changed.connect(_on_text_changed)
-	syntax_checker.check_now(code_edit.text, _is_python_bot())
+	if _is_python_bot():
+		syntax_checker.check_now(code_edit.text)
 	bot.log_added.connect(_on_log_added)
 	_display_all_logs()
 
@@ -60,7 +61,8 @@ func _poll_python_process() -> void:
 
 func _on_text_changed() -> void:
 	bot.code = code_edit.text
-	syntax_checker.request_check(code_edit.text, _is_python_bot())
+	if _is_python_bot():
+		syntax_checker.request_check(code_edit.text)
 
 func _on_switch_pressed() -> void:
 	if not (bot is Bot):
