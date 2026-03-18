@@ -26,6 +26,10 @@ func write_string(value: String) -> void:
 	_buffer.append_array(length_bytes)
 	_buffer.append_array(utf8_bytes)
 
+func write_bool(value: bool) -> void:
+	## 写入 1 字节，0=false，1=true
+	_buffer.append(1 if value else 0)
+
 func send(stream: StreamPeer) -> void:
 	## 发送 4 字节长度 + payload，发送后清空 buffer
 	var length_bytes: PackedByteArray = PackedByteArray()

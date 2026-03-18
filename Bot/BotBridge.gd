@@ -12,6 +12,7 @@ var _receive_buffer: PackedByteArray = PackedByteArray()
 const _LENGTH_SIZE := 4
 const _PROTOCOL_HANDSHAKE := 2
 const _PROTOCOL_PRINT := 1
+const _PROTOCOL_MOVE_FORWARD := 3
 
 var cardinal: Consts.Cardinal:
 	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
@@ -100,6 +101,20 @@ func _handle_print(reader: PacketReader) -> void:
 		var writer := PacketWriter.new()
 		writer.send(stream)
 
+func _handle_move_forward(_reader: PacketReader) -> void:
+	if not target_bot:
+		_send_bool_response(false)
+		return
+	var on_done := func(arrived: bool) -> void:
+		_send_bool_response(arrived)
+	target_bot.move_forward(on_done)
+
+func _send_bool_response(value: bool) -> void:
+	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+		var writer := PacketWriter.new()
+		writer.write_bool(value)
+		writer.send(stream)
+
 func _handle_protocol_message(payload: PackedByteArray) -> void:
 	if payload.size() < 1:
 		return
@@ -109,6 +124,8 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 		_handle_handshake(reader)
 	elif header == _PROTOCOL_PRINT:
 		_handle_print(reader)
+	elif header == _PROTOCOL_MOVE_FORWARD:
+		_handle_move_forward(reader)
 
 func _deferred_call(method: StringName) -> bool:
 	var semaphore := Semaphore.new()

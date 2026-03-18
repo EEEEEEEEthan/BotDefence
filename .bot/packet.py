@@ -51,6 +51,10 @@ class PacketWriter:
         self._buffer.extend(struct.pack("<I", len(utf8_bytes)))
         self._buffer.extend(utf8_bytes)
 
+    def write_bool(self, value: bool) -> None:
+        """写入 1 字节，0=false，1=true"""
+        self._buffer.append(1 if value else 0)
+
     def send(self, stream: _SendStream) -> None:
         """发送 4 字节长度 + payload，发送后清空 buffer。stream 需有 sendall(data: bytes)"""
         stream.sendall(struct.pack("<I", len(self._buffer)) + bytes(self._buffer))
@@ -86,3 +90,9 @@ class PacketReader:
             return utf8_bytes.decode("utf-8")
         except UnicodeDecodeError:
             return "<invalid utf-8>"
+
+    def read_bool(self) -> bool:
+        """读取 1 字节，0=false，非 0=true"""
+        value: int = self._buffer[self._position]
+        self._position += 1
+        return value != 0

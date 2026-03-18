@@ -30,3 +30,9 @@ func read_string() -> String:
 	if text.is_empty() and length > 0:
 		return "<invalid utf-8>"
 	return text
+
+func read_bool() -> bool:
+	## 读取 1 字节，0=false，非 0=true
+	var value: int = _buffer[_position]
+	_position += 1
+	return value != 0

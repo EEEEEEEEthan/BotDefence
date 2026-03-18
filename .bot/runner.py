@@ -7,9 +7,10 @@ import socket
 
 from packet import PacketWriter, PacketReader, receive_packet
 
-## 协议头：1=打印字符串，2=握手(id)，其余待定
+## 协议头：1=打印字符串，2=握手(id)，3=向前移动
 PROTOCOL_HANDSHAKE: int = 2
 PROTOCOL_PRINT: int = 1
+PROTOCOL_MOVE_FORWARD: int = 3
 
 
 class Bot:
@@ -25,6 +26,15 @@ class Bot:
         writer.write_string(" ".join(str(arg) for arg in args))
         writer.send(self._sock)
         receive_packet(self._sock)
+
+    def move_forward(self) -> bool:
+        """向前移动一格，阻塞直到完成，返回 true=抵达/false=被取消"""
+        writer: PacketWriter = PacketWriter()
+        writer.write_byte(PROTOCOL_MOVE_FORWARD)
+        writer.send(self._sock)
+        payload: bytes = receive_packet(self._sock)
+        reader: PacketReader = PacketReader(payload)
+        return reader.read_bool()
 
 
 def main() -> None:
