@@ -533,7 +533,7 @@ code = "## 全局 bot 已注入，直接使用
 count = 0
 while True:
     count += 1
-    bot.print(\"tick\", count)
+    print(\"tick\", count)
 "
 
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]

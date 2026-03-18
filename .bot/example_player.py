@@ -3,4 +3,4 @@
 count: int = 0
 while True:
     count += 1
-    bot.print("tick", count)
+    print("tick", count)

@@ -89,19 +89,13 @@ func _add_log(log_type: String, message: String) -> void:
 func log_error(message: String) -> void:
 	_add_log("error", message)
 
-func print_with_delay(what: Variant) -> void:
-	var message := str(what)
+## 由 BotBridge 从 stdout 捕获后调用
+func log_stdout(message: String) -> void:
 	_add_log("log", message)
-	print_rich(message)
-	var timer := get_tree().create_timer(1)
-	await timer.timeout
 
-func print_error_with_delay(what: Variant) -> void:
-	var message := str(what)
+## 由 BotBridge 从 stderr 捕获后调用
+func log_stderr(message: String) -> void:
 	_add_log("error", message)
-	push_error(message)
-	var timer := get_tree().create_timer(1)
-	await timer.timeout
 
 ## 退出时调用，中止当前任务
 func abort() -> void:
