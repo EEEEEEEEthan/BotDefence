@@ -98,6 +98,13 @@ func print_with_delay(what: Variant) -> void:
 	var timer := get_tree().create_timer(1)
 	await timer.timeout
 
+func print_error_with_delay(what: Variant) -> void:
+	var message := str(what)
+	_add_log("error", message)
+	push_error(message)
+	var timer := get_tree().create_timer(1)
+	await timer.timeout
+
 ## 退出时调用，中止当前任务
 func abort() -> void:
 	if _current_state:

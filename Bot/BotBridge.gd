@@ -13,6 +13,7 @@ const _LENGTH_SIZE := 4
 const _PROTOCOL_HANDSHAKE := 2
 const _PROTOCOL_PRINT := 1
 const _PROTOCOL_MOVE_FORWARD := 3
+const _PROTOCOL_PRINT_ERROR := 4
 
 var cardinal: Consts.Cardinal:
 	get: return target_bot.cardinal
@@ -100,6 +101,13 @@ func _handle_print(reader: PacketReader) -> void:
 		var writer := PacketWriter.new()
 		writer.send(stream)
 
+func _handle_print_error(reader: PacketReader) -> void:
+	var message: String = reader.read_string()
+	await target_bot.print_error_with_delay(message)
+	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+		var writer := PacketWriter.new()
+		writer.send(stream)
+
 func _handle_move_forward(_reader: PacketReader) -> void:
 	var on_done := func(arrived: bool) -> void:
 		_send_bool_response(arrived)
@@ -120,6 +128,8 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 		_handle_handshake(reader)
 	elif header == _PROTOCOL_PRINT:
 		_handle_print(reader)
+	elif header == _PROTOCOL_PRINT_ERROR:
+		_handle_print_error(reader)
 	elif header == _PROTOCOL_MOVE_FORWARD:
 		_handle_move_forward(reader)
 

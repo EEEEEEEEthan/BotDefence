@@ -7,10 +7,11 @@ import socket
 
 from packet import PacketWriter, PacketReader, receive_packet
 
-## 协议头：1=打印字符串，2=握手(id)，3=向前移动
-PROTOCOL_HANDSHAKE: int = 2
+## 协议头：1=打印，2=握手(id)，3=向前移动，4=打印错误(红色)
 PROTOCOL_PRINT: int = 1
+PROTOCOL_HANDSHAKE: int = 2
 PROTOCOL_MOVE_FORWARD: int = 3
+PROTOCOL_PRINT_ERROR: int = 4
 
 
 class Bot:
@@ -23,6 +24,14 @@ class Bot:
         """发送字符串到 Godot 控制台，任意数量参数会转为 str 后拼接，阻塞直到收到空包回复"""
         writer: PacketWriter = PacketWriter()
         writer.write_byte(PROTOCOL_PRINT)
+        writer.write_string(" ".join(str(arg) for arg in args))
+        writer.send(self._sock)
+        receive_packet(self._sock)
+
+    def print_error(self, *args: object) -> None:
+        """发送错误字符串到 Godot 控制台，Inspector 中显示红色，阻塞直到收到空包回复"""
+        writer: PacketWriter = PacketWriter()
+        writer.write_byte(PROTOCOL_PRINT_ERROR)
         writer.write_string(" ".join(str(arg) for arg in args))
         writer.send(self._sock)
         receive_packet(self._sock)
