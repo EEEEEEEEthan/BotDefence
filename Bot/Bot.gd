@@ -37,8 +37,8 @@ var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 @export_multiline
 var code: String
 
-## 日志列表，每项为 {timestamp: float, type: String, message: String}，type 为 "log" 或 "error"
-var logs: Array[Dictionary] = []
+## 日志列表，每项为 ConsoleLogEntry
+var logs: Array[ConsoleLogEntry] = []
 
 func _ready() -> void:
 	_preferred_position = position
@@ -80,11 +80,8 @@ func turn_right(callback: Callable) -> void:
 	_current_state.start(new_cardinal, wrapped)
 
 func _add_log(log_type: String, message: String) -> void:
-	logs.append({
-		"timestamp": Time.get_unix_time_from_system(),
-		"type": log_type,
-		"message": message
-	})
+	var entry_type: ConsoleLogEntry.Type = ConsoleLogEntry.Type.ERROR if log_type == "error" else ConsoleLogEntry.Type.LOG
+	logs.append(ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, message))
 
 func log_error(message: String) -> void:
 	_add_log("error", message)
