@@ -18,10 +18,21 @@ def __send_message(sock: socket.socket, payload: bytes) -> None:
     sock.sendall(length_bytes + payload)
 
 
-def send_print(sock: socket.socket, text: str) -> None:
+def __send_print(sock: socket.socket, text: str) -> None:
     """协议头 1：发送打印字符串，剩余部分为 UTF-8 编码的字符串"""
     payload: bytes = bytes([PROTOCOL_PRINT]) + text.encode("utf-8")
     __send_message(sock, payload)
+
+
+class Bot:
+    """封装与 Godot BotBridge 的通信，提供 print 等 API"""
+
+    def __init__(self, sock: socket.socket) -> None:
+        self._sock: socket.socket = sock
+
+    def print(self, *args: object) -> None:
+        """发送字符串到 Godot 控制台，任意数量参数会转为 str 后拼接"""
+        __send_print(self._sock, " ".join(str(arg) for arg in args))
 
 
 def main() -> None:
@@ -37,10 +48,11 @@ def main() -> None:
     except OSError as error:
         print("连接失败: %s" % error, file=sys.stderr)
         sys.exit(1)
+    bot: Bot = Bot(sock)
     count: int = 0
     while True:
         count += 1
-        send_print(sock, "runner tick %d" % count)
+        bot.print("runner tick %d" % count)
         time.sleep(1)
 
 
