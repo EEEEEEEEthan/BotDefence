@@ -7,11 +7,13 @@ import socket
 
 from packet import PacketWriter, PacketReader, receive_packet
 
-## 协议头：1=打印，2=握手(id)，3=向前移动，4=打印错误(红色)
+## 协议头：1=打印，2=握手(id)，3=向前移动，4=打印错误(红色)，5=左转，6=右转
 PROTOCOL_PRINT: int = 1
 PROTOCOL_HANDSHAKE: int = 2
 PROTOCOL_MOVE_FORWARD: int = 3
 PROTOCOL_PRINT_ERROR: int = 4
+PROTOCOL_TURN_LEFT: int = 5
+PROTOCOL_TURN_RIGHT: int = 6
 
 
 class Bot:
@@ -40,6 +42,24 @@ class Bot:
         """向前移动一格，阻塞直到完成，返回 true=抵达/false=被取消"""
         writer: PacketWriter = PacketWriter()
         writer.write_byte(PROTOCOL_MOVE_FORWARD)
+        writer.send(self._sock)
+        payload: bytes = receive_packet(self._sock)
+        reader: PacketReader = PacketReader(payload)
+        return reader.read_bool()
+
+    def turn_left(self) -> bool:
+        """左转 90°，阻塞直到完成，返回 true=完成/false=被取消"""
+        writer: PacketWriter = PacketWriter()
+        writer.write_byte(PROTOCOL_TURN_LEFT)
+        writer.send(self._sock)
+        payload: bytes = receive_packet(self._sock)
+        reader: PacketReader = PacketReader(payload)
+        return reader.read_bool()
+
+    def turn_right(self) -> bool:
+        """右转 90°，阻塞直到完成，返回 true=完成/false=被取消"""
+        writer: PacketWriter = PacketWriter()
+        writer.write_byte(PROTOCOL_TURN_RIGHT)
         writer.send(self._sock)
         payload: bytes = receive_packet(self._sock)
         reader: PacketReader = PacketReader(payload)

@@ -13,6 +13,8 @@ const _PROTOCOL_HANDSHAKE := 2
 const _PROTOCOL_PRINT := 1
 const _PROTOCOL_MOVE_FORWARD := 3
 const _PROTOCOL_PRINT_ERROR := 4
+const _PROTOCOL_TURN_LEFT := 5
+const _PROTOCOL_TURN_RIGHT := 6
 
 var cardinal: Consts.Cardinal:
 	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
@@ -96,6 +98,16 @@ func _handle_move_forward(_reader: PacketReader) -> void:
 		_send_bool_response(arrived)
 	target_bot.move_forward(on_done)
 
+func _handle_turn_left(_reader: PacketReader) -> void:
+	var on_done := func(done: bool) -> void:
+		_send_bool_response(done)
+	target_bot.turn_left(on_done)
+
+func _handle_turn_right(_reader: PacketReader) -> void:
+	var on_done := func(done: bool) -> void:
+		_send_bool_response(done)
+	target_bot.turn_right(on_done)
+
 func _send_bool_response(value: bool) -> void:
 	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		var writer := PacketWriter.new()
@@ -115,3 +127,7 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 		_handle_print_error(reader)
 	elif header == _PROTOCOL_MOVE_FORWARD:
 		_handle_move_forward(reader)
+	elif header == _PROTOCOL_TURN_LEFT:
+		_handle_turn_left(reader)
+	elif header == _PROTOCOL_TURN_RIGHT:
+		_handle_turn_right(reader)
