@@ -41,13 +41,10 @@ func _ready() -> void:
 	_validate_timer.timeout.connect(_validate_syntax)
 	add_child(_validate_timer)
 	_validate_syntax()
-	if bot is Bot:
-		(bot as Bot).log_added.connect(_on_log_added)
-		_display_all_logs()
+	bot.log_added.connect(_on_log_added)
+	_display_all_logs()
 
 func _display_all_logs() -> void:
-	if not (bot is Bot):
-		return
 	var bot_logs: Array = (bot as Bot).logs
 	var lines: PackedStringArray = []
 	for entry in bot_logs:
