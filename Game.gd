@@ -9,6 +9,7 @@ var bot_server_port: int = -1
 
 var _tcp_server: TCPServer
 var _connected_peers: Array[StreamPeerTCP] = []
+var _next_bot_id: int = 0
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
 
@@ -32,5 +33,7 @@ func _accept_bot_connections() -> void:
 		return
 	var peer: StreamPeerTCP = _tcp_server.take_connection()
 	if peer:
+		var bot_id: int = _next_bot_id
+		_next_bot_id += 1
 		_connected_peers.append(peer)
-		print("Bot 已连接")
+		print("Bot 已连接，id=%d" % bot_id)
