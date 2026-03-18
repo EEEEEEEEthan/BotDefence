@@ -113,8 +113,9 @@ func _check_python_syntax_impl(source: String) -> Dictionary:
 		return {"message": "无法创建临时文件", "lines": empty_lines}
 	file.store_string(source)
 	file.close()
+	var python_exe: String = "pythonw" if OS.get_name() == "Windows" else "python"
 	var output: Array = []
-	var exit_code: int = OS.execute("python", PackedStringArray(["-m", "py_compile", temp_path]), output, true, true)
+	var exit_code: int = OS.execute(python_exe, PackedStringArray(["-m", "py_compile", temp_path]), output, true, true)
 	if exit_code == 0:
 		return empty
 	var parts: PackedStringArray = PackedStringArray()
