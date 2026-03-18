@@ -8,10 +8,17 @@ class_name Game
 var bot_server_port: int = -1
 
 var _tcp_server: TCPServer
-var _connected_peers: Array[StreamPeerTCP] = []
-var _next_bot_id: int = 0
+var _pending_bot_apis: Array[Node] = []
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
+
+## BotInspector 启动 runner 前调用，将下一个到达的连接分配给该 BotApi
+func request_connection_for(bot_api: Node) -> void:
+	_pending_bot_apis.append(bot_api)
+
+## BotInspector 停止 runner 时调用，取消未完成的连接请求
+func cancel_connection_request(bot_api: Node) -> void:
+	_pending_bot_apis.erase(bot_api)
 
 func _ready() -> void:
 	_start_bot_server()
@@ -32,8 +39,11 @@ func _accept_bot_connections() -> void:
 	if not _tcp_server:
 		return
 	var peer: StreamPeerTCP = _tcp_server.take_connection()
-	if peer:
-		var bot_id: int = _next_bot_id
-		_next_bot_id += 1
-		_connected_peers.append(peer)
-		print("Bot 已连接，id=%d" % bot_id)
+	if not peer:
+		return
+	if _pending_bot_apis.is_empty():
+		peer.disconnect_from_host()
+		return
+	var bot_api: Node = _pending_bot_apis.pop_front()
+	bot_api.attach_stream(peer)
+	print("Bot 已连接")

@@ -1,0 +1,141 @@
+[gd_scene format=3 uid="uid://k4afs5cov1dn"]
+
+[ext_resource type="Script" uid="uid://ctbi5c4jqt75p" path="res://Bot/Bot.gd" id="1_sck5o"]
+[ext_resource type="Script" uid="uid://b26tqahhl3bqo" path="res://Bot/BotBridge.gd" id="2_q6hsy"]
+[ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
+
+[sub_resource type="GDScript" id="GDScript_q6hsy"]
+script/source = "extends Node
+class_name MoveForwardState
+
+## 沿 direction 移动一格，目标为 platform 则抵达后 callback(true)，否则等待后 callback(false)
+## 无论是否 platform 都等待 MOVE_DURATION
+
+const MOVE_DURATION := 1.0
+
+var _callback: Callable
+var _timer: Timer
+var _moved := false
+
+func _ready() -> void:
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
+
+func start(direction: Consts.Cardinal, callback: Callable) -> void:
+	_callback = callback
+	var tilemap: TileMapLayer = owner.owner.tilemap
+	var tile_set: TileSet = tilemap.tile_set
+	var offset: Vector2 = Consts.CARDINAL_TO_DIRECTION[direction]
+	var tile_size: Vector2 = Vector2(tile_set.tile_size) * tilemap.scale
+	var tile_x: float = floor(owner.position.x / tile_size.x)
+	var tile_y: float = floor(owner.position.y / tile_size.y)
+	var target_tile := Vector2i(int(tile_x), int(tile_y)) + Vector2i(int(offset.x), int(offset.y))
+	var tile_data: TileData = tilemap.get_cell_tile_data(target_tile)
+	var is_platform: bool = tile_data != null and tile_data.get_custom_data(\"platform\") == true
+	if is_platform:
+		var current_center := Vector2(tile_x * tile_size.x + tile_size.x / 2, tile_y * tile_size.y + tile_size.y / 2)
+		owner.preferred_position = current_center + offset * tile_size
+		_moved = true
+	else:
+		_moved = false
+	_timer.start(MOVE_DURATION)
+
+func abort() -> void:
+	_timer.stop()
+	_finish(false)
+
+func _on_timeout() -> void:
+	var result: bool = _moved
+	_finish(result)
+
+func _finish(result: bool) -> void:
+	if _callback.is_valid():
+		_callback.call(result)
+		_callback = Callable()
+"
+
+[sub_resource type="GDScript" id="GDScript_ybhwq"]
+script/source = "extends Node
+class_name TurnState
+
+## 瞬时设置 cardinal 与 preferred_rotation，等待 TURN_DURATION 后 callback
+## 实际旋转由 BotMain 每帧插值
+
+const TURN_DURATION := 0.5
+const _CARDINAL_ANGLE := {
+	Consts.Cardinal.NORTH: 0.0,
+	Consts.Cardinal.EAST: TAU / 4,
+	Consts.Cardinal.SOUTH: TAU / 2,
+	Consts.Cardinal.WEST: -TAU / 4
+}
+
+var _callback: Callable
+var _running := false
+var _timer: Timer
+
+func _ready() -> void:
+	_timer = Timer.new()
+	_timer.one_shot = true
+	add_child(_timer)
+	_timer.timeout.connect(_on_timeout)
+
+func start(new_cardinal: Consts.Cardinal, callback: Callable) -> void:
+	_callback = callback
+	_running = true
+	owner.cardinal = new_cardinal
+	owner.preferred_rotation = _CARDINAL_ANGLE[new_cardinal]
+	_timer.start(TURN_DURATION)
+
+func abort() -> void:
+	_timer.stop()
+	_finish(false)
+
+func _on_timeout() -> void:
+	_finish(true)
+
+func _finish(result: bool) -> void:
+	_running = false
+	if _callback.is_valid():
+		_callback.call(result)
+		_callback = Callable()
+"
+
+[sub_resource type="Texture2D" id="Texture2D_ppfm4"]
+resource_local_to_scene = false
+resource_name = ""
+script = ExtResource("5_r3adq")
+_hex_data = "89504e470d0a1a0a0000000d4948445200000008000000080806000000c40fbe8b000000017352474200aece1ce900000035494441541895636020001891d8ffb1c931218bfcff3c89e1ffe74928aa600ad075c3c5e02620eb4466a35881cf91d8ac4096c70d001e030e19f89cab100000000049454e44ae426082"
+metadata/_custom_type_script = "uid://xqi7kv2y70eo"
+
+[node name="Bot" type="Node2D" unique_id=11366525]
+script = ExtResource("1_sck5o")
+code = "func run(bot) -> void:
+	while true:
+		bot.print(Consts.Cardinal.keys()[bot.cardinal])
+		bot.move_forward()
+		bot.turn_right()
+"
+
+[node name="BotApi" type="Node" parent="." unique_id=2036080268]
+unique_name_in_owner = true
+script = ExtResource("2_q6hsy")
+
+[node name="StateMachine" type="Node" parent="." unique_id=1363322939]
+
+[node name="MoveForwardState" type="Node" parent="StateMachine" unique_id=395237652]
+unique_name_in_owner = true
+script = SubResource("GDScript_q6hsy")
+
+[node name="TurnState" type="Node" parent="StateMachine" unique_id=1961331314]
+unique_name_in_owner = true
+script = SubResource("GDScript_ybhwq")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
+position = Vector2(0, 1.9073486e-06)
+scale = Vector2(8, 8)
+texture = SubResource("Texture2D_ppfm4")
+
+[node name="BotInspector" parent="." unique_id=358476760 instance_placeholder="res://BotInspector.tscn"]
+unique_name_in_owner = true

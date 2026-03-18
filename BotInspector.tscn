@@ -59,6 +59,10 @@ func _poll_python_process() -> void:
 	var bot_api: Node = _get_bot_api()
 	if bot_api.python_pid >= 0 and not OS.is_process_running(bot_api.python_pid):
 		bot_api.python_pid = -1
+		bot_api.disconnect_stream()
+		var game: Game = bot.get_parent() as Game
+		if game:
+			game.cancel_connection_request(bot_api)
 		_poll_timer.stop()
 	_update_switch_text()
 
@@ -126,6 +130,10 @@ func _on_switch_pressed() -> void:
 	if bot_api.python_pid >= 0 and OS.is_process_running(bot_api.python_pid):
 		OS.kill(bot_api.python_pid)
 		bot_api.python_pid = -1
+		bot_api.disconnect_stream()
+		var game: Game = bot.get_parent() as Game
+		if game:
+			game.cancel_connection_request(bot_api)
 		_poll_timer.stop()
 		_update_switch_text()
 		return
@@ -133,6 +141,7 @@ func _on_switch_pressed() -> void:
 	if not game or game.bot_server_port < 0:
 		push_error(\"Bot 服务器未就绪\")
 		return
+	game.request_connection_for(bot_api)
 	var project_root: String = ProjectSettings.globalize_path(\"res://\").trim_suffix(\"/\")
 	var script_path: String = project_root + \"/.bot/runner.py\"
 	bot_api.python_pid = OS.create_process(\"python\", PackedStringArray([script_path, str(game.bot_server_port)]))
