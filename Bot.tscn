@@ -108,17 +108,21 @@ func start_bot() -> void:
 	RuntimeErrorLogger.ensure_registered()
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
+	print(gdscript.source_code)
 	gdscript.reload()
 	var instance: Object = gdscript.new()
 	var bot_api: Node = _bot_api
-	var report_line := func(line: int): self.call_deferred(&\"_set_current_line\", line)
-	var abort_check := func() -> bool: return not _running
+	var on_line := func(line: int) -> bool:
+		if not _running:
+			return true
+		self.call_deferred(&\"_set_current_line\", line)
+		return false
 	_player_thread = Thread.new()
-	_player_thread.start(_run_bot_script.bind(instance, bot_api, report_line, abort_check))
+	_player_thread.start(_run_bot_script.bind(instance, bot_api, on_line))
 
-func _run_bot_script(instance: Object, bot_api: Node, report_line: Callable, abort_check: Callable) -> void:
+func _run_bot_script(instance: Object, bot_api: Node, on_line: Callable) -> void:
 	RuntimeErrorLogger.set_active_bot(weakref(self))
-	instance.run(bot_api, report_line, abort_check)
+	instance.run(bot_api, on_line)
 	call_deferred(&\"_on_thread_finished\")
 
 func _on_thread_finished() -> void:
@@ -246,7 +250,7 @@ func get_print_history() -> Array[ConsoleLogEntry]:
 	return _print_buffer.duplicate()
 
 ## 在所有顶层函数体内每行前注入行号报告与 abort 检查
-## run() 接收 __report_line、__abort_check，每行执行前检查 abort 以支持协作式退出（含死循环）
+## run() 接收 __on_line(line) -> bool，每行执行前调用，返回 true 表示应 abort（协作式退出，含死循环）
 ## 同时填充 _injected_to_original：注入后行号(1-based) -> 原始行号(1-based)
 func _inject_line_tracking(source: String) -> String:
 	var lines := source.split(\"\\n\")
@@ -258,8 +262,7 @@ func _inject_line_tracking(source: String) -> String:
 		if original >= 0:
 			_injected_to_original[result_line] = original + 1
 	var ensure_vars := func() -> void:
-		emit.call(\"var __report_line_internal: Callable\", -1)
-		emit.call(\"var __abort_check_internal: Callable\", -1)
+		emit.call(\"var __on_line_internal: Callable\", -1)
 	var in_func_body := false
 	var in_run_func := false
 	var body_indent := 0
@@ -283,16 +286,14 @@ func _inject_line_tracking(source: String) -> String:
 					if in_run_func:
 						var paren_idx := line.find(\")\")
 						if paren_idx >= 0:
-							line = line.substr(0, paren_idx) + \", __report_line, __abort_check\" + line.substr(paren_idx)
+							line = line.substr(0, paren_idx) + \", __on_line\" + line.substr(paren_idx)
 				emit.call(line, line_index)
 				continue
 			var indent_str := line.substr(0, indent_len)
 			if in_run_func:
-				emit.call(indent_str + \"__report_line_internal = __report_line\", line_index)
-				emit.call(indent_str + \"__abort_check_internal = __abort_check\", line_index)
+				emit.call(indent_str + \"__on_line_internal = __on_line\", line_index)
 				in_run_func = false
-			emit.call(indent_str + \"if __abort_check_internal.call(): return\", line_index)
-			emit.call(indent_str + \"__report_line_internal.call(\" + str(line_index) + \")\", line_index)
+			emit.call(indent_str + \"if __on_line_internal.call(\" + str(line_index) + \"): return\", line_index)
 			emit.call(line, line_index)
 			continue
 		if stripped.begins_with(\"func \"):
@@ -305,7 +306,7 @@ func _inject_line_tracking(source: String) -> String:
 			if in_run_func:
 				var paren_idx := line.find(\")\")
 				if paren_idx >= 0:
-					line = line.substr(0, paren_idx) + \", __report_line, __abort_check\" + line.substr(paren_idx)
+					line = line.substr(0, paren_idx) + \", __on_line\" + line.substr(paren_idx)
 		elif not vars_added and (stripped.begins_with(\"extends \") or stripped.begins_with(\"class_name \")):
 			emit.call(line, line_index)
 			ensure_vars.call()
