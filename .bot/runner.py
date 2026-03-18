@@ -3,6 +3,7 @@
 ## 用法: runner.py <code_path> <bot_id>
 
 import sys
+import time
 
 ## 协议：命令行以 BOT: 为前缀，Godot 解析后回写 true/false 到 stdin
 _CMD_PREFIX: str = "BOT:"
@@ -34,11 +35,12 @@ class Bot:
 
 
 def _make_tracer(code_path: str) -> object:
-    """返回 settrace 回调，在用户代码每行执行前报告行号"""
+    """返回 settrace 回调，在用户代码每行执行前报告行号并暂停 0.1 秒"""
 
     def trace_lines(frame, event: str, arg: object) -> object:
         if event == "line" and frame.f_code.co_filename == code_path:
             print(_CMD_PREFIX + "line:" + str(frame.f_lineno), flush=True)
+            time.sleep(0.1)
         return trace_lines
 
     return trace_lines
