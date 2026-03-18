@@ -2,6 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://c8bqnrg3ipj5v" path="res://Theme.tres" id="1_2vjwb"]
 [ext_resource type="Script" uid="uid://ebhpiyguttkx" path="res://BotInspector.gd" id="2_mfj0u"]
+[ext_resource type="Script" uid="uid://5m23cyie6nn0" path="res://PythonSyntaxChecker.gd" id="3_syntax"]
 
 [node name="BotInspector" type="Window" unique_id=358476760]
 oversampling_override = 1.0
@@ -9,6 +10,10 @@ position = Vector2i(0, 36)
 size = Vector2i(607, 477)
 theme = ExtResource("1_2vjwb")
 script = ExtResource("2_mfj0u")
+
+[node name="PythonSyntaxChecker" type="Node" parent="." unique_id=893729363]
+unique_name_in_owner = true
+script = ExtResource("3_syntax")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=372296523]
 anchors_preset = 15
