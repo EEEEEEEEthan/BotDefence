@@ -129,9 +129,13 @@ func _on_switch_pressed() -> void:
 		_poll_timer.stop()
 		_update_switch_text()
 		return
+	var game: Game = bot.get_parent() as Game
+	if not game or game.bot_server_port < 0:
+		push_error(\"Bot 服务器未就绪\")
+		return
 	var project_root: String = ProjectSettings.globalize_path(\"res://\").trim_suffix(\"/\")
 	var script_path: String = project_root + \"/.bot/runner.py\"
-	bot_api.python_pid = OS.create_process(\"python\", PackedStringArray([script_path]))
+	bot_api.python_pid = OS.create_process(\"python\", PackedStringArray([script_path, str(game.bot_server_port)]))
 	_poll_timer.start()
 	_update_switch_text()
 

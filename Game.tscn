@@ -1,18 +1,9 @@
 [gd_scene format=4 uid="uid://ri6jg3hsmjys"]
 
+[ext_resource type="Script" path="res://Game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
-
-[sub_resource type="GDScript" id="GDScript_xkndl"]
-script/source = "extends Node
-class_name Game
-
-## 每个 Bot 用各自保存的代码在子线程运行
-## 每个 Bot 通过自己的检视器 Play 按钮独立启动脚本
-
-@onready var tilemap: TileMapLayer = $%TileMapLayer
-"
 
 [sub_resource type="TileMapPattern" id="TileMapPattern_sb48q"]
 tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 1610612736, 1, 1, 1342177280, 65537, 1, 805306368)
@@ -521,7 +512,7 @@ func _is_destination(tilemap_layer: TileMapLayer, coords: Vector2i) -> bool:
 "
 
 [node name="Game" type="Node" unique_id=684061255]
-script = SubResource("GDScript_xkndl")
+script = ExtResource("1_game")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2118065095]
 unique_name_in_owner = true
