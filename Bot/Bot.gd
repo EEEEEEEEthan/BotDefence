@@ -40,6 +40,8 @@ var code: String
 ## 日志列表，每项为 ConsoleLogEntry
 var logs: Array[ConsoleLogEntry] = []
 
+signal log_added(entry: ConsoleLogEntry)
+
 func _ready() -> void:
 	_preferred_position = position
 	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
@@ -81,7 +83,9 @@ func turn_right(callback: Callable) -> void:
 
 func _add_log(log_type: String, message: String) -> void:
 	var entry_type: ConsoleLogEntry.Type = ConsoleLogEntry.Type.ERROR if log_type == "error" else ConsoleLogEntry.Type.LOG
-	logs.append(ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, message))
+	var entry := ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, message)
+	logs.append(entry)
+	log_added.emit(entry)
 
 func log_error(message: String) -> void:
 	_add_log("error", message)

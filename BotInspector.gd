@@ -41,6 +41,21 @@ func _ready() -> void:
 	_validate_timer.timeout.connect(_validate_syntax)
 	add_child(_validate_timer)
 	_validate_syntax()
+	if bot is Bot:
+		(bot as Bot).log_added.connect(_on_log_added)
+		_display_all_logs()
+
+func _display_all_logs() -> void:
+	if not (bot is Bot):
+		return
+	var bot_logs: Array = (bot as Bot).logs
+	var lines: PackedStringArray = []
+	for entry in bot_logs:
+		lines.append((entry as ConsoleLogEntry).to_bbcode_line())
+	console.text = "\n".join(lines) + "\n"
+
+func _on_log_added(entry: ConsoleLogEntry) -> void:
+	console.append_text(entry.to_bbcode_line() + "\n")
 
 func _update_switch_text() -> void:
 	var running: bool = bot.python_pid >= 0 and OS.is_process_running(bot.python_pid)
@@ -131,6 +146,9 @@ func _on_switch_pressed() -> void:
 	if bot.bot_id < 0:
 		push_error("Bot 的 bot_id 未设置")
 		return
+	if bot is Bot:
+		(bot as Bot).logs.clear()
+		console.text = ""
 	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
 	var script_path: String = project_root + "/.bot/runner.py"
 	bot.python_pid = OS.create_process("python", PackedStringArray([script_path, str(game.bot_server_port), str(bot.bot_id)]))
