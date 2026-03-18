@@ -4,9 +4,8 @@
 
 import sys
 import socket
-import time
 
-from packet import PacketWriter
+from packet import PacketWriter, receive_packet
 
 ## 协议头：1=打印字符串，其余待定
 PROTOCOL_PRINT: int = 1
@@ -19,11 +18,12 @@ class Bot:
         self._sock: socket.socket = sock
 
     def print(self, *args: object) -> None:
-        """发送字符串到 Godot 控制台，任意数量参数会转为 str 后拼接"""
+        """发送字符串到 Godot 控制台，任意数量参数会转为 str 后拼接，阻塞直到收到空包回复"""
         writer: PacketWriter = PacketWriter()
         writer.write_byte(PROTOCOL_PRINT)
         writer.write_string(" ".join(str(arg) for arg in args))
         writer.send(self._sock)
+        receive_packet(self._sock)
 
 
 def main() -> None:
@@ -44,7 +44,6 @@ def main() -> None:
     while True:
         count += 1
         bot.print("runner tick %d" % count)
-        time.sleep(1)
 
 
 if __name__ == "__main__":

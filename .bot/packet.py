@@ -8,6 +8,29 @@ class _SendStream(Protocol):
     def sendall(self, data: bytes) -> None: ...
 
 
+class _RecvStream(Protocol):
+    def recv(self, bufsize: int) -> bytes: ...
+
+
+def receive_packet(stream: _RecvStream) -> bytes:
+    """阻塞读取一个完整协议包，返回 payload。stream 需有 recv(n) -> bytes"""
+    length_bytes: bytes = _recv_exact(stream, 4)
+    length: int = struct.unpack("<I", length_bytes)[0]
+    return _recv_exact(stream, length)
+
+
+def _recv_exact(stream: _RecvStream, size: int) -> bytes:
+    chunks: list[bytes] = []
+    remaining: int = size
+    while remaining > 0:
+        chunk: bytes = stream.recv(remaining)
+        if not chunk:
+            raise ConnectionError("连接已关闭")
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    return b"".join(chunks)
+
+
 class PacketWriter:
     """协议包发送封装：write_byte/write_int/write_string，send 时发送 4 字节长度 + payload"""
 

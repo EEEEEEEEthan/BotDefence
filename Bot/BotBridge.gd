@@ -74,6 +74,12 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 	var header: int = reader.read_byte()
 	if header == _PROTOCOL_PRINT:
 		print(reader.read_string())
+		var timer := get_tree().create_timer(1.0)
+		timer.timeout.connect(func() -> void:
+			if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+				var writer := PacketWriter.new()
+				writer.send(stream)
+		)
 
 func _exit_tree() -> void:
 	disconnect_stream()
