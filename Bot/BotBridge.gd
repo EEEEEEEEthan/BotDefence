@@ -25,10 +25,6 @@ func turn_left() -> bool:
 func turn_right() -> bool:
 	return _deferred_call("turn_right")
 
-func print(what: Variant) -> void:
-	# 由 Python 端通过协议 1 触发，输出到 Godot 控制台
-	print_rich(str(what))
-
 func print_error(_what: Variant) -> void:
 	pass
 
@@ -73,13 +69,11 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 	var reader := PacketReader.new(payload)
 	var header: int = reader.read_byte()
 	if header == _PROTOCOL_PRINT:
-		print(reader.read_string())
-		var timer := get_tree().create_timer(1.0)
-		timer.timeout.connect(func() -> void:
+		var on_done := func() -> void:
 			if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 				var writer := PacketWriter.new()
 				writer.send(stream)
-		)
+		owner.call_deferred("print_with_delay", reader.read_string(), on_done)
 
 func _exit_tree() -> void:
 	disconnect_stream()
