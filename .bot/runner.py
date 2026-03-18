@@ -1,79 +1,53 @@
 #!/usr/bin/env python3
-## Bot 相关 Python 脚本入口，后续会打成包
-## 当前由 Godot 通过 PATH 的 python 启动，传入服务器端口号
+## Bot 相关 Python 脚本入口，通过 stdio 与 Godot 行协议交互
+## 用法: runner.py <code_path> <bot_id>
 
 import sys
-import socket
 
-from packet import PacketWriter, PacketReader, receive_packet
-
-## 协议头：2=握手(id)，3=向前移动，5=左转，6=右转（print 已改用 stdio）
-PROTOCOL_HANDSHAKE: int = 2
-PROTOCOL_MOVE_FORWARD: int = 3
-PROTOCOL_TURN_LEFT: int = 5
-PROTOCOL_TURN_RIGHT: int = 6
+## 协议：命令行以 BOT: 为前缀，Godot 解析后回写 true/false 到 stdin
+_CMD_PREFIX: str = "BOT:"
 
 
 class Bot:
-    """封装与 Godot BotBridge 的通信。用户直接使用 print()/print(..., file=sys.stderr)，由 Godot 捕获 stdio"""
+    """封装与 Godot BotBridge 的 stdio 通信。用户 print() 直接输出到 stdout 供 Godot 记录"""
 
-    def __init__(self, sock: socket.socket) -> None:
-        self._sock: socket.socket = sock
+    def _write_cmd(self, cmd: str) -> None:
+        print(_CMD_PREFIX + cmd, flush=True)
+
+    def _read_response(self) -> str:
+        return sys.stdin.readline().rstrip("\n")
 
     def move_forward(self) -> bool:
         """向前移动一格，阻塞直到完成，返回 true=抵达/false=被取消"""
-        writer: PacketWriter = PacketWriter()
-        writer.write_byte(PROTOCOL_MOVE_FORWARD)
-        writer.send(self._sock)
-        payload: bytes = receive_packet(self._sock)
-        reader: PacketReader = PacketReader(payload)
-        return reader.read_bool()
+        self._write_cmd("move_forward")
+        return self._read_response().lower() == "true"
 
     def turn_left(self) -> bool:
         """左转 90°，阻塞直到完成，返回 true=完成/false=被取消"""
-        writer: PacketWriter = PacketWriter()
-        writer.write_byte(PROTOCOL_TURN_LEFT)
-        writer.send(self._sock)
-        payload: bytes = receive_packet(self._sock)
-        reader: PacketReader = PacketReader(payload)
-        return reader.read_bool()
+        self._write_cmd("turn_left")
+        return self._read_response().lower() == "true"
 
     def turn_right(self) -> bool:
         """右转 90°，阻塞直到完成，返回 true=完成/false=被取消"""
-        writer: PacketWriter = PacketWriter()
-        writer.write_byte(PROTOCOL_TURN_RIGHT)
-        writer.send(self._sock)
-        payload: bytes = receive_packet(self._sock)
-        reader: PacketReader = PacketReader(payload)
-        return reader.read_bool()
+        self._write_cmd("turn_right")
+        return self._read_response().lower() == "true"
 
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("用法: runner.py <port> <id>", file=sys.stderr)
+        print("用法: runner.py <code_path> <bot_id>", file=sys.stderr)
         sys.exit(1)
-    port: int = int(sys.argv[1])
+    code_path: str = sys.argv[1]
     bot_id: int = int(sys.argv[2])
-    print("Bot runner started, connecting to localhost:%d (id=%d)" % (port, bot_id))
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        sock.connect(("127.0.0.1", port))
-        print("Connected to server")
+        with open(code_path, "r", encoding="utf-8") as file:
+            code: str = file.read()
     except OSError as error:
-        print("连接失败: %s" % error, file=sys.stderr)
+        print("读取代码失败: %s" % error, file=sys.stderr)
         sys.exit(1)
-    writer: PacketWriter = PacketWriter()
-    writer.write_byte(PROTOCOL_HANDSHAKE)
-    writer.write_int(bot_id)
-    writer.send(sock)
-    payload: bytes = receive_packet(sock)
-    reader: PacketReader = PacketReader(payload)
-    code: str = reader.read_string()
-    print("收到代码 (%d 字符)" % len(code))
-    bot: Bot = Bot(sock)
     sys.stdout.reconfigure(write_through=True)
     sys.stderr.reconfigure(write_through=True)
-    namespace: dict[str, object] = {"bot": bot, "__name__": "__main__"}
+    namespace: dict[str, object] = {"bot": Bot(), "__name__": "__main__"}
     exec(code, namespace)
 
 

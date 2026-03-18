@@ -70,16 +70,12 @@ func _on_switch_pressed() -> void:
 		_poll_timer.stop()
 		_update_switch_text()
 		return
-	var game: Game = bot.get_parent() as Game
-	if not game or game.bot_server_port < 0:
-		push_error("Bot 服务器未就绪")
-		return
 	if bot.bot_id < 0:
 		push_error("Bot 的 bot_id 未设置")
 		return
 	(bot as Bot).logs.clear()
 	console.text = ""
-	if bridge.start_process(game.bot_server_port):
+	if bridge.start_process():
 		_poll_timer.start()
 	_update_switch_text()
 
