@@ -70,13 +70,10 @@ func _parse_buffer() -> void:
 func _handle_protocol_message(payload: PackedByteArray) -> void:
 	if payload.size() < 1:
 		return
-	var header: int = payload[0]
+	var reader := PacketReader.new(payload)
+	var header: int = reader.read_byte()
 	if header == _PROTOCOL_PRINT:
-		var text_bytes: PackedByteArray = payload.slice(1, payload.size())
-		var text: String = text_bytes.get_string_from_utf8()
-		if text.is_empty() and text_bytes.size() > 0:
-			text = "<invalid utf-8>"
-		print(text)
+		print(reader.read_string())
 
 func _exit_tree() -> void:
 	disconnect_stream()
