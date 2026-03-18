@@ -12,6 +12,7 @@ script/source = "extends Node2D
 const DEFAULT_CODE_PATH := \"res://player_code.gd\"
 
 signal current_line_changed(line: int)  ## -1 表示无执行行
+signal printed(entry: ConsoleLogEntry)  ## BotApi.print/print_error 转发，供 Inspector Console 显示
 
 @onready var _bot_api: Node = $%BotApi
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
@@ -48,6 +49,8 @@ var running: bool:
 @export_multiline
 var code: String
 
+var _print_buffer: Array[ConsoleLogEntry] = []  ## 记录所有 print，供中途打开的 Inspector 显示
+
 func _ready() -> void:
 	_preferred_position = position
 	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
@@ -59,6 +62,7 @@ func _process(delta: float) -> void:
 
 func start_bot() -> void:
 	abort()
+	_print_buffer.clear()
 	_running = true
 	var gdscript := GDScript.new()
 	gdscript.source_code = _inject_line_tracking(code)
@@ -83,6 +87,14 @@ func _set_current_line(line: int) -> void:
 func _clear_execution_line() -> void:
 	_running = false
 	_set_current_line(-1)
+
+func _print_message(text: String, entry_type: ConsoleLogEntry.Type) -> void:
+	var entry: ConsoleLogEntry = ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, text)
+	_print_buffer.append(entry)
+	printed.emit(entry)
+
+func get_print_history() -> Array[ConsoleLogEntry]:
+	return _print_buffer.duplicate()
 
 ## 在所有顶层函数体内每行前注入行号报告与 abort 检查
 ## run() 接收 __report_line、__abort_check，每行执行前检查 abort 以支持协作式退出（含死循环）
@@ -220,6 +232,12 @@ func turn_left() -> bool:
 
 func turn_right() -> bool:
 	return _deferred_call(\"turn_right\")
+
+func print(what: Variant) -> void:
+	get_parent().call_deferred(\"_print_message\", str(what), ConsoleLogEntry.Type.LOG)
+
+func print_error(what: Variant) -> void:
+	get_parent().call_deferred(\"_print_message\", str(what), ConsoleLogEntry.Type.ERROR)
 
 func _deferred_call(method: StringName) -> bool:
 	var semaphore := Semaphore.new()
