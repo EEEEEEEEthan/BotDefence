@@ -33,6 +33,17 @@ class Bot:
         return self._read_response().lower() == "true"
 
 
+def _make_tracer(code_path: str) -> object:
+    """返回 settrace 回调，在用户代码每行执行前报告行号"""
+
+    def trace_lines(frame, event: str, arg: object) -> object:
+        if event == "line" and frame.f_code.co_filename == code_path:
+            print(_CMD_PREFIX + "line:" + str(frame.f_lineno), flush=True)
+        return trace_lines
+
+    return trace_lines
+
+
 def main() -> None:
     if len(sys.argv) < 3:
         print("用法: runner.py <code_path> <bot_id>", file=sys.stderr)
@@ -48,7 +59,13 @@ def main() -> None:
     sys.stdout.reconfigure(write_through=True)
     sys.stderr.reconfigure(write_through=True)
     namespace: dict[str, object] = {"bot": Bot(), "__name__": "__main__"}
-    exec(code, namespace)
+    code_obj = compile(code, code_path, "exec")
+    tracer = _make_tracer(code_path)
+    sys.settrace(tracer)
+    try:
+        exec(code_obj, namespace)
+    finally:
+        sys.settrace(None)
 
 
 if __name__ == "__main__":

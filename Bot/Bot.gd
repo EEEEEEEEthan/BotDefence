@@ -41,6 +41,7 @@ var code: String
 var logs: Array[ConsoleLogEntry] = []
 
 signal log_added(entry: ConsoleLogEntry)
+signal current_line_changed(line_one_based: int)
 
 func _ready() -> void:
 	_preferred_position = position
@@ -96,6 +97,10 @@ func log_stdout(message: String) -> void:
 ## 由 BotBridge 从 stderr 捕获后调用
 func log_stderr(message: String) -> void:
 	_add_log("error", message)
+
+## 由 BotBridge 在收到 Python 行号报告时调用
+func notify_current_line(line_one_based: int) -> void:
+	current_line_changed.emit(line_one_based)
 
 ## 退出时调用，中止当前任务
 func abort() -> void:

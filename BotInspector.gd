@@ -30,6 +30,7 @@ func _ready() -> void:
 	if not (bot as Bot).bridge.is_running:
 		syntax_checker.request_check(code_edit.text, true)
 	bot.log_added.connect(_on_log_added)
+	(bot as Bot).current_line_changed.connect(_on_current_line_changed)
 	_display_all_logs()
 
 func _display_all_logs() -> void:
@@ -41,6 +42,13 @@ func _display_all_logs() -> void:
 
 func _on_log_added(entry: ConsoleLogEntry) -> void:
 	console.append_text(entry.to_bbcode_line() + "\n")
+
+func _on_current_line_changed(line_one_based: int) -> void:
+	code_edit.clear_executing_lines()
+	var line_index: int = line_one_based - 1
+	if line_index >= 0 and line_index < code_edit.get_line_count():
+		code_edit.set_line_as_executing(line_index, true)
+		code_edit.set_caret_line(line_index)
 
 func _update_switch_text() -> void:
 	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
@@ -54,6 +62,7 @@ func _poll_python_process() -> void:
 	if not bridge.is_running and bridge.python_pid >= 0:
 		bridge.close()
 		_poll_timer.stop()
+		code_edit.clear_executing_lines()
 	_update_switch_text()
 
 func _on_text_changed() -> void:
@@ -68,6 +77,7 @@ func _on_switch_pressed() -> void:
 	if bridge.is_running:
 		bridge.close()
 		_poll_timer.stop()
+		code_edit.clear_executing_lines()
 		_update_switch_text()
 		return
 	if bot.bot_id < 0:

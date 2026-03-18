@@ -94,6 +94,12 @@ func _poll_pipe(pipe: FileAccess, buffer: String, on_line: Callable) -> void:
 			on_line.call(trimmed)
 
 func _handle_command(cmd: String) -> void:
+	if cmd.begins_with("line:"):
+		var line_str: String = cmd.substr(5)
+		var line_one_based: int = line_str.to_int()
+		if line_one_based > 0 and target_bot:
+			target_bot.notify_current_line(line_one_based)
+		return
 	match cmd:
 		"move_forward":
 			_handle_move_forward()
