@@ -7,7 +7,8 @@ import socket
 
 from packet import PacketWriter, receive_packet
 
-## 协议头：1=打印字符串，其余待定
+## 协议头：1=打印字符串，2=握手(id)，其余待定
+PROTOCOL_HANDSHAKE: int = 2
 PROTOCOL_PRINT: int = 1
 
 
@@ -27,11 +28,12 @@ class Bot:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("用法: runner.py <port>", file=sys.stderr)
+    if len(sys.argv) < 3:
+        print("用法: runner.py <port> <id>", file=sys.stderr)
         sys.exit(1)
-    port = int(sys.argv[1])
-    print("Bot runner started, connecting to localhost:%d" % port)
+    port: int = int(sys.argv[1])
+    bot_id: int = int(sys.argv[2])
+    print("Bot runner started, connecting to localhost:%d (id=%d)" % (port, bot_id))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect(("127.0.0.1", port))
@@ -39,6 +41,10 @@ def main() -> None:
     except OSError as error:
         print("连接失败: %s" % error, file=sys.stderr)
         sys.exit(1)
+    writer: PacketWriter = PacketWriter()
+    writer.write_byte(PROTOCOL_HANDSHAKE)
+    writer.write_int(bot_id)
+    writer.send(sock)
     bot: Bot = Bot(sock)
     count: int = 0
     while True:

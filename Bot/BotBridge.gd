@@ -2,22 +2,21 @@ extends Node
 class_name BotBridge
 
 ## 玩家可见的 Bot API，作为 BotMain 的子节点
-## 子线程中通过 call_deferred 将操作交给 BotMain，完成后 callback 解除阻塞
+## 主线程运行，持有 stream 并负责收协议
 ## 返回 true=完成，false=被取消
 ## 持有 stream 并负责收协议
 
 var python_pid: int = -1
 var stream: StreamPeerTCP = null
+var target_bot: Node = null  ## 握手后赋值为对应 Bot，用于 print_with_delay
 var _receive_buffer: PackedByteArray = PackedByteArray()
 const _LENGTH_SIZE := 4
-## 协议头：1=打印字符串，其余待定
+## 协议头：1=打印字符串，2=握手(id)，其余待定
+const _PROTOCOL_HANDSHAKE := 2
 const _PROTOCOL_PRINT := 1
 
 var cardinal: Consts.Cardinal:
-	get: return get_parent().cardinal
-
-func _ready() -> void:
-	process_thread_group = 2
+	get: return target_bot.cardinal if target_bot else Consts.Cardinal.NORTH
 
 func _print_error(_what: Variant) -> void:
 	pass
@@ -36,7 +35,11 @@ func _process(_delta: float) -> void:
 	_receive_protocol()
 
 func _receive_protocol() -> void:
-	if not stream or stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+	if not stream:
+		return
+	if stream.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+		if target_bot == null:
+			queue_free()
 		return
 	var available: int = stream.get_available_bytes()
 	if available <= 0:
@@ -57,9 +60,16 @@ func _parse_buffer() -> void:
 		_receive_buffer = _receive_buffer.slice(_LENGTH_SIZE + payload_length)
 		_handle_protocol_message(payload)
 
+func _handle_handshake(reader: PacketReader) -> void:
+	var bot_id: int = reader.read_int()
+	var game: Game = get_parent() as Game
+	if game:
+		game.assign_bridge_to_bot(self, bot_id)
+
 func _handle_print(reader: PacketReader) -> void:
 	var message: String = reader.read_string()
-	await get_parent().print_with_delay(message)
+	if target_bot:
+		await target_bot.print_with_delay(message)
 	if stream and stream.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		var writer := PacketWriter.new()
 		writer.send(stream)
@@ -69,7 +79,9 @@ func _handle_protocol_message(payload: PackedByteArray) -> void:
 		return
 	var reader := PacketReader.new(payload)
 	var header: int = reader.read_byte()
-	if header == _PROTOCOL_PRINT:
+	if header == _PROTOCOL_HANDSHAKE:
+		_handle_handshake(reader)
+	elif header == _PROTOCOL_PRINT:
 		_handle_print(reader)
 
 func _exit_tree() -> void:

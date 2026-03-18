@@ -8,6 +8,7 @@ class_name Bot
 const DEFAULT_CODE_PATH := "res://player_code.gd"
 
 @export var bot_id: int = -1
+var python_pid: int = -1
 
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 

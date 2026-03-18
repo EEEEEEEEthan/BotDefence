@@ -8,17 +8,26 @@ class_name Game
 var bot_server_port: int = -1
 
 var _tcp_server: TCPServer
-var _pending_bot_apis: Array[Node] = []
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
 
-## BotInspector 启动 runner 前调用，将下一个到达的连接分配给该 BotBridge
-func request_connection_for(bot_api: Node) -> void:
-	_pending_bot_apis.append(bot_api)
+## 根据 target_bot 查找对应的 BotBridge
+func get_bridge_for_bot(bot_node: Bot) -> BotBridge:
+	for child in get_children():
+		if child is BotBridge and child.target_bot == bot_node:
+			return child as BotBridge
+	return null
 
-## BotInspector 停止 runner 时调用，取消未完成的连接请求
-func cancel_connection_request(bot_api: Node) -> void:
-	_pending_bot_apis.erase(bot_api)
+## BotBridge 收到握手后调用，绑定 bridge 到对应 bot_id 的 Bot
+func assign_bridge_to_bot(bridge: BotBridge, bot_id: int) -> void:
+	for child in get_children():
+		if child is Bot and child.bot_id == bot_id:
+			bridge.target_bot = child
+			bridge.python_pid = child.python_pid
+			print("Bot %d 已连接" % bot_id)
+			return
+	push_error("未找到 bot_id=%d 的 Bot" % bot_id)
+	bridge.queue_free()
 
 func _ready() -> void:
 	_start_bot_server()
@@ -41,9 +50,7 @@ func _accept_bot_connections() -> void:
 	var peer: StreamPeerTCP = _tcp_server.take_connection()
 	if not peer:
 		return
-	if _pending_bot_apis.is_empty():
-		peer.disconnect_from_host()
-		return
-	var bot_api: Node = _pending_bot_apis.pop_front()
-	bot_api.attach_stream(peer)
-	print("Bot 已连接")
+	var bridge: BotBridge = BotBridge.new()
+	bridge.name = "BotBridge"
+	add_child(bridge)
+	bridge.attach_stream(peer)
