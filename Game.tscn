@@ -532,6 +532,3 @@ bot_id = 1
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)
 bot_id = 2
-
-[node name="Clients" type="Node" parent="." unique_id=2060959252]
-unique_name_in_owner = true

@@ -10,7 +10,8 @@ var bot_server_port: int = -1
 var _tcp_server: TCPServer
 
 @onready var tilemap: TileMapLayer = $%TileMapLayer
-@onready var clients: Node = $%Clients
+
+var pending_bridges: Array[BotBridge] = []
 
 ## 根据 bot_id 查找 Bot，供 BotBridge 握手后绑定
 func get_bot(bot_id: int) -> Bot:
@@ -19,18 +20,13 @@ func get_bot(bot_id: int) -> Bot:
 			return child as Bot
 	return null
 
-## 根据 target_bot 查找 BotBridge（bridge 常驻 Clients 下）
-func get_bridge_for_bot(bot_node: Bot) -> BotBridge:
-	for child in clients.get_children():
-		if child is BotBridge and child.target_bot == bot_node:
-			return child as BotBridge
-	return null
-
 func _ready() -> void:
 	_start_bot_server()
 
 func _process(_delta: float) -> void:
 	_accept_bot_connections()
+	for bridge in pending_bridges.duplicate():
+		bridge.poll()
 
 func _start_bot_server() -> void:
 	_tcp_server = TCPServer.new()
@@ -47,6 +43,5 @@ func _accept_bot_connections() -> void:
 	var peer: StreamPeerTCP = _tcp_server.take_connection()
 	if not peer:
 		return
-	var bridge: BotBridge = BotBridge.new(peer)
-	bridge.name = "BotBridge"
-	clients.add_child(bridge)
+	var bridge: BotBridge = BotBridge.new(peer, self)
+	pending_bridges.append(bridge)
