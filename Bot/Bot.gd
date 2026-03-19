@@ -5,9 +5,20 @@ class_name Bot
 ## 移动与转向由 MoveForwardState、TurnState 子节点封装
 ## 移动/转向瞬时修改 preferred_position/preferred_rotation，等待后 callback，BotMain 每帧插值
 
-const DEFAULT_CODE_PATH := "res://player_code.gd"
+## 玩家脚本存放目录（游戏存档目录下）
+const SCRIPTS_DIR := "user://scripts/"
+const _TEMPLATE_PY := """
+count: int = 0
+while True:
+    count += 1
+    bot.move_forward()
+    bot.turn_right()
+    print("tick", count)
+"""
 
 @export var bot_id: int = -1
+## 相对于 user:// 的 py 文件路径，空则用 scripts/bot_{bot_id}.py
+@export var py_file_path: String = ""
 
 @onready var bridge: BotBridge = $BotBridge as BotBridge
 
@@ -33,10 +44,6 @@ const _CARDINAL_ANGLE := {
 }
 var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 
-@export_multiline
-var code: String
-@export var code_language: String = "python"  ## "python" | "gdscript"，影响 Inspector 语法校验
-
 ## 日志列表，每项为 ConsoleLogEntry
 var logs: Array[ConsoleLogEntry] = []
 
@@ -47,6 +54,28 @@ func _ready() -> void:
 	_preferred_position = position
 	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
 	rotation = _preferred_rotation
+
+## 返回 py 文件的绝对路径（user:// 已展开）
+func get_resolved_py_path() -> String:
+	var base: String = py_file_path if not py_file_path.is_empty() else "bot_%d.py" % bot_id
+	if base.begins_with("scripts/"):
+		base = base.substr(8)
+	return ProjectSettings.globalize_path(SCRIPTS_DIR.trim_suffix("/").path_join(base))
+
+## 若 py 文件不存在则创建模板，返回是否成功
+func ensure_py_file_exists() -> bool:
+	var path: String = get_resolved_py_path()
+	if FileAccess.file_exists(path):
+		return true
+	var dir_path: String = path.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if not file:
+		push_error("无法创建玩家脚本: %s" % path)
+		return false
+	file.store_string(_TEMPLATE_PY)
+	file.close()
+	return true
 
 func _process(delta: float) -> void:
 	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))

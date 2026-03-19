@@ -19,7 +19,7 @@ const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
 func _ready() -> void:
 	code_edit.syntax_highlighter = _create_python_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
-	code_edit.text = bot.code
+	_load_py_file()
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
 	close_requested.connect(_on_close_requested)
@@ -72,8 +72,26 @@ func _poll_python_process() -> void:
 		_clear_executing_line_highlight()
 	_update_switch_text()
 
+func _load_py_file() -> void:
+	if not (bot is Bot):
+		return
+	var target_bot: Bot = bot as Bot
+	target_bot.ensure_py_file_exists()
+	var path: String = target_bot.get_resolved_py_path()
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	code_edit.text = file.get_as_text() if file else ""
+
+func _save_py_file() -> void:
+	if not (bot is Bot):
+		return
+	var path: String = (bot as Bot).get_resolved_py_path()
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		file.store_string(code_edit.text)
+		file.close()
+
 func _on_text_changed() -> void:
-	bot.code = code_edit.text
+	_save_py_file()
 	if not (bot as Bot).bridge.is_running:
 		_apply_check_result()
 
@@ -164,5 +182,5 @@ func _on_close_requested() -> void:
 func _save_and_close() -> void:
 	_closing = true
 	syntax_checker.set_closing(true)
-	bot.code = code_edit.text
+	_save_py_file()
 	queue_free()

@@ -35,20 +35,16 @@ func close() -> void:
 	_stderr_buffer = ""
 	python_pid = -1
 
-## 启动 Python 进程，需 target_bot 已就绪。代码写入临时文件后通过 stdio 行协议交互
+## 启动 Python 进程，需 target_bot 已就绪。直接运行存档目录下的 py 文件
 func start_process(_bot_server_port: int = -1) -> bool:
 	if not target_bot:
 		return false
-	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
-	var script_path: String = project_root + "/.bot/runner.py"
-	var code_path: String = project_root + "/.bot/temp_%d.py" % target_bot.bot_id
-	var code_file: FileAccess = FileAccess.open(code_path, FileAccess.WRITE)
-	if not code_file:
-		push_error("无法写入临时代码文件: %s" % code_path)
+	if not target_bot.ensure_py_file_exists():
 		return false
-	code_file.store_string(target_bot.code)
-	code_file.close()
-	var result: Dictionary = OS.execute_with_pipe("python", PackedStringArray([script_path, code_path, str(target_bot.bot_id)]), false)
+	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
+	var runner_path: String = project_root + "/.bot/runner.py"
+	var py_path: String = target_bot.get_resolved_py_path()
+	var result: Dictionary = OS.execute_with_pipe("python", PackedStringArray([runner_path, py_path, str(target_bot.bot_id)]), false)
 	if result.is_empty():
 		return false
 	python_pid = result.get("pid", -1)

@@ -111,15 +111,6 @@ metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_sck5o")
-code = "## 全局 bot 已注入，直接使用
-
-count: int = 0
-while True:
-    count += 1
-    bot.move_forward()
-    bot.turn_right()
-    print(\"tick\", count)
-"
 
 [node name="BotBridge" type="Node" parent="." unique_id=2139956483]
 unique_name_in_owner = true
