@@ -71,7 +71,7 @@ func _poll_python_process() -> void:
 	_update_switch_text()
 
 func _get_relative_py_path() -> String:
-	return bot.py_path.path_relative_to_user
+	return bot.py_path.path_relative_to_user.trim_prefix("scripts/")
 
 func _load_py_file() -> void:
 	bot.ensure_py_file_exists()
