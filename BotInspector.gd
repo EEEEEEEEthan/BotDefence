@@ -12,6 +12,9 @@ extends Window
 var bot: Node2D
 var _poll_timer: Timer
 var _closing: bool = false
+var _executing_line_index: int = -1
+
+const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
 
 func _ready() -> void:
 	code_edit.syntax_highlighter = _create_python_highlighter()
@@ -41,11 +44,17 @@ func _display_all_logs() -> void:
 func _on_log_added(entry: ConsoleLogEntry) -> void:
 	console.append_text(entry.to_bbcode_line() + "\n")
 
+func _clear_executing_line_highlight() -> void:
+	if _executing_line_index >= 0 and _executing_line_index < code_edit.get_line_count():
+		code_edit.set_line_background_color(_executing_line_index, Color(0, 0, 0, 0))
+	_executing_line_index = -1
+
 func _on_current_line_changed(line_one_based: int) -> void:
-	code_edit.clear_executing_lines()
+	_clear_executing_line_highlight()
 	var line_index: int = line_one_based - 1
 	if line_index >= 0 and line_index < code_edit.get_line_count():
-		code_edit.set_line_as_executing(line_index, true)
+		code_edit.set_line_background_color(line_index, _EXECUTING_LINE_BG)
+		_executing_line_index = line_index
 
 func _update_switch_text() -> void:
 	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
@@ -60,7 +69,7 @@ func _poll_python_process() -> void:
 	if not bridge.is_running and bridge.python_pid >= 0:
 		bridge.close()
 		_poll_timer.stop()
-		code_edit.clear_executing_lines()
+		_clear_executing_line_highlight()
 	_update_switch_text()
 
 func _on_text_changed() -> void:
@@ -135,7 +144,7 @@ func _on_switch_pressed() -> void:
 	if bridge.is_running:
 		bridge.close()
 		_poll_timer.stop()
-		code_edit.clear_executing_lines()
+		_clear_executing_line_highlight()
 		_update_switch_text()
 		return
 	if bot.bot_id < 0:
