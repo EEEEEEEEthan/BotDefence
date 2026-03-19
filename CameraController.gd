@@ -1,7 +1,7 @@
 extends Camera2D
 
 ## 滚轮缩放、WASD 移动、中键拖拽视野，使用插值平滑过渡
-## 视野中心限制在 PathfindingField 范围内
+## 视野中心限制在 NavigationRegion 范围内
 
 @export var zoom_min: Vector2 = Vector2(0.25, 0.25)
 @export var zoom_max: Vector2 = Vector2(3.0, 3.0)
@@ -19,7 +19,7 @@ var _move_right: bool = false
 var _is_dragging: bool = false
 var _drag_start_world: Vector2
 
-@onready var _pathfinding_field: PathfindingField = get_parent().get_node("%PathfindingField")
+@onready var _navigation_region: NavigationRegion2D = get_parent().get_node("%NavigationRegion")
 
 
 func _ready() -> void:
@@ -93,7 +93,7 @@ func _update_drag_target() -> void:
 	_target_position = _clamp_to_bounds(_drag_start_world - (mouse_screen - viewport_center) / zoom)
 
 func _clamp_to_bounds(point: Vector2) -> Vector2:
-	var bounds := _pathfinding_field.get_bounds_global()
+	var bounds := _navigation_region.get_bounds()
 	return Vector2(
 		clampf(point.x, bounds.position.x, bounds.end.x),
 		clampf(point.y, bounds.position.y, bounds.end.y)

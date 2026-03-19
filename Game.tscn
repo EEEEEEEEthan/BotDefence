@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
 [ext_resource type="PackedScene" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
-[ext_resource type="Script" path="res://PathfindingField.gd" id="4_3mrqo"]
 [ext_resource type="Script" uid="uid://bxwxvv4aapstw" path="res://Monster.gd" id="5_monster"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
 
@@ -527,12 +526,6 @@ unique_name_in_owner = true
 scale = Vector2(8, 8)
 tile_map_data = PackedByteArray("AAAGAAEAAAAFAAQAAAAFAAEAAAABAAQAAAAEAAEAAAAGAAMAAAADAAEAAAAFAAAAAAACAAEAAAAEAAIAAAABAAEAAAAGAAIAAAAAAAEAAAADAAUAAAAEAAAAAAAEAAQAAAADAAAAAAACAAQAAAADAAIAAAAGAAQAAAACAAIAAAAEAAMAAAABAAIAAAAAAAUAAAAGAAQAAAABAAUAAAAGAAMAAAAAAAQAAAAGAAIAAAAAAAQAAAAMAAQAAAAFAAQAAAALAAQAAAABAAQAAAAKAAQAAAABAAQAAAAJAAQAAAABAAQAAAAIAAQAAAABAAQAAAAHAAQAAAABAAQAAAAMAAUAAAAEAAUAAAAPAAcAAQAAAAAAAAAPAAgAAQAAAAAAAGAQAAcAAQAAAAAAAFAQAAgAAQAAAAAAADA=")
 tile_set = SubResource("TileSet_lvtmh")
-
-[node name="PathfindingField" type="Node2D" parent="NavigationRegion/Platform" unique_id=1592008243]
-unique_name_in_owner = true
-scale = Vector2(0.125, 0.125)
-script = ExtResource("4_3mrqo")
-bake_range = Rect2i(0, 0, 18, 10)
 
 [node name="Monster" type="Sprite2D" parent="NavigationRegion" unique_id=1993368511]
 unique_name_in_owner = true
