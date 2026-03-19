@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://bqx3dnnoqbjo5"]
 
-[ext_resource type="Theme" uid="uid://c8bqnrg3ipj5v" path="res://Theme.tres" id="1_2vjwb"]
 [ext_resource type="Script" uid="uid://ebhpiyguttkx" path="res://BotInspector.gd" id="2_mfj0u"]
 [ext_resource type="Script" uid="uid://5m23cyie6nn0" path="res://PythonSyntaxChecker.gd" id="3_syntax"]
 
@@ -8,7 +7,6 @@
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(607, 477)
-theme = ExtResource("1_2vjwb")
 script = ExtResource("2_mfj0u")
 
 [node name="PythonSyntaxChecker" type="Node" parent="." unique_id=893729363]
@@ -100,7 +98,7 @@ selection_enabled = true
 
 [node name="FileDialog" type="FileDialog" parent="." unique_id=358476762]
 unique_name_in_owner = true
-title = "选择 Python 脚本"
+title = "Open a File"
 file_mode = 0
 access = 1
 root_subfolder = "user://scripts/"
@@ -108,7 +106,7 @@ filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
 unique_name_in_owner = true
-title = "另存为"
+title = "Open a File or Directory"
 file_mode = 3
 access = 1
 root_subfolder = "user://scripts/"

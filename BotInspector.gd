@@ -4,6 +4,8 @@ extends Window
 ## CodeEdit 启用 Python 语法高亮和断点槽
 ## 实时校验 Python 语法并在 ErrorLabel 显示错误
 
+const _python_highlighter_factory := preload("res://PythonHighlighterFactory.tres")
+
 @onready var code_edit: CodeEdit = $%CodeEdit
 @onready var error_label: RichTextLabel = $%ErrorLabel
 @onready var console: RichTextLabel = $%Console
@@ -18,7 +20,7 @@ const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
 
 func _ready() -> void:
 	title = _get_relative_py_path()
-	code_edit.syntax_highlighter = _create_python_highlighter()
+	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	_load_py_file()
 	_update_switch_text()
@@ -122,34 +124,6 @@ func _apply_syntax_result(result: Dictionary) -> void:
 		var line_index: int = line_one_based - 1
 		if line_index >= 0 and line_index < code_edit.get_line_count():
 			code_edit.set_line_as_bookmarked(line_index, true)
-
-func _create_python_highlighter() -> CodeHighlighter:
-	var highlighter := CodeHighlighter.new()
-	highlighter.add_color_region("#", "", Color(0.4, 0.6, 0.4, 1), true)
-	highlighter.add_color_region("\"", "\"", Color(0.8, 0.5, 0.2, 1), false)
-	highlighter.add_color_region("'", "'", Color(0.8, 0.5, 0.2, 1), false)
-	highlighter.add_color_region("\"\"\"", "\"\"\"", Color(0.6, 0.7, 0.5, 1), false)
-	highlighter.add_color_region("'''", "'''", Color(0.6, 0.7, 0.5, 1), false)
-	highlighter.function_color = Color(0.2, 0.5, 0.9, 1)
-	highlighter.member_variable_color = Color(0.4, 0.6, 0.2, 1)
-	highlighter.number_color = Color(0.6, 0.4, 0.2, 1)
-	highlighter.symbol_color = Color(0.5, 0.5, 0.5, 1)
-	var keyword_color := Color(0.8, 0.4, 0.2, 1)
-	var builtin_color := Color(0.6, 0.2, 0.8, 1)
-	var def_color := Color(0.2, 0.5, 0.9, 1)
-	var class_color := Color(0.6, 0.2, 0.8, 1)
-	var keywords := ["and", "as", "assert", "async", "await", "break", "continue", "del",
-		"elif", "else", "except", "finally", "for", "from", "global", "if", "import",
-		"in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return",
-		"try", "while", "with", "yield"]
-	for keyword in keywords:
-		highlighter.add_keyword_color(keyword, keyword_color)
-	highlighter.add_keyword_color("def", def_color)
-	highlighter.add_keyword_color("class", class_color)
-	highlighter.add_keyword_color("True", builtin_color)
-	highlighter.add_keyword_color("False", builtin_color)
-	highlighter.add_keyword_color("None", builtin_color)
-	return highlighter
 
 func _parse_error_line(msg: String) -> int:
 	var regex := RegEx.new()
