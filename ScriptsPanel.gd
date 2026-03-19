@@ -55,12 +55,10 @@ func _populate_tree_recursive(dir: DirAccess, base_path: String, parent_item: Tr
 				var folder_item: TreeItem = scripts_tree.create_item(parent_item)
 				folder_item.set_text(0, file_name)
 				folder_item.set_metadata(0, "")
-				folder_item.set_editable(0, true)
 				_populate_tree_recursive(sub_dir, full_path, folder_item)
 		elif file_name.ends_with(".py"):
 			var file_item: TreeItem = scripts_tree.create_item(parent_item)
 			file_item.set_text(0, file_name)
-			file_item.set_editable(0, true)
 			var absolute_path: String = ProjectSettings.globalize_path(full_path).replace("\\", "/")
 			file_item.set_metadata(0, absolute_path)
 		file_name = dir.get_next()
@@ -140,14 +138,17 @@ func _on_item_edited() -> void:
 			selected.set_metadata(0, new_path)
 		else:
 			selected.set_text(0, _rename_old_path.get_file())
+		selected.set_editable(0, false)
 	else:
 		if DirAccess.dir_exists_absolute(_rename_old_path):
 			if DirAccess.rename_absolute(_rename_old_path, new_path) == OK:
 				_build_tree()
 			else:
 				selected.set_text(0, _rename_old_path.get_file())
+				selected.set_editable(0, false)
 		else:
 			selected.set_text(0, _rename_old_path.get_file())
+			selected.set_editable(0, false)
 	_rename_old_path = ""
 
 
@@ -208,6 +209,11 @@ func _create_new_folder() -> void:
 	if err == OK:
 		_build_tree()
 		_select_item_by_folder_path(target_path)
+		var new_folder_item: TreeItem = scripts_tree.get_selected()
+		if new_folder_item:
+			_rename_old_path = target_path
+			new_folder_item.set_editable(0, true)
+			scripts_tree.edit_selected(0)
 
 
 func _show_in_file_manager() -> void:
@@ -241,6 +247,7 @@ func _rename_selected() -> void:
 			_rename_old_path = path
 	else:
 		_rename_old_path = _get_item_folder_path(selected)
+	selected.set_editable(0, true)
 	scripts_tree.edit_selected(0)
 
 
