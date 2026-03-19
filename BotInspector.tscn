@@ -5,6 +5,7 @@
 
 [node name="BotInspector" type="Window" unique_id=358476760]
 oversampling_override = 1.0
+title = "script.py"
 position = Vector2i(0, 36)
 size = Vector2i(607, 477)
 script = ExtResource("2_mfj0u")
@@ -111,7 +112,7 @@ filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
 unique_name_in_owner = true
-title = "另存为"
+title = "Open a File or Directory"
 file_mode = 3
 access = 1
 root_subfolder = "user://scripts/"
