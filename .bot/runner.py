@@ -2,8 +2,10 @@
 ## Bot 相关 Python 脚本入口，通过 stdio 与 Godot 行协议交互
 ## 用法: runner.py <code_path> <bot_id>
 
+import re
 import sys
 import time
+import traceback
 import types
 from pathlib import Path
 
@@ -64,6 +66,39 @@ def _make_tracer(code_path: str, scripts_root: Path) -> object:
     return trace_lines
 
 
+def _is_under_scripts(path_str: str, scripts_root: Path) -> bool:
+    try:
+        resolved: Path = Path(path_str).resolve()
+        return scripts_root in resolved.parents or resolved.parent == scripts_root
+    except (OSError, ValueError):
+        return False
+
+
+def _format_filtered_traceback(exc: BaseException, scripts_root: Path) -> str:
+    """仅保留玩家脚本（scripts 目录下）的 traceback 帧"""
+    lines: list[str] = traceback.format_exception(type(exc), exc, exc.__traceback__)
+    result: list[str] = ["Traceback (most recent call last):\n"]
+    index: int = 1
+    while index < len(lines):
+        line: str = lines[index]
+        file_match: re.Match[str] | None = re.search(r'File "([^"]+)"', line)
+        if file_match:
+            path_str: str = file_match.group(1)
+            if _is_under_scripts(path_str, scripts_root):
+                result.append(line)
+                if index + 1 < len(lines) and lines[index + 1].startswith(" ") and "File " not in lines[index + 1]:
+                    result.append(lines[index + 1])
+                    index += 1
+            else:
+                if index + 1 < len(lines) and lines[index + 1].startswith(" ") and "File " not in lines[index + 1]:
+                    index += 1
+            index += 1
+        else:
+            result.append(line)
+            index += 1
+    return "".join(result)
+
+
 def main() -> None:
     if len(sys.argv) < 3:
         print("用法: runner.py <code_path> <bot_id>", file=sys.stderr)
@@ -93,6 +128,10 @@ def main() -> None:
     sys.settrace(tracer)
     try:
         exec(code_obj, namespace)
+    except BaseException as exc:
+        filtered: str = _format_filtered_traceback(exc, scripts_root)
+        print(filtered, end="", file=sys.stderr, flush=True)
+        sys.exit(1)
     finally:
         sys.settrace(None)
 
