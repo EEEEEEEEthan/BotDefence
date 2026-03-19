@@ -16,8 +16,15 @@ enum ContextAction {
 @onready var scripts_tree: Tree = $%Scripts
 @onready var context_menu: PopupMenu = $%ContextMenu
 
+const PENDING_FILE := "pending_file"
+const PENDING_FOLDER := "pending_folder"
+
 var _scripts_root_absolute: String = ""
 var _rename_old_path: String = ""
+var _pending_item: TreeItem = null
+var _pending_parent_path: String = ""
+var _pending_committed: bool = false
+var _edit_cancel_retry_count: int = 0
 
 
 func _ready() -> void:
@@ -115,10 +122,39 @@ func _on_context_action(id: int) -> void:
 
 func _on_item_edited() -> void:
 	var selected: TreeItem = scripts_tree.get_selected()
-	if not selected or _rename_old_path.is_empty():
-		_rename_old_path = ""
+	if not selected:
 		return
+	var meta: Variant = selected.get_metadata(0)
 	var new_name: String = selected.get_text(0).strip_edges()
+	if meta == PENDING_FILE or meta == PENDING_FOLDER:
+		if new_name.is_empty():
+			_on_edit_ended_without_commit()
+			return
+		var parent_path: String = _pending_parent_path
+		_pending_committed = true
+		_clear_pending()
+		if meta == PENDING_FILE:
+			if not new_name.ends_with(".py"):
+				new_name += ".py"
+			var created_file_path: String = parent_path.path_join(new_name)
+			if FileAccess.file_exists(created_file_path):
+				return
+			DirAccess.make_dir_recursive_absolute(parent_path)
+			var file: FileAccess = FileAccess.open(created_file_path, FileAccess.WRITE)
+			if file:
+				file.close()
+			_build_tree()
+			_select_item_by_path(created_file_path)
+		else:
+			var created_folder_path: String = parent_path.path_join(new_name)
+			if DirAccess.dir_exists_absolute(created_folder_path):
+				return
+			if DirAccess.make_dir_recursive_absolute(created_folder_path) == OK:
+				_build_tree()
+				_select_item_by_folder_path(created_folder_path)
+		return
+	if _rename_old_path.is_empty():
+		return
 	if new_name.is_empty():
 		selected.set_text(0, _rename_old_path.get_file())
 		_rename_old_path = ""
@@ -128,7 +164,6 @@ func _on_item_edited() -> void:
 	if new_path == _rename_old_path:
 		_rename_old_path = ""
 		return
-	var meta: Variant = selected.get_metadata(0)
 	if meta is String and not meta.is_empty():
 		if not new_name.ends_with(".py"):
 			new_name += ".py"
@@ -150,6 +185,66 @@ func _on_item_edited() -> void:
 			selected.set_text(0, _rename_old_path.get_file())
 			selected.set_editable(0, false)
 	_rename_old_path = ""
+
+
+func _get_parent_tree_item_for_path(parent_path: String) -> TreeItem:
+	var root: TreeItem = scripts_tree.get_root()
+	if not root:
+		return null
+	if parent_path == _scripts_root_absolute:
+		return root
+	var rel: String = parent_path.substr(_scripts_root_absolute.length()).trim_prefix("/")
+	if rel.is_empty():
+		return root
+	var parts: PackedStringArray = rel.split("/")
+	var current: TreeItem = root
+	for part in parts:
+		var child: TreeItem = current.get_first_child()
+		var found: bool = false
+		while child:
+			if child.get_text(0) == part:
+				current = child
+				found = true
+				break
+			child = child.get_next()
+		if not found:
+			return null
+	return current
+
+
+func _clear_pending() -> void:
+	_pending_item = null
+	_pending_parent_path = ""
+	_pending_committed = false
+	_edit_cancel_retry_count = 0
+
+
+func _on_edit_ended_without_commit() -> void:
+	if _pending_committed:
+		return
+	if _pending_item:
+		var parent_item: TreeItem = _pending_item.get_parent()
+		if parent_item:
+			parent_item.remove_child(_pending_item)
+		_pending_item.free()
+	_clear_pending()
+
+
+func _connect_edit_cancel_detection() -> void:
+	if _pending_item == null:
+		_edit_cancel_retry_count = 0
+		return
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
+	if focus_owner is LineEdit:
+		_edit_cancel_retry_count = 0
+		if not focus_owner.tree_exiting.is_connected(_on_edit_ended_without_commit):
+			focus_owner.tree_exiting.connect(_on_edit_ended_without_commit)
+		return
+	_edit_cancel_retry_count += 1
+	if _edit_cancel_retry_count < 20:
+		call_deferred(&"_connect_edit_cancel_detection")
+	else:
+		_edit_cancel_retry_count = 0
 
 
 func _get_selected_parent_path() -> String:
@@ -182,38 +277,52 @@ func _get_item_folder_path(item: TreeItem) -> String:
 
 func _create_new_file() -> void:
 	var parent_path: String = _get_selected_parent_path()
+	var parent_item: TreeItem = _get_parent_tree_item_for_path(parent_path)
+	if not parent_item:
+		return
 	var base_name: String = "script.py"
 	var counter: int = 0
-	var target_path: String = parent_path.path_join(base_name)
-	while FileAccess.file_exists(target_path):
+	while FileAccess.file_exists(parent_path.path_join(base_name)):
 		counter += 1
-		target_path = parent_path.path_join("script_%d.py" % counter)
-	DirAccess.make_dir_recursive_absolute(parent_path)
-	var file: FileAccess = FileAccess.open(target_path, FileAccess.WRITE)
-	if file:
-		file.close()
-	_build_tree()
-	_select_item_by_path(target_path)
-	_open_file_in_editor(target_path)
+		base_name = "script_%d.py" % counter
+	_pending_item = scripts_tree.create_item(parent_item)
+	_pending_item.set_text(0, base_name)
+	_pending_item.set_metadata(0, PENDING_FILE)
+	_pending_item.set_editable(0, true)
+	_pending_parent_path = parent_path
+	_pending_committed = false
+	scripts_tree.set_selected(_pending_item, 0)
+	scripts_tree.scroll_to_item(_pending_item)
+	call_deferred(&"_start_pending_edit")
 
 
 func _create_new_folder() -> void:
 	var parent_path: String = _get_selected_parent_path()
+	var parent_item: TreeItem = _get_parent_tree_item_for_path(parent_path)
+	if not parent_item:
+		return
 	var base_name: String = "NewFolder"
 	var counter: int = 0
-	var target_path: String = parent_path.path_join(base_name)
-	while DirAccess.dir_exists_absolute(target_path):
+	while DirAccess.dir_exists_absolute(parent_path.path_join(base_name)):
 		counter += 1
-		target_path = parent_path.path_join("NewFolder_%d" % counter)
-	var err: Error = DirAccess.make_dir_recursive_absolute(target_path)
-	if err == OK:
-		_build_tree()
-		_select_item_by_folder_path(target_path)
-		var new_folder_item: TreeItem = scripts_tree.get_selected()
-		if new_folder_item:
-			_rename_old_path = target_path
-			new_folder_item.set_editable(0, true)
-			scripts_tree.edit_selected(0)
+		base_name = "NewFolder_%d" % counter
+	_pending_item = scripts_tree.create_item(parent_item)
+	_pending_item.set_text(0, base_name)
+	_pending_item.set_metadata(0, PENDING_FOLDER)
+	_pending_item.set_editable(0, true)
+	_pending_parent_path = parent_path
+	_pending_committed = false
+	scripts_tree.set_selected(_pending_item, 0)
+	scripts_tree.scroll_to_item(_pending_item)
+	call_deferred(&"_start_pending_edit")
+
+
+func _start_pending_edit() -> void:
+	if _pending_item:
+		scripts_tree.set_selected(_pending_item, 0)
+		scripts_tree.scroll_to_item(_pending_item)
+		scripts_tree.edit_selected(0)
+	call_deferred(&"_connect_edit_cancel_detection")
 
 
 func _show_in_file_manager() -> void:
