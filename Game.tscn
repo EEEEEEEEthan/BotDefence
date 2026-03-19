@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cscwr4gihxmsw" path="res://Game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot/Bot.tscn" id="1_wbfu4"]
+[ext_resource type="PackedScene" uid="uid://c8x2k5m7n9p1q" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 
@@ -533,7 +534,7 @@ bot_id = 1
 position = Vector2(800, 352)
 bot_id = 2
 
-[node name="Scripts" type="Tree" parent="." unique_id=1199935026]
+[node name="ScriptsPanel" parent="." instance=ExtResource("2_scripts_panel")]
 unique_name_in_owner = true
 offset_right = 184.0
 offset_bottom = 384.0
