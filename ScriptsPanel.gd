@@ -157,6 +157,7 @@ func _on_item_edited() -> void:
 		return
 	if new_name.is_empty():
 		selected.set_text(0, _rename_old_path.get_file())
+		selected.set_editable(0, false)
 		_rename_old_path = ""
 		return
 	var parent_dir: String = _rename_old_path.get_base_dir()
