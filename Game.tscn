@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 [ext_resource type="Script" path="res://PathfindingField.gd" id="4_3mrqo"]
+[ext_resource type="Script" uid="uid://bxwxvv4aapstw" path="res://Monster.gd" id="5_monster"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mrqo"]
@@ -538,5 +539,7 @@ unique_name_in_owner = true
 position = Vector2(615, 161)
 scale = Vector2(40, 28)
 texture = SubResource("PlaceholderTexture2D_3mrqo")
+script = ExtResource("5_monster")
 
 [node name="NavigationAgent" type="NavigationAgent2D" parent="NavigationRegion/Monster" unique_id=1835436407]
+navigation_layers = 2
