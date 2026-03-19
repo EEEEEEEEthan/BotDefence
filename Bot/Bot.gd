@@ -6,6 +6,8 @@ class_name Bot
 ## 移动/转向瞬时修改 preferred_position/preferred_rotation，等待后 callback，BotMain 每帧插值
 
 const _TEMPLATE_PY := """
+import bot
+
 count: int = 0
 while True:
     count += 1

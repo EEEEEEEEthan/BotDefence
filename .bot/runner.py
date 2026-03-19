@@ -4,6 +4,7 @@
 
 import sys
 import time
+import types
 from pathlib import Path
 
 ## 协议：命令行以 BOT: 为前缀，Godot 解析后回写 true/false 到 stdin
@@ -80,7 +81,13 @@ def main() -> None:
     scripts_root: Path = _get_scripts_root(code_path)
     if str(scripts_root) not in sys.path:
         sys.path.insert(0, str(scripts_root))
-    namespace: dict[str, object] = {"bot": Bot(), "__name__": "__main__"}
+    bot_instance: Bot = Bot()
+    bot_module: types.ModuleType = types.ModuleType("bot")
+    bot_module.move_forward = bot_instance.move_forward
+    bot_module.turn_left = bot_instance.turn_left
+    bot_module.turn_right = bot_instance.turn_right
+    sys.modules["bot"] = bot_module
+    namespace: dict[str, object] = {"__name__": "__main__"}
     code_obj = compile(code, code_path, "exec")
     tracer = _make_tracer(code_path, scripts_root)
     sys.settrace(tracer)
