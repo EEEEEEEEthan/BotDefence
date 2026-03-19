@@ -47,4 +47,5 @@ texture = SubResource("PlaceholderTexture2D_3mrqo")
 shape = SubResource("CircleShape2D_monster")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
+unique_name_in_owner = true
 navigation_layers = 2
