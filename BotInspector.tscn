@@ -30,6 +30,18 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "▶"
 
+[node name="Open" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=358476761]
+unique_name_in_owner = true
+layout_mode = 2
+text = "打开"
+
+[node name="FileDialog" type="FileDialog" parent="." unique_id=358476762]
+unique_name_in_owner = true
+title = "选择 Python 脚本"
+access = 2
+file_mode = 0
+filters = PackedStringArray("*.py ; Python 脚本")
+
 [node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
 layout_mode = 2
 size_flags_vertical = 3

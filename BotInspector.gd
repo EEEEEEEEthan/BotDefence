@@ -23,6 +23,8 @@ func _ready() -> void:
 	_load_py_file()
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
+	$%Open.pressed.connect(_on_open_pressed)
+	$%FileDialog.file_selected.connect(_on_file_selected)
 	close_requested.connect(_on_close_requested)
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 0.3
@@ -60,6 +62,7 @@ func _on_current_line_changed(line_one_based: int) -> void:
 func _update_switch_text() -> void:
 	var running: bool = bot.bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
+	$%Open.visible = not running
 	code_edit.editable = not running
 
 func _poll_python_process() -> void:
@@ -167,6 +170,25 @@ func _on_switch_pressed() -> void:
 	if bridge.start_process():
 		_poll_timer.start()
 	_update_switch_text()
+
+
+func _on_open_pressed() -> void:
+	$%FileDialog.current_dir = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR)
+	$%FileDialog.popup_centered()
+
+
+func _on_file_selected(selected_path: String) -> void:
+	var scripts_dir: String = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR).replace("\\", "/").trim_suffix("/")
+	var normalized_selected: String = selected_path.replace("\\", "/")
+	if not normalized_selected.begins_with(scripts_dir):
+		push_error("请选择 user://scripts/ 目录下的脚本")
+		return
+	var relative: String = normalized_selected.substr(scripts_dir.length()).trim_prefix("/")
+	bot.py_path.path_relative_to_scripts = relative
+	title = _get_relative_py_path()
+	_load_py_file()
+	if not bot.bridge.is_running:
+		_apply_check_result()
 
 
 func _on_close_requested() -> void:
