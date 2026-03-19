@@ -87,14 +87,14 @@ unique_name_in_owner = true
 oversampling_override = 1.0
 title = "Open a File"
 file_mode = 0
-access = 2
-root_subfolder = "scripts/"
+access = 1
+root_subfolder = "user://scripts/"
 filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
 unique_name_in_owner = true
-title = "Open a File or Directory"
+title = "另存为"
 file_mode = 3
-access = 2
-root_subfolder = "scripts/"
+access = 1
+root_subfolder = "user://scripts/"
 filters = PackedStringArray("*.py ; Python 脚本")
