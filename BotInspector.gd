@@ -15,21 +15,24 @@ var bot: Bot
 var _poll_timer: Timer
 var _closing: bool = false
 var _executing_line_index: int = -1
+var _dirty: bool = false
 
 const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
 
 func _ready() -> void:
-	title = _get_relative_py_path()
+	_update_title()
 	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	_load_py_file()
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
 	$%Open.pressed.connect(_on_open_pressed)
+	$%Save.pressed.connect(_on_save_pressed)
 	$%SaveAs.pressed.connect(_on_save_as_pressed)
 	$%FileDialog.file_selected.connect(_on_file_selected)
 	$%SaveAsFileDialog.file_selected.connect(_on_save_as_file_selected)
 	close_requested.connect(_on_close_requested)
+	focus_entered.connect(_on_focus_entered)
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 0.3
 	_poll_timer.timeout.connect(_poll_python_process)
@@ -48,8 +51,11 @@ func _display_all_logs() -> void:
 		lines.append((entry as ConsoleLogEntry).to_bbcode_line())
 	console.text = "\n".join(lines) + "\n"
 
-func _on_log_added(entry: ConsoleLogEntry) -> void:
-	console.append_text(entry.to_bbcode_line() + "\n")
+func _on_log_added(_entry: ConsoleLogEntry) -> void:
+	if bot.logs.size() >= Bot.MAX_LOG_LINES:
+		_display_all_logs()
+	else:
+		console.append_text(_entry.to_bbcode_line() + "\n")
 
 func _clear_executing_line_highlight() -> void:
 	if _executing_line_index >= 0 and _executing_line_index < code_edit.get_line_count():
@@ -67,6 +73,7 @@ func _update_switch_text() -> void:
 	var running: bool = bot.bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
 	$%Open.visible = not running
+	$%Save.visible = not running
 	$%SaveAs.visible = not running
 	code_edit.editable = not running
 
@@ -81,23 +88,67 @@ func _poll_python_process() -> void:
 func _get_relative_py_path() -> String:
 	return bot.py_path.path_relative_to_user.trim_prefix("scripts/")
 
+func _is_file_deleted() -> bool:
+	var path: String = bot.py_path.resolved_py_path
+	return not path.is_empty() and not FileAccess.file_exists(path)
+
+func _update_title() -> void:
+	var base_name: String = _get_relative_py_path()
+	if _is_file_deleted() or base_name.is_empty():
+		title = "[未命名文件]"
+	elif _dirty:
+		title = "[*] " + base_name
+	else:
+		title = base_name
+
 func _load_py_file() -> void:
 	bot.ensure_py_file_exists()
 	var path: String = bot.py_path.resolved_py_path
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	code_edit.text = file.get_as_text() if file else ""
 
-func _save_py_file() -> void:
+func _save_py_file() -> bool:
 	var path: String = bot.py_path.resolved_py_path
+	if path.is_empty():
+		return false
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file:
 		file.store_string(code_edit.text)
 		file.close()
+		_dirty = false
+		_update_title()
+		return true
+	return false
 
 func _on_text_changed() -> void:
-	_save_py_file()
+	_dirty = true
+	_update_title()
 	if not bot.bridge.is_running:
 		_apply_check_result()
+
+func _on_focus_entered() -> void:
+	if not _dirty and not _is_file_deleted():
+		_load_py_file()
+	else:
+		_update_title()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key_event: InputEventKey = event as InputEventKey
+		if key_event.pressed and key_event.ctrl_pressed and key_event.keycode == KEY_S:
+			_try_save()
+			get_viewport().set_input_as_handled()
+
+func _try_save() -> void:
+	if _is_file_deleted() or bot.py_path.resolved_py_path.is_empty():
+		_on_save_as_pressed()
+	else:
+		_save_py_file()
+		if not bot.bridge.is_running:
+			_apply_check_result()
+
+func _on_save_pressed() -> void:
+	_try_save()
 
 func _apply_check_result() -> void:
 	var result: Dictionary = await syntax_checker.check(code_edit.text)
@@ -161,7 +212,8 @@ func _on_file_selected(selected_path: String) -> void:
 		return
 	var relative: String = normalized.substr(prefix.length()).trim_prefix("/")
 	bot.py_path.path_relative_to_scripts = relative
-	title = _get_relative_py_path()
+	_dirty = false
+	_update_title()
 	_load_py_file()
 	if not bot.bridge.is_running:
 		_apply_check_result()
@@ -188,7 +240,8 @@ func _on_save_as_file_selected(selected_path: String) -> void:
 	if file:
 		file.store_string(code_edit.text)
 		file.close()
-	title = _get_relative_py_path()
+	_dirty = false
+	_update_title()
 	if not bot.bridge.is_running:
 		_apply_check_result()
 
@@ -200,5 +253,6 @@ func _on_close_requested() -> void:
 func _save_and_close() -> void:
 	_closing = true
 	syntax_checker.set_closing(true)
-	_save_py_file()
+	if not _is_file_deleted() and not bot.py_path.resolved_py_path.is_empty():
+		_save_py_file()
 	queue_free()

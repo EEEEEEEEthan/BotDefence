@@ -9,6 +9,7 @@ extends Window
 
 var _current_file_path: String = ""
 var _closing: bool = false
+var _dirty: bool = false
 
 func _get_scripts_root() -> String:
 	return ProjectSettings.globalize_path("user://scripts").replace("\\", "/")
@@ -20,14 +21,16 @@ func _is_path_under_scripts(path: String) -> bool:
 const _python_highlighter_factory := preload("res://PythonHighlighterFactory.tres")
 
 func _ready() -> void:
-	title = _get_display_title()
+	_update_title()
 	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	$%Open.pressed.connect(_on_open_pressed)
+	$%Save.pressed.connect(_on_save_pressed)
 	$%SaveAs.pressed.connect(_on_save_as_pressed)
 	$%FileDialog.file_selected.connect(_on_file_selected)
 	$%SaveAsFileDialog.file_selected.connect(_on_save_as_file_selected)
 	close_requested.connect(_on_close_requested)
+	focus_entered.connect(_on_focus_entered)
 	code_edit.text_changed.connect(_on_text_changed)
 	_apply_check_result()
 
@@ -40,11 +43,23 @@ func _get_display_title() -> String:
 		return normalized.substr(scripts_root.length()).trim_prefix("/")
 	return _current_file_path.get_file()
 
+func _is_file_deleted() -> bool:
+	return not _current_file_path.is_empty() and not FileAccess.file_exists(_current_file_path)
+
+func _update_title() -> void:
+	var base_name: String = _get_display_title()
+	if _is_file_deleted() or _current_file_path.is_empty():
+		title = "[未命名文件]"
+	elif _dirty:
+		title = "[*] " + base_name
+	else:
+		title = base_name
+
 func _load_file(path: String) -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	code_edit.text = file.get_as_text() if file else ""
 
-func _save_to_path(path: String) -> void:
+func _save_to_path(path: String) -> bool:
 	var dir_path: String = path.get_base_dir()
 	if dir_path.begins_with("user://"):
 		dir_path = ProjectSettings.globalize_path(dir_path)
@@ -53,11 +68,38 @@ func _save_to_path(path: String) -> void:
 	if file:
 		file.store_string(code_edit.text)
 		file.close()
+		_dirty = false
+		_update_title()
+		return true
+	return false
 
 func _on_text_changed() -> void:
-	if not _current_file_path.is_empty():
-		_save_to_path(_current_file_path)
+	_dirty = true
+	_update_title()
 	_apply_check_result()
+
+func _on_focus_entered() -> void:
+	if not _dirty and not _current_file_path.is_empty() and not _is_file_deleted():
+		_load_file(_current_file_path)
+	else:
+		_update_title()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key_event: InputEventKey = event as InputEventKey
+		if key_event.pressed and key_event.ctrl_pressed and key_event.keycode == KEY_S:
+			_try_save()
+			get_viewport().set_input_as_handled()
+
+func _try_save() -> void:
+	if _is_file_deleted() or _current_file_path.is_empty():
+		_on_save_as_pressed()
+	else:
+		_save_to_path(_current_file_path)
+		_apply_check_result()
+
+func _on_save_pressed() -> void:
+	_try_save()
 
 func _apply_check_result() -> void:
 	var result: Dictionary = await syntax_checker.check(code_edit.text)
@@ -99,7 +141,8 @@ func open_file(path: String) -> void:
 		push_error("请选择 user://scripts/ 目录下的脚本")
 		return
 	_current_file_path = path.replace("\\", "/")
-	title = _get_display_title()
+	_dirty = false
+	_update_title()
 	_load_file(_current_file_path)
 	_apply_check_result()
 	popup_centered()
@@ -118,12 +161,11 @@ func _on_save_as_file_selected(selected_path: String) -> void:
 	var normalized: String = selected_path.replace("\\", "/")
 	_save_to_path(normalized)
 	_current_file_path = normalized
-	title = _get_display_title()
 	_apply_check_result()
 
 func _on_close_requested() -> void:
 	_closing = true
 	syntax_checker.set_closing(true)
-	if not _current_file_path.is_empty():
+	if not _is_file_deleted() and not _current_file_path.is_empty():
 		_save_to_path(_current_file_path)
 	queue_free()

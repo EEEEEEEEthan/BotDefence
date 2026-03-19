@@ -33,6 +33,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "打开"
 
+[node name="Save" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=358476765]
+unique_name_in_owner = true
+layout_mode = 2
+text = "保存"
+
 [node name="SaveAs" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=358476763]
 unique_name_in_owner = true
 layout_mode = 2
