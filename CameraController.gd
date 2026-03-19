@@ -19,7 +19,7 @@ var _move_right: bool = false
 var _is_dragging: bool = false
 var _drag_start_world: Vector2
 
-@onready var _pathfinding_field: PathfindingField = get_parent().get_node("TileMapLayer/PathfindingField")
+@onready var _pathfinding_field: PathfindingField = get_parent().get_node("%PathfindingField")
 
 
 func _ready() -> void:

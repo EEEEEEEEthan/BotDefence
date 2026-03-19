@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PythonHighlighterFactory" format=3 uid="uid://bld6fq0xtltoo"]
 
 [ext_resource type="Script" path="res://PythonHighlighterFactory.gd" id="1_script"]
 
