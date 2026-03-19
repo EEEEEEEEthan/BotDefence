@@ -1,6 +1,6 @@
 extends Camera2D
 
-## 滚轮缩放、WASD 移动视野，使用插值平滑过渡
+## 滚轮缩放、WASD 移动、中键拖拽视野，使用插值平滑过渡
 ## 视野中心限制在 PathfindingField 范围内
 
 @export var zoom_min: Vector2 = Vector2(0.25, 0.25)
@@ -16,6 +16,8 @@ var _move_up: bool = false
 var _move_down: bool = false
 var _move_left: bool = false
 var _move_right: bool = false
+var _is_dragging: bool = false
+var _drag_start_world: Vector2
 
 @onready var _pathfinding_field: PathfindingField = get_parent().get_node("TileMapLayer/PathfindingField")
 
@@ -31,6 +33,7 @@ func _notification(what: int) -> void:
 		_move_down = false
 		_move_left = false
 		_move_right = false
+		_is_dragging = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -40,6 +43,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_target_zoom = (_target_zoom + Vector2(zoom_step, zoom_step)).clamp(zoom_min, zoom_max)
 		elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_target_zoom = (_target_zoom - Vector2(zoom_step, zoom_step)).clamp(zoom_min, zoom_max)
+		elif mouse_event.button_index == MOUSE_BUTTON_MIDDLE:
+			if mouse_event.pressed:
+				_is_dragging = true
+				_drag_start_world = get_global_mouse_position()
+				_update_drag_target()
+			else:
+				_is_dragging = false
+	elif event is InputEventMouseMotion and _is_dragging:
+		_update_drag_target()
 	elif event is InputEventKey:
 		var key_event := event as InputEventKey
 		if key_event.keycode == KEY_W:
@@ -53,18 +65,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	var move_dir := Vector2.ZERO
-	if _move_up:
-		move_dir.y -= 1
-	if _move_down:
-		move_dir.y += 1
-	if _move_left:
-		move_dir.x -= 1
-	if _move_right:
-		move_dir.x += 1
-	if move_dir != Vector2.ZERO:
-		var effective_speed := move_speed / zoom.x  # zoom 越小(视野越大)移动越慢，保持屏幕像素速度一致
-		_target_position = _clamp_to_bounds(_target_position + move_dir.normalized() * effective_speed * delta)
+	if not _is_dragging:
+		var move_dir := Vector2.ZERO
+		if _move_up:
+			move_dir.y -= 1
+		if _move_down:
+			move_dir.y += 1
+		if _move_left:
+			move_dir.x -= 1
+		if _move_right:
+			move_dir.x += 1
+		if move_dir != Vector2.ZERO:
+			var effective_speed := move_speed / zoom.x  # zoom 越小(视野越大)移动越慢，保持屏幕像素速度一致
+			_target_position = _clamp_to_bounds(_target_position + move_dir.normalized() * effective_speed * delta)
 
 	var zoom_weight := 1.0 - exp(-zoom_speed * delta)
 	zoom = zoom.lerp(_target_zoom, zoom_weight)
@@ -72,6 +85,12 @@ func _process(delta: float) -> void:
 	var pos_weight := 1.0 - exp(-move_lerp_speed * delta)
 	position = position.lerp(_target_position, pos_weight)
 
+
+func _update_drag_target() -> void:
+	var viewport := get_viewport()
+	var viewport_center := viewport.get_visible_rect().size / 2
+	var mouse_screen := viewport.get_mouse_position()
+	_target_position = _clamp_to_bounds(_drag_start_world - (mouse_screen - viewport_center) / zoom)
 
 func _clamp_to_bounds(point: Vector2) -> Vector2:
 	var bounds := _pathfinding_field.get_bounds_global()
