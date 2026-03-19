@@ -46,12 +46,12 @@ func _on_current_line_changed(line_one_based: int) -> void:
 	var line_index: int = line_one_based - 1
 	if line_index >= 0 and line_index < code_edit.get_line_count():
 		code_edit.set_line_as_executing(line_index, true)
-		code_edit.set_caret_line(line_index)
 
 func _update_switch_text() -> void:
 	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
 	var running: bool = bridge and bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
+	code_edit.editable = not running
 
 func _poll_python_process() -> void:
 	if not (bot is Bot):
