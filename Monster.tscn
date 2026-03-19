@@ -1,4 +1,9 @@
-extends Sprite2D
+[gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3mrqo"]
+
+[sub_resource type="GDScript" id="GDScript_3mrqo"]
+script/source = "extends Sprite2D
 
 ## 游戏开始后沿导航网格移动到目标点，仅在 terrain 可行走区域移动
 
@@ -17,3 +22,12 @@ func _physics_process(delta: float) -> void:
 		return
 	var next_position: Vector2 = nav_agent.get_next_path_position()
 	global_position = global_position.move_toward(next_position, MOVE_SPEED * delta)
+"
+
+[node name="Monster" type="Sprite2D" unique_id=140614155]
+scale = Vector2(40, 28)
+texture = SubResource("PlaceholderTexture2D_3mrqo")
+script = SubResource("GDScript_3mrqo")
+
+[node name="NavigationAgent" type="NavigationAgent2D" parent="." unique_id=1777320448]
+navigation_layers = 2

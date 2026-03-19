@@ -6,8 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
 [ext_resource type="PackedScene" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
-[ext_resource type="Script" uid="uid://bxwxvv4aapstw" path="res://Monster.gd" id="5_monster"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
+[ext_resource type="PackedScene" uid="uid://0u8vi8jcjmxw" path="res://Monster.tscn" id="8_joorw"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mrqo"]
 vertices = PackedVector2Array(10, 694, 10, 138, 54, 138, 54, 202, 266, 202, 266, 138, 374, 138, 374, 330, 758, 330, 758, 394, 842, 246, 458, 246, 458, 54, 1334, 10, 330, 54, 330, 10, 1334, 694, 842, 394, 182, 54, 10, 54, 10, 10, 182, 10)
@@ -488,8 +488,6 @@ sources/0 = SubResource("TileSetAtlasSource_yx171")
 sources/1 = SubResource("TileSetAtlasSource_yhmtn")
 pattern_0 = SubResource("TileMapPattern_sb48q")
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3mrqo"]
-
 [node name="Game" type="Node" unique_id=684061255]
 script = ExtResource("1_game")
 
@@ -527,12 +525,6 @@ scale = Vector2(8, 8)
 tile_map_data = PackedByteArray("AAAGAAEAAAAFAAQAAAAFAAEAAAABAAQAAAAEAAEAAAAGAAMAAAADAAEAAAAFAAAAAAACAAEAAAAEAAIAAAABAAEAAAAGAAIAAAAAAAEAAAADAAUAAAAEAAAAAAAEAAQAAAADAAAAAAACAAQAAAADAAIAAAAGAAQAAAACAAIAAAAEAAMAAAABAAIAAAAAAAUAAAAGAAQAAAABAAUAAAAGAAMAAAAAAAQAAAAGAAIAAAAAAAQAAAAMAAQAAAAFAAQAAAALAAQAAAABAAQAAAAKAAQAAAABAAQAAAAJAAQAAAABAAQAAAAIAAQAAAABAAQAAAAHAAQAAAABAAQAAAAMAAUAAAAEAAUAAAAPAAcAAQAAAAAAAAAPAAgAAQAAAAAAAGAQAAcAAQAAAAAAAFAQAAgAAQAAAAAAADA=")
 tile_set = SubResource("TileSet_lvtmh")
 
-[node name="Monster" type="Sprite2D" parent="NavigationRegion" unique_id=1993368511]
+[node name="Monster" parent="NavigationRegion" unique_id=140614155 instance=ExtResource("8_joorw")]
 unique_name_in_owner = true
 position = Vector2(615, 161)
-scale = Vector2(40, 28)
-texture = SubResource("PlaceholderTexture2D_3mrqo")
-script = ExtResource("5_monster")
-
-[node name="NavigationAgent" type="NavigationAgent2D" parent="NavigationRegion/Monster" unique_id=1835436407]
-navigation_layers = 2
