@@ -4,6 +4,7 @@
 
 import sys
 import time
+from pathlib import Path
 
 ## 协议：命令行以 BOT: 为前缀，Godot 解析后回写 true/false 到 stdin
 _CMD_PREFIX: str = "BOT:"
@@ -34,12 +35,28 @@ class Bot:
         return self._read_response().lower() == "true"
 
 
-def _make_tracer(code_path: str) -> object:
-    """返回 settrace 回调，在用户代码每行执行前报告行号并暂停 0.1 秒"""
+def _get_scripts_root(code_path: str) -> Path:
+    """从 code_path 向上找到 scripts 目录"""
+    current: Path = Path(code_path).resolve().parent
+    while current.name != "scripts" and current != current.parent:
+        current = current.parent
+    return current if current.name == "scripts" else Path(code_path).resolve().parent
+
+
+def _make_tracer(code_path: str, scripts_root: Path) -> object:
+    """返回 settrace 回调，scripts 目录下所有 py 每行执行前报告行号并暂停 0.1 秒"""
+
+    def _is_player_script(filename: str) -> bool:
+        try:
+            resolved: Path = Path(filename).resolve()
+            return scripts_root in resolved.parents or resolved.parent == scripts_root
+        except (OSError, ValueError):
+            return False
 
     def trace_lines(frame, event: str, arg: object) -> object:
-        if event == "line" and frame.f_code.co_filename == code_path:
-            print(_CMD_PREFIX + "line:" + str(frame.f_lineno), flush=True)
+        if event == "line" and _is_player_script(frame.f_code.co_filename):
+            if frame.f_code.co_filename == code_path:
+                print(_CMD_PREFIX + "line:" + str(frame.f_lineno), flush=True)
             time.sleep(0.1)
         return trace_lines
 
@@ -60,9 +77,12 @@ def main() -> None:
         sys.exit(1)
     sys.stdout.reconfigure(write_through=True)
     sys.stderr.reconfigure(write_through=True)
+    scripts_root: Path = _get_scripts_root(code_path)
+    if str(scripts_root) not in sys.path:
+        sys.path.insert(0, str(scripts_root))
     namespace: dict[str, object] = {"bot": Bot(), "__name__": "__main__"}
     code_obj = compile(code, code_path, "exec")
-    tracer = _make_tracer(code_path)
+    tracer = _make_tracer(code_path, scripts_root)
     sys.settrace(tracer)
     try:
         exec(code_obj, namespace)
