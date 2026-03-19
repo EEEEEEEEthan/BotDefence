@@ -36,6 +36,7 @@ theme/custom_font="res://MonoFont.tres"
 [layer_names]
 
 2d_navigation/layer_1="Platform"
+2d_navigation/layer_2="Land"
 
 [physics]
 
