@@ -9,7 +9,7 @@ script/source = "extends RigidBody2D
 const MOVE_SPEED: float = 200.0
 const VELOCITY_SMOOTH: float = 6.0
 
-@onready var nav_agent: NavigationAgent2D = $NavigationAgent
+@onready var nav_agent: NavigationAgent2D = $%NavigationAgent2D
 
 func _ready() -> void:
 	lock_rotation = true
@@ -46,5 +46,5 @@ texture = SubResource("PlaceholderTexture2D_3mrqo")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 shape = SubResource("CircleShape2D_monster")
 
-[node name="NavigationAgent" type="NavigationAgent2D" parent="." unique_id=1777320448]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
 navigation_layers = 2
