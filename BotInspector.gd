@@ -16,10 +16,14 @@ var _poll_timer: Timer
 var _closing: bool = false
 var _executing_line_index: int = -1
 var _dirty: bool = false
+var _connector: Control
 
 const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
+const _CONNECTOR_LINE_COLOR := Color.WHITE
+const _CONNECTOR_CIRCLE_RADIUS := 4.0
 
 func _ready() -> void:
+	_setup_connector()
 	_update_title()
 	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
@@ -43,6 +47,35 @@ func _ready() -> void:
 	bot.log_added.connect(_on_log_added)
 	bot.current_line_changed.connect(_on_current_line_changed)
 	_display_all_logs()
+
+func _setup_connector() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	var drawer := Control.new()
+	drawer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	drawer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	drawer.draw.connect(_draw_connector.bind(drawer))
+	layer.add_child(drawer)
+	get_tree().root.add_child(layer)
+	_connector = drawer
+	_connector.set_meta("_connector_layer", layer)
+
+func _process(_delta: float) -> void:
+	if is_instance_valid(_connector):
+		_connector.queue_redraw()
+
+func _draw_connector(drawer: Control) -> void:
+	if not is_instance_valid(bot):
+		return
+	var bot_canvas_pos: Vector2 = bot.get_global_transform_with_canvas().origin
+	var window_rect := Rect2(get_position(), get_size())
+	var start_point := _window_center(window_rect)
+	drawer.draw_line(start_point, bot_canvas_pos, _CONNECTOR_LINE_COLOR)
+	drawer.draw_arc(bot_canvas_pos, _CONNECTOR_CIRCLE_RADIUS, 0.0, TAU, 16, _CONNECTOR_LINE_COLOR)
+	drawer.draw_circle(bot_canvas_pos, _CONNECTOR_CIRCLE_RADIUS * 0.5, _CONNECTOR_LINE_COLOR)
+
+func _window_center(window_rect: Rect2) -> Vector2:
+	return window_rect.get_center()
 
 func _display_all_logs() -> void:
 	var bot_logs: Array = bot.logs
@@ -255,4 +288,6 @@ func _save_and_close() -> void:
 	syntax_checker.set_closing(true)
 	if not _is_file_deleted() and not bot.py_path.resolved_py_path.is_empty():
 		_save_py_file()
+	if _connector and _connector.has_meta("_connector_layer"):
+		_connector.get_meta("_connector_layer").queue_free()
 	queue_free()
