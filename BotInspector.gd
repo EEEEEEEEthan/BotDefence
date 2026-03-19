@@ -24,7 +24,9 @@ func _ready() -> void:
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
 	$%Open.pressed.connect(_on_open_pressed)
+	$%SaveAs.pressed.connect(_on_save_as_pressed)
 	$%FileDialog.file_selected.connect(_on_file_selected)
+	$%SaveAsFileDialog.file_selected.connect(_on_save_as_file_selected)
 	close_requested.connect(_on_close_requested)
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 0.3
@@ -63,6 +65,7 @@ func _update_switch_text() -> void:
 	var running: bool = bot.bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
 	$%Open.visible = not running
+	$%SaveAs.visible = not running
 	code_edit.editable = not running
 
 func _poll_python_process() -> void:
@@ -187,6 +190,31 @@ func _on_file_selected(selected_path: String) -> void:
 	bot.py_path.path_relative_to_scripts = relative
 	title = _get_relative_py_path()
 	_load_py_file()
+	if not bot.bridge.is_running:
+		_apply_check_result()
+
+
+func _on_save_as_pressed() -> void:
+	$%SaveAsFileDialog.current_dir = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR)
+	$%SaveAsFileDialog.current_file = bot.py_path.resolved_py_path.get_file()
+	$%SaveAsFileDialog.popup_centered()
+
+
+func _on_save_as_file_selected(selected_path: String) -> void:
+	var scripts_dir: String = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR).replace("\\", "/").trim_suffix("/")
+	var normalized_selected: String = selected_path.replace("\\", "/")
+	if not normalized_selected.begins_with(scripts_dir):
+		push_error("请保存到 user://scripts/ 目录下")
+		return
+	var relative: String = normalized_selected.substr(scripts_dir.length()).trim_prefix("/")
+	bot.py_path.path_relative_to_scripts = relative
+	var dir_path: String = selected_path.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var file: FileAccess = FileAccess.open(selected_path, FileAccess.WRITE)
+	if file:
+		file.store_string(code_edit.text)
+		file.close()
+	title = _get_relative_py_path()
 	if not bot.bridge.is_running:
 		_apply_check_result()
 
