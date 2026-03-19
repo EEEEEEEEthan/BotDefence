@@ -17,6 +17,7 @@ var _executing_line_index: int = -1
 const _EXECUTING_LINE_BG := Color(0.98, 0.89, 0.27, 0.25)
 
 func _ready() -> void:
+	title = _get_relative_py_path()
 	code_edit.syntax_highlighter = _create_python_highlighter()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	_load_py_file()
@@ -71,6 +72,15 @@ func _poll_python_process() -> void:
 		_poll_timer.stop()
 		_clear_executing_line_highlight()
 	_update_switch_text()
+
+func _get_relative_py_path() -> String:
+	if not (bot is Bot):
+		return ""
+	var target_bot: Bot = bot as Bot
+	var base: String = target_bot.py_file_path if not target_bot.py_file_path.is_empty() else "bot_%d.py" % target_bot.bot_id
+	if base.begins_with("scripts/"):
+		base = base.substr(8)
+	return "scripts".path_join(base)
 
 func _load_py_file() -> void:
 	if not (bot is Bot):
