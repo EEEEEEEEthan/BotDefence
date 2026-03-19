@@ -8,6 +8,7 @@ const _code_editor_scene := preload("res://CodeEditor.tscn")
 enum ContextAction {
 	NEW_FILE,
 	NEW_FOLDER,
+	SHOW_IN_FILE_MANAGER,
 	RENAME,
 	DELETE,
 }
@@ -90,8 +91,10 @@ func _on_tree_gui_input(event: InputEvent) -> void:
 	context_menu.clear()
 	context_menu.add_item("新建文件", ContextAction.NEW_FILE)
 	context_menu.add_item("新建文件夹", ContextAction.NEW_FOLDER)
-	if item and item.get_parent() != null:
+	if item:
 		context_menu.add_separator()
+		context_menu.add_item("在文件管理器中显示", ContextAction.SHOW_IN_FILE_MANAGER)
+	if item and item.get_parent() != null:
 		context_menu.add_item("重命名", ContextAction.RENAME)
 		context_menu.add_item("删除", ContextAction.DELETE)
 	context_menu.position = scripts_tree.get_global_mouse_position()
@@ -104,6 +107,8 @@ func _on_context_action(id: int) -> void:
 			_create_new_file()
 		ContextAction.NEW_FOLDER:
 			_create_new_folder()
+		ContextAction.SHOW_IN_FILE_MANAGER:
+			_show_in_file_manager()
 		ContextAction.RENAME:
 			_rename_selected()
 		ContextAction.DELETE:
@@ -203,6 +208,24 @@ func _create_new_folder() -> void:
 	if err == OK:
 		_build_tree()
 		_select_item_by_folder_path(target_path)
+
+
+func _show_in_file_manager() -> void:
+	var selected: TreeItem = scripts_tree.get_selected()
+	if not selected:
+		return
+	var path: String = ""
+	var meta: Variant = selected.get_metadata(0)
+	if meta is String:
+		if meta.is_empty():
+			path = _get_item_folder_path(selected)
+		else:
+			path = meta
+	else:
+		path = _get_item_folder_path(selected)
+	if path.is_empty():
+		path = _scripts_root_absolute
+	OS.shell_show_in_file_manager(path)
 
 
 func _rename_selected() -> void:
