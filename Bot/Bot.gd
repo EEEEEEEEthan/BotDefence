@@ -11,7 +11,7 @@ while True:
     count += 1
     bot.move_forward()
     bot.turn_right()
-    print("tick", count)
+    print("count", count)
 """
 
 @export var bot_id: int = -1
