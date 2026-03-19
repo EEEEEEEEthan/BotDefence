@@ -94,14 +94,18 @@ func _parse_error_line(msg: String) -> int:
 func _on_open_pressed() -> void:
 	$%FileDialog.popup_centered()
 
-func _on_file_selected(selected_path: String) -> void:
-	if not _is_path_under_scripts(selected_path):
+func open_file(path: String) -> void:
+	if not _is_path_under_scripts(path):
 		push_error("请选择 user://scripts/ 目录下的脚本")
 		return
-	_current_file_path = selected_path.replace("\\", "/")
+	_current_file_path = path.replace("\\", "/")
 	title = _get_display_title()
 	_load_file(_current_file_path)
 	_apply_check_result()
+	popup_centered()
+
+func _on_file_selected(selected_path: String) -> void:
+	open_file(selected_path)
 
 func _on_save_as_pressed() -> void:
 	$%SaveAsFileDialog.current_file = _current_file_path.get_file() if not _current_file_path.is_empty() else "script.py"
