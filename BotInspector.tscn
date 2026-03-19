@@ -40,22 +40,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "另存为"
 
-[node name="FileDialog" type="FileDialog" parent="." unique_id=358476762]
-unique_name_in_owner = true
-title = "选择 Python 脚本"
-access = 1
-file_mode = 0
-root_subfolder = "user://scripts/"
-filters = PackedStringArray("*.py ; Python 脚本")
-
-[node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
-unique_name_in_owner = true
-title = "另存为"
-access = 1
-file_mode = 3
-root_subfolder = "user://scripts/"
-filters = PackedStringArray("*.py ; Python 脚本")
-
 [node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
 layout_mode = 2
 size_flags_vertical = 3
@@ -113,3 +97,19 @@ autowrap_mode = 0
 context_menu_enabled = true
 threaded = true
 selection_enabled = true
+
+[node name="FileDialog" type="FileDialog" parent="." unique_id=358476762]
+unique_name_in_owner = true
+title = "选择 Python 脚本"
+file_mode = 0
+access = 1
+root_subfolder = "user://scripts/"
+filters = PackedStringArray("*.py ; Python 脚本")
+
+[node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
+unique_name_in_owner = true
+title = "另存为"
+file_mode = 3
+access = 1
+root_subfolder = "user://scripts/"
+filters = PackedStringArray("*.py ; Python 脚本")
