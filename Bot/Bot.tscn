@@ -106,8 +106,17 @@ func _finish(result: bool) -> void:
 resource_local_to_scene = false
 resource_name = ""
 script = ExtResource("5_r3adq")
-_hex_data = "89504e470d0a1a0a0000000d4948445200000008000000080806000000c40fbe8b000000017352474200aece1ce900000035494441541895636020001891d8ffb1c931218bfcff3c89e1ffe74928aa600ad075c3c5e02620eb4466a35881cf91d8ac4096c70d001e030e19f89cab100000000049454e44ae426082"
+_hex_data = "89504e470d0a1a0a0000000d494844520000000c000000060806000000f7ee7f81000000017352474200aece1ce90000004549444154189563648080ff0ca880119738138cf5fff32486ff9f2731a0037471162ca66033192ece0233a588613ddc4446de3c387bb3ec3c1471261c26e1048c78acc70a008bec1db2a387d5140000000049454e44ae426082"
 metadata/_custom_type_script = "uid://xqi7kv2y70eo"
+
+[sub_resource type="GDScript" id="GDScript_74tqk"]
+script/source = "extends Sprite2D
+
+@export var running: bool:
+	set(value):
+		running = value
+		frame = 0 if value else 1
+"
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_sck5o")
@@ -126,10 +135,14 @@ script = SubResource("GDScript_q6hsy")
 unique_name_in_owner = true
 script = SubResource("GDScript_ybhwq")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2063031169]
-position = Vector2(0, 1.9073486e-06)
-scale = Vector2(8, 8)
+[node name="Sprite" type="Sprite2D" parent="." unique_id=2063031169]
+unique_name_in_owner = true
+position = Vector2(-9.536743e-07, -1.66893e-06)
+scale = Vector2(7.9999995, 7.9999995)
 texture = SubResource("Texture2D_ppfm4")
+hframes = 2
+script = SubResource("GDScript_74tqk")
 
 [node name="BotInspector" parent="." unique_id=358476760 instance_placeholder="res://BotInspector.tscn"]
 unique_name_in_owner = true
+visible = false

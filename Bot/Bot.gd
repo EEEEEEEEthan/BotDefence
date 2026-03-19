@@ -20,7 +20,8 @@ while True:
 ## 相对于 user:// 的 py 文件路径，空则用 scripts/bot_{bot_id}.py
 @export var py_file_path: String = ""
 
-@onready var bridge: BotBridge = $BotBridge as BotBridge
+@onready var bridge: BotBridge = $%BotBridge
+@onready var sprite: Sprite2D = $%Sprite
 
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
@@ -80,6 +81,7 @@ func ensure_py_file_exists() -> bool:
 func _process(delta: float) -> void:
 	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
 	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
+	sprite.running = bridge.is_running
 	bridge.poll()
 
 ## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
@@ -143,7 +145,6 @@ func _exit_tree() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		return
-	var sprite: Sprite2D = $Sprite2D
 	var rect: Rect2 = sprite.get_rect()
 	var global_rect := Rect2(
 		sprite.global_position + rect.position * sprite.global_scale,
