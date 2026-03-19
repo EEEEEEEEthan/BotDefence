@@ -7,7 +7,7 @@ extends Camera2D
 @export var zoom_max: Vector2 = Vector2(3.0, 3.0)
 @export var zoom_step: float = 0.15
 @export var zoom_speed: float = 12.0
-@export var move_speed: float = 400.0
+@export var move_speed: float = 400.0  ## 基准像素/秒，实际世界单位速度会按 zoom 反比调整
 @export var move_lerp_speed: float = 12.0
 
 var _target_zoom: Vector2 = Vector2.ONE
@@ -63,7 +63,8 @@ func _process(delta: float) -> void:
 	if _move_right:
 		move_dir.x += 1
 	if move_dir != Vector2.ZERO:
-		_target_position = _clamp_to_bounds(_target_position + move_dir.normalized() * move_speed * delta)
+		var effective_speed := move_speed / zoom.x  # zoom 越小(视野越大)移动越慢，保持屏幕像素速度一致
+		_target_position = _clamp_to_bounds(_target_position + move_dir.normalized() * effective_speed * delta)
 
 	var zoom_weight := 1.0 - exp(-zoom_speed * delta)
 	zoom = zoom.lerp(_target_zoom, zoom_weight)
