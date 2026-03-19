@@ -9,7 +9,7 @@ extends Window
 @onready var console: RichTextLabel = $%Console
 @onready var syntax_checker = $%PythonSyntaxChecker
 
-var bot: Node2D
+var bot: Bot
 var _poll_timer: Timer
 var _closing: bool = false
 var _executing_line_index: int = -1
@@ -29,14 +29,14 @@ func _ready() -> void:
 	_poll_timer.timeout.connect(_poll_python_process)
 	add_child(_poll_timer)
 	code_edit.text_changed.connect(_on_text_changed)
-	if not (bot as Bot).bridge.is_running:
+	if not bot.bridge.is_running:
 		_apply_check_result()
 	bot.log_added.connect(_on_log_added)
-	(bot as Bot).current_line_changed.connect(_on_current_line_changed)
+	bot.current_line_changed.connect(_on_current_line_changed)
 	_display_all_logs()
 
 func _display_all_logs() -> void:
-	var bot_logs: Array = (bot as Bot).logs
+	var bot_logs: Array = bot.logs
 	var lines: PackedStringArray = []
 	for entry in bot_logs:
 		lines.append((entry as ConsoleLogEntry).to_bbcode_line())
@@ -58,15 +58,12 @@ func _on_current_line_changed(line_one_based: int) -> void:
 		_executing_line_index = line_index
 
 func _update_switch_text() -> void:
-	var bridge: BotBridge = (bot as Bot).bridge if bot is Bot else null
-	var running: bool = bridge and bridge.is_running
+	var running: bool = bot.bridge.is_running
 	$%Switch.text = "🛑" if running else "▶"
 	code_edit.editable = not running
 
 func _poll_python_process() -> void:
-	if not (bot is Bot):
-		return
-	var bridge: BotBridge = (bot as Bot).bridge
+	var bridge: BotBridge = bot.bridge
 	if not bridge.is_running and bridge.python_pid >= 0:
 		bridge.close()
 		_poll_timer.stop()
@@ -74,27 +71,16 @@ func _poll_python_process() -> void:
 	_update_switch_text()
 
 func _get_relative_py_path() -> String:
-	if not (bot is Bot):
-		return ""
-	var target_bot: Bot = bot as Bot
-	var base: String = target_bot.py_file_path if not target_bot.py_file_path.is_empty() else "bot_%d.py" % target_bot.bot_id
-	if base.begins_with("scripts/"):
-		base = base.substr(8)
-	return "scripts".path_join(base)
+	return bot.py_path.path_relative_to_user
 
 func _load_py_file() -> void:
-	if not (bot is Bot):
-		return
-	var target_bot: Bot = bot as Bot
-	target_bot.ensure_py_file_exists()
-	var path: String = target_bot.get_resolved_py_path()
+	bot.ensure_py_file_exists()
+	var path: String = bot.py_path.resolved_py_path
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	code_edit.text = file.get_as_text() if file else ""
 
 func _save_py_file() -> void:
-	if not (bot is Bot):
-		return
-	var path: String = (bot as Bot).get_resolved_py_path()
+	var path: String = bot.py_path.resolved_py_path
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file:
 		file.store_string(code_edit.text)
@@ -102,7 +88,7 @@ func _save_py_file() -> void:
 
 func _on_text_changed() -> void:
 	_save_py_file()
-	if not (bot as Bot).bridge.is_running:
+	if not bot.bridge.is_running:
 		_apply_check_result()
 
 func _apply_check_result() -> void:
@@ -166,9 +152,7 @@ func _parse_error_line(msg: String) -> int:
 	return int(search_result.get_string(1)) - 1 if search_result else -1
 
 func _on_switch_pressed() -> void:
-	if not (bot is Bot):
-		return
-	var bridge: BotBridge = (bot as Bot).bridge
+	var bridge: BotBridge = bot.bridge
 	if bridge.is_running:
 		bridge.close()
 		_poll_timer.stop()
@@ -178,7 +162,7 @@ func _on_switch_pressed() -> void:
 	if bot.bot_id < 0:
 		push_error("Bot 的 bot_id 未设置")
 		return
-	(bot as Bot).logs.clear()
+	bot.logs.clear()
 	console.text = ""
 	if bridge.start_process():
 		_poll_timer.start()

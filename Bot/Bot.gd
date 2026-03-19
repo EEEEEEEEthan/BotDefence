@@ -5,8 +5,6 @@ class_name Bot
 ## 移动与转向由 MoveForwardState、TurnState 子节点封装
 ## 移动/转向瞬时修改 preferred_position/preferred_rotation，等待后 callback，BotMain 每帧插值
 
-## 玩家脚本存放目录（游戏存档目录下）
-const SCRIPTS_DIR := "user://scripts/"
 const _TEMPLATE_PY := """
 count: int = 0
 while True:
@@ -17,9 +15,7 @@ while True:
 """
 
 @export var bot_id: int = -1
-## 相对于 user:// 的 py 文件路径，空则用 scripts/bot_{bot_id}.py
-@export var py_file_path: String = ""
-
+@export var py_path: BotScriptPath = BotScriptPath.new()
 @onready var bridge: BotBridge = $%BotBridge
 @onready var sprite: Sprite2D = $%Sprite
 
@@ -56,16 +52,9 @@ func _ready() -> void:
 	_preferred_rotation = _CARDINAL_ANGLE[cardinal]
 	rotation = _preferred_rotation
 
-## 返回 py 文件的绝对路径（user:// 已展开）
-func get_resolved_py_path() -> String:
-	var base: String = py_file_path if not py_file_path.is_empty() else "bot_%d.py" % bot_id
-	if base.begins_with("scripts/"):
-		base = base.substr(8)
-	return ProjectSettings.globalize_path(SCRIPTS_DIR.trim_suffix("/").path_join(base))
-
 ## 若 py 文件不存在则创建模板，返回是否成功
 func ensure_py_file_exists() -> bool:
-	var path: String = get_resolved_py_path()
+	var path: String = py_path.resolved_py_path
 	if FileAccess.file_exists(path):
 		return true
 	var dir_path: String = path.get_base_dir()

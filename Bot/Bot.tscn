@@ -2,7 +2,13 @@
 
 [ext_resource type="Script" uid="uid://ctbi5c4jqt75p" path="res://Bot/Bot.gd" id="1_sck5o"]
 [ext_resource type="Script" uid="uid://b26tqahhl3bqo" path="res://Bot/BotBridge.gd" id="2_bridge"]
+[ext_resource type="Script" uid="uid://duf5yg5mm20qy" path="res://Bot/BotScriptPath.gd" id="2_u4bbq"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
+
+[sub_resource type="Resource" id="Resource_ghja7"]
+script = ExtResource("2_u4bbq")
+path_relative_to_scripts = "__template__.py"
+metadata/_custom_type_script = "uid://duf5yg5mm20qy"
 
 [sub_resource type="GDScript" id="GDScript_q6hsy"]
 script/source = "extends Node
@@ -120,6 +126,7 @@ script/source = "extends Sprite2D
 
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_sck5o")
+py_path = SubResource("Resource_ghja7")
 
 [node name="BotBridge" type="Node" parent="." unique_id=2139956483]
 unique_name_in_owner = true

@@ -43,7 +43,7 @@ func start_process(_bot_server_port: int = -1) -> bool:
 		return false
 	var project_root: String = ProjectSettings.globalize_path("res://").trim_suffix("/")
 	var runner_path: String = project_root + "/.bot/runner.py"
-	var py_path: String = target_bot.get_resolved_py_path()
+	var py_path: String = target_bot.py_path.resolved_py_path
 	var result: Dictionary = OS.execute_with_pipe("python", PackedStringArray([runner_path, py_path, str(target_bot.bot_id)]), false)
 	if result.is_empty():
 		return false
