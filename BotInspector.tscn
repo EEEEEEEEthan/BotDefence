@@ -64,12 +64,15 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ErrorLabel" type="Label" parent="VBoxContainer/VSplitContainer/ScrollContainer/VBoxContainer" unique_id=351019983]
+[node name="ErrorLabel" type="RichTextLabel" parent="VBoxContainer/VSplitContainer/ScrollContainer/VBoxContainer" unique_id=1599877067]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_constants/line_spacing = 2
+focus_mode = 2
+theme_type_variation = &"Console"
 text = "ERROR!"
+fit_content = true
+autowrap_mode = 0
+selection_enabled = true
 
 [node name="Console" type="RichTextLabel" parent="VBoxContainer/VSplitContainer/ScrollContainer/VBoxContainer" unique_id=396074706]
 unique_name_in_owner = true

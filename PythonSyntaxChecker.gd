@@ -1,78 +1,46 @@
 extends Node
 
-## 对 Python 源码做语法检查，防抖后异步执行
-## 结果应用到 CodeEdit（bookmark）和 ErrorLabel
+## 对 Python 源码做语法检查，异步执行
+## 返回 {"message": "", "lines": []}，由调用方自行应用到 UI
 
-const VALIDATE_DEBOUNCE_SEC := 0.5
+signal check_completed(result: Dictionary)
 
-var code_edit: CodeEdit
-var error_label: Label
-
-var _validate_timer: Timer
-var _validate_version: int = 0
+var _running: bool = false
+var _dirty: bool = false
+var _pending_source: String = ""
 var _closing: bool = false
-
-func _ready() -> void:
-	_validate_timer = Timer.new()
-	_validate_timer.one_shot = true
-	_validate_timer.timeout.connect(_on_timer_timeout)
-	add_child(_validate_timer)
-
-func set_targets(p_code_edit: CodeEdit, p_error_label: Label) -> void:
-	code_edit = p_code_edit
-	error_label = p_error_label
 
 func set_closing(value: bool) -> void:
 	_closing = value
 
-## 防抖后执行检查；immediate 为 true 时跳过防抖立即执行（如初始加载）
-func request_check(source: String, immediate: bool = false) -> void:
-	if immediate:
-		_check_now(source)
-		return
-	set_meta("pending_source", source)
-	_validate_timer.start(VALIDATE_DEBOUNCE_SEC)
-
-func _on_timer_timeout() -> void:
-	var source: String = get_meta("pending_source", "")
-	_check_now(source)
-
-func _check_now(source: String) -> void:
-	_validate_version += 1
-	var version: int = _validate_version
-	var thread := Thread.new()
-	thread.start(_thread_check_syntax.bind(source, version))
-
-func _thread_check_syntax(source: String, version: int) -> void:
-	var result: Dictionary = _check_python_syntax_impl(source)
-	call_deferred(&"_on_check_done", result, version)
-
-func _on_check_done(result: Dictionary, version: int) -> void:
-	if _closing or version != _validate_version:
-		return
-	_apply_syntax_result(result)
-
-func _apply_syntax_result(result: Dictionary) -> void:
-	if not error_label or not code_edit:
-		return
-	var text: String = result.message
-	if text.is_empty():
-		error_label.visible = false
+## 异步检查 source，返回最后一次检查完毕且无脏标记时的结果
+func check(source: String) -> Dictionary:
+	_pending_source = source
+	if _running:
+		_dirty = true
 	else:
-		error_label.visible = true
-		error_label.text = result.message
-	code_edit.clear_bookmarked_lines()
-	var lines: Array[int] = []
-	for item in result.get("lines", []):
-		lines.append(int(item))
-	if lines.is_empty() and not result.message.is_empty():
-		var parsed_line: int = _parse_error_line(result.message)
-		if parsed_line >= 0:
-			lines.append(parsed_line + 1)
-	for line_one_based in lines:
-		var line_index: int = line_one_based - 1
-		if line_index >= 0 and line_index < code_edit.get_line_count():
-			code_edit.set_line_as_bookmarked(line_index, true)
+		_running = true
+		_start_check(_pending_source)
+	return await check_completed
+
+func _start_check(source: String) -> void:
+	var thread := Thread.new()
+	thread.start(_thread_check_syntax.bind(source))
+
+func _thread_check_syntax(source: String) -> void:
+	var result: Dictionary = _check_python_syntax_impl(source)
+	call_deferred(&"_on_check_done", result)
+
+func _on_check_done(result: Dictionary) -> void:
+	if _closing:
+		_running = false
+		return
+	if _dirty:
+		_dirty = false
+		_start_check(_pending_source)
+		return
+	_running = false
+	check_completed.emit(result)
 
 func _check_python_syntax_impl(source: String) -> Dictionary:
 	var empty_lines: Array[int] = []
@@ -104,6 +72,6 @@ func _check_python_syntax_impl(source: String) -> Dictionary:
 
 func _parse_error_line(msg: String) -> int:
 	var regex := RegEx.new()
-	regex.compile("(?:at |行 ?|line )?(\\d+)")
+	regex.compile("(?:line|行)\\s*(\\d+)")
 	var result := regex.search(msg)
 	return int(result.get_string(1)) - 1 if result else -1

@@ -7,7 +7,7 @@ extends Window
 const HIGHLIGHTER := preload("res://GDScriptHighlighter.tres")
 
 @onready var code_edit: CodeEdit = $%CodeEdit
-@onready var error_label: Label = $%ErrorLabel
+@onready var error_label: RichTextLabel = $%ErrorLabel
 @onready var console: RichTextLabel = $%Console
 @onready var syntax_checker = $%PythonSyntaxChecker
 
@@ -25,10 +25,9 @@ func _ready() -> void:
 	_poll_timer.wait_time = 0.3
 	_poll_timer.timeout.connect(_poll_python_process)
 	add_child(_poll_timer)
-	syntax_checker.set_targets(code_edit, error_label)
 	code_edit.text_changed.connect(_on_text_changed)
 	if not (bot as Bot).bridge.is_running:
-		syntax_checker.request_check(code_edit.text, true)
+		_apply_check_result()
 	bot.log_added.connect(_on_log_added)
 	(bot as Bot).current_line_changed.connect(_on_current_line_changed)
 	_display_all_logs()
@@ -68,7 +67,39 @@ func _poll_python_process() -> void:
 func _on_text_changed() -> void:
 	bot.code = code_edit.text
 	if not (bot as Bot).bridge.is_running:
-		syntax_checker.request_check(code_edit.text)
+		_apply_check_result()
+
+func _apply_check_result() -> void:
+	var result: Dictionary = await syntax_checker.check(code_edit.text)
+	if _closing:
+		return
+	_apply_syntax_result(result)
+
+func _apply_syntax_result(result: Dictionary) -> void:
+	var text: String = result.message
+	if text.is_empty():
+		error_label.visible = false
+	else:
+		error_label.visible = true
+		error_label.text = result.message
+	code_edit.clear_bookmarked_lines()
+	var lines: Array[int] = []
+	for item in result.get("lines", []):
+		lines.append(int(item))
+	if lines.is_empty() and not result.message.is_empty():
+		var parsed_line: int = _parse_error_line(result.message)
+		if parsed_line >= 0:
+			lines.append(parsed_line + 1)
+	for line_one_based in lines:
+		var line_index: int = line_one_based - 1
+		if line_index >= 0 and line_index < code_edit.get_line_count():
+			code_edit.set_line_as_bookmarked(line_index, true)
+
+func _parse_error_line(msg: String) -> int:
+	var regex := RegEx.new()
+	regex.compile("(?:line|行)\\s*(\\d+)")
+	var search_result := regex.search(msg)
+	return int(search_result.get_string(1)) - 1 if search_result else -1
 
 func _on_switch_pressed() -> void:
 	if not (bot is Bot):
