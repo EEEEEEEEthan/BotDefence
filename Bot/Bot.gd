@@ -43,7 +43,8 @@ const _CARDINAL_ANGLE := {
 }
 var _current_state: Object  ## MoveForwardState 或 TurnState，均有 abort()
 
-## 日志列表，每项为 ConsoleLogEntry
+## 日志列表，每项为 ConsoleLogEntry，最多保留此数量
+const MAX_LOG_LINES := 1024
 var logs: Array[ConsoleLogEntry] = []
 
 signal log_added(entry: ConsoleLogEntry)
@@ -107,6 +108,8 @@ func _add_log(log_type: String, message: String) -> void:
 	var entry_type: ConsoleLogEntry.Type = ConsoleLogEntry.Type.ERROR if log_type == "error" else ConsoleLogEntry.Type.LOG
 	var entry := ConsoleLogEntry.new(int(Time.get_unix_time_from_system()), entry_type, message)
 	logs.append(entry)
+	if logs.size() > MAX_LOG_LINES:
+		logs.remove_at(0)
 	log_added.emit(entry)
 
 func log_error(message: String) -> void:
