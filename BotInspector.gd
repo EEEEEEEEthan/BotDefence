@@ -4,8 +4,6 @@ extends Window
 ## CodeEdit 启用 GDScript 语法高亮和断点槽
 ## 实时校验 Python 语法并在 ErrorLabel 显示错误
 
-const HIGHLIGHTER := preload("res://GDScriptHighlighter.tres")
-
 @onready var code_edit: CodeEdit = $%CodeEdit
 @onready var error_label: RichTextLabel = $%ErrorLabel
 @onready var console: RichTextLabel = $%Console
@@ -17,7 +15,6 @@ var _closing: bool = false
 
 func _ready() -> void:
 	code_edit.text = bot.code
-	code_edit.syntax_highlighter = HIGHLIGHTER.duplicate()
 	_update_switch_text()
 	$%Switch.pressed.connect(_on_switch_pressed)
 	close_requested.connect(_on_close_requested)
