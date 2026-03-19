@@ -176,17 +176,16 @@ func _on_switch_pressed() -> void:
 
 
 func _on_open_pressed() -> void:
-	$%FileDialog.current_dir = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR)
 	$%FileDialog.popup_centered()
 
 
 func _on_file_selected(selected_path: String) -> void:
-	var scripts_dir: String = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR).replace("\\", "/").trim_suffix("/")
-	var normalized_selected: String = selected_path.replace("\\", "/")
-	if not normalized_selected.begins_with(scripts_dir):
+	var normalized: String = selected_path.replace("\\", "/")
+	var prefix: String = "user://scripts/"
+	if not normalized.begins_with(prefix):
 		push_error("请选择 user://scripts/ 目录下的脚本")
 		return
-	var relative: String = normalized_selected.substr(scripts_dir.length()).trim_prefix("/")
+	var relative: String = normalized.substr(prefix.length()).trim_prefix("/")
 	bot.py_path.path_relative_to_scripts = relative
 	title = _get_relative_py_path()
 	_load_py_file()
@@ -195,20 +194,21 @@ func _on_file_selected(selected_path: String) -> void:
 
 
 func _on_save_as_pressed() -> void:
-	$%SaveAsFileDialog.current_dir = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR)
 	$%SaveAsFileDialog.current_file = bot.py_path.resolved_py_path.get_file()
 	$%SaveAsFileDialog.popup_centered()
 
 
 func _on_save_as_file_selected(selected_path: String) -> void:
-	var scripts_dir: String = ProjectSettings.globalize_path(BotScriptPath.SCRIPTS_DIR).replace("\\", "/").trim_suffix("/")
-	var normalized_selected: String = selected_path.replace("\\", "/")
-	if not normalized_selected.begins_with(scripts_dir):
+	var normalized: String = selected_path.replace("\\", "/")
+	var prefix: String = "user://scripts/"
+	if not normalized.begins_with(prefix):
 		push_error("请保存到 user://scripts/ 目录下")
 		return
-	var relative: String = normalized_selected.substr(scripts_dir.length()).trim_prefix("/")
+	var relative: String = normalized.substr(prefix.length()).trim_prefix("/")
 	bot.py_path.path_relative_to_scripts = relative
 	var dir_path: String = selected_path.get_base_dir()
+	if dir_path.begins_with("user://"):
+		dir_path = ProjectSettings.globalize_path(dir_path)
 	DirAccess.make_dir_recursive_absolute(dir_path)
 	var file: FileAccess = FileAccess.open(selected_path, FileAccess.WRITE)
 	if file:

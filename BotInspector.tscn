@@ -43,15 +43,17 @@ text = "另存为"
 [node name="FileDialog" type="FileDialog" parent="." unique_id=358476762]
 unique_name_in_owner = true
 title = "选择 Python 脚本"
-access = 2
+access = 1
 file_mode = 0
+root_subfolder = "user://scripts/"
 filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
 unique_name_in_owner = true
 title = "另存为"
-access = 2
+access = 1
 file_mode = 3
+root_subfolder = "user://scripts/"
 filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer" unique_id=2031766132]
