@@ -532,3 +532,8 @@ bot_id = 1
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)
 bot_id = 2
+
+[node name="Scripts" type="Tree" parent="." unique_id=1199935026]
+unique_name_in_owner = true
+offset_right = 184.0
+offset_bottom = 384.0
