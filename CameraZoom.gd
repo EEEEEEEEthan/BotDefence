@@ -12,6 +12,10 @@ extends Camera2D
 
 var _target_zoom: Vector2 = Vector2.ONE
 var _target_position: Vector2
+var _move_up: bool = false
+var _move_down: bool = false
+var _move_left: bool = false
+var _move_right: bool = false
 
 @onready var _pathfinding_field: PathfindingField = get_parent().get_node("TileMapLayer/PathfindingField")
 
@@ -21,24 +25,42 @@ func _ready() -> void:
 	_target_position = _clamp_to_bounds(position)
 
 
-func _input(event: InputEvent) -> void:
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_move_up = false
+		_move_down = false
+		_move_left = false
+		_move_right = false
+
+
+func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_target_zoom = (_target_zoom + Vector2(zoom_step, zoom_step)).clamp(zoom_min, zoom_max)
 		elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_target_zoom = (_target_zoom - Vector2(zoom_step, zoom_step)).clamp(zoom_min, zoom_max)
+	elif event is InputEventKey:
+		var key_event := event as InputEventKey
+		if key_event.keycode == KEY_W:
+			_move_up = key_event.pressed
+		elif key_event.keycode == KEY_S:
+			_move_down = key_event.pressed
+		elif key_event.keycode == KEY_A:
+			_move_left = key_event.pressed
+		elif key_event.keycode == KEY_D:
+			_move_right = key_event.pressed
 
 
 func _process(delta: float) -> void:
 	var move_dir := Vector2.ZERO
-	if Input.is_key_pressed(KEY_W):
+	if _move_up:
 		move_dir.y -= 1
-	if Input.is_key_pressed(KEY_S):
+	if _move_down:
 		move_dir.y += 1
-	if Input.is_key_pressed(KEY_A):
+	if _move_left:
 		move_dir.x -= 1
-	if Input.is_key_pressed(KEY_D):
+	if _move_right:
 		move_dir.x += 1
 	if move_dir != Vector2.ZERO:
 		_target_position = _clamp_to_bounds(_target_position + move_dir.normalized() * move_speed * delta)
