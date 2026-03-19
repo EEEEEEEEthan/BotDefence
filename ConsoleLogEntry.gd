@@ -20,7 +20,7 @@ static func _escape_bbcode(text: String) -> String:
 ## 转为 RichTextLabel 可用的 bbcode 行，报错为红色
 func to_bbcode_line() -> String:
 	var time_dict: Dictionary = Time.get_datetime_dict_from_unix_time(timestamp)
-	var time_str: String = "[%02d:%02d] " % [time_dict.hour, time_dict.minute]
+	var time_str: String = "[%02d:%02d:%02d] " % [time_dict.hour, time_dict.minute, time_dict.second]
 	var escaped: String = _escape_bbcode(content)
 	if type == Type.ERROR:
 		return time_str + "[color=red]" + escaped + "[/color]"
