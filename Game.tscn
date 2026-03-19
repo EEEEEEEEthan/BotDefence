@@ -1,5 +1,6 @@
 [gd_scene format=4 uid="uid://ri6jg3hsmjys"]
 
+[ext_resource type="Script" uid="uid://c8d3ek8hfmj6a" path="res://CameraZoom.gd" id="1_camera_zoom"]
 [ext_resource type="Script" uid="uid://cscwr4gihxmsw" path="res://Game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot/Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
@@ -534,8 +535,11 @@ bot_id = 1
 position = Vector2(800, 352)
 bot_id = 2
 
-[node name="ScriptsPanel" parent="." unique_id=494533927 instance=ExtResource("2_scripts_panel")]
-
 [node name="Camera" type="Camera2D" parent="." unique_id=318200678]
 unique_name_in_owner = true
 position = Vector2(574, 322)
+script = ExtResource("1_camera_zoom")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1160938818]
+
+[node name="ScriptsPanel" parent="CanvasLayer" unique_id=494533927 instance=ExtResource("2_scripts_panel")]
