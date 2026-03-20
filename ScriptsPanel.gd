@@ -3,7 +3,7 @@ extends Control
 ## 脚本文件列表面板，支持右键菜单：新建文件/文件夹、删除、重命名
 
 const SCRIPTS_ROOT := "user://scripts"
-const _code_editor_scene := preload("res://CodeEditor.tscn")
+@onready var _code_editor_scene: PackedScene = %TscnReference.get_meta(&"editor") as PackedScene
 
 enum ContextAction {
 	NEW_FILE,

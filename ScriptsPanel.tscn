@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://licx0qlp2xpn"]
 
 [ext_resource type="Script" uid="uid://fqp561r6i1bn" path="res://ScriptsPanel.gd" id="1_scripts_panel"]
+[ext_resource type="PackedScene" uid="uid://b6ya306n3lgtv" path="res://CodeEditor.tscn" id="2_xs2dr"]
 
 [node name="ScriptsPanel" type="Control" unique_id=1199935025]
 unique_name_in_owner = true
@@ -21,3 +22,7 @@ grow_vertical = 2
 
 [node name="ContextMenu" type="PopupMenu" parent="." unique_id=-2095032269]
 unique_name_in_owner = true
+
+[node name="TscnReference" type="Node" parent="." unique_id=1469386891]
+unique_name_in_owner = true
+metadata/editor = ExtResource("2_xs2dr")
