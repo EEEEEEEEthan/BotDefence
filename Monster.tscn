@@ -8,21 +8,20 @@ script/source = "extends RigidBody2D
 
 const MOVE_SPEED: float = 200.0
 const VELOCITY_SMOOTH: float = 6.0
+## 仍距目标超过此半径却收到 navigation_finished 时重算路径（RigidBody 被挤离网格时常见）
+const GOAL_REPLAN_DISTANCE: float = 32.0
+const DIRECTION_EPSILON_SQ: float = 0.0004
 const GOAL_CENTER: Vector2 = Vector2(565, 679)
 
 @onready var nav_agent: NavigationAgent2D = $%NavigationAgent2D
 
-func _ready() -> void:
-	lock_rotation = true
-	nav_agent.target_position = GOAL_CENTER
-	await get_tree().process_frame
-
 func _physics_process(delta: float) -> void:
-	if nav_agent.is_navigation_finished():
-		linear_velocity = linear_velocity.lerp(Vector2.ZERO, VELOCITY_SMOOTH * delta)
-		return
+	nav_agent.target_position = GOAL_CENTER
 	var next_position: Vector2 = nav_agent.get_next_path_position()
-	var direction: Vector2 = (next_position - global_position).normalized()
+	var to_next: Vector2 = next_position - global_position
+	if to_next.length_squared() < DIRECTION_EPSILON_SQ:
+		return
+	var direction: Vector2 = to_next.normalized()
 	var target_velocity: Vector2 = direction * MOVE_SPEED
 	linear_velocity = linear_velocity.lerp(target_velocity, VELOCITY_SMOOTH * delta)
 "
@@ -30,7 +29,6 @@ func _physics_process(delta: float) -> void:
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3mrqo"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
-radius = 4.0
 
 [node name="Monster" type="RigidBody2D" unique_id=140614155]
 collision_layer = 2
@@ -48,4 +46,7 @@ shape = SubResource("CircleShape2D_monster")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
 unique_name_in_owner = true
+path_desired_distance = 8.0
+target_desired_distance = 4.0
 navigation_layers = 2
+radius = 4.0
