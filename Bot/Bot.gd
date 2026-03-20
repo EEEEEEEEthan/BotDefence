@@ -19,7 +19,7 @@ while True:
 @export var bot_id: int = -1
 @export var py_path: BotScriptPath = BotScriptPath.new()
 @onready var bridge: BotBridge = $%BotBridge
-@onready var sprite: Sprite2D = $%Sprite
+@onready var sprite: Node2D = $%Sprite
 
 var cardinal: Consts.Cardinal = Consts.Cardinal.NORTH
 
@@ -73,7 +73,7 @@ func ensure_py_file_exists() -> bool:
 func _process(delta: float) -> void:
 	position = position.lerp(_preferred_position, 1.0 - exp(-_POSITION_LERP_SPEED * delta))
 	rotation = lerp_angle(rotation, _preferred_rotation, 1.0 - exp(-_ROTATION_LERP_SPEED * delta))
-	sprite.running = bridge.is_running
+	sprite.fill_color = Color("03ba43") if bridge.is_running else Color("ff5863")
 	bridge.poll()
 
 ## 由 Bot 通过 call_deferred 调用，仅转发给 MoveForwardState
@@ -148,8 +148,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_inspector()
 
 func _open_inspector() -> void:
-	var placeholder: InstancePlaceholder = $BotInspector
-	var inspector: Window = load(placeholder.get_instance_path()).instantiate()
+	var inspector: Window = $ResourceReference.get_meta("editor").instantiate()
 	inspector.bot = self
 	get_tree().root.add_child(inspector)
 	inspector.popup_centered()

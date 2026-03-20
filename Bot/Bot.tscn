@@ -3,7 +3,8 @@
 [ext_resource type="Script" uid="uid://ctbi5c4jqt75p" path="res://Bot/Bot.gd" id="1_sck5o"]
 [ext_resource type="Script" uid="uid://b26tqahhl3bqo" path="res://Bot/BotBridge.gd" id="2_bridge"]
 [ext_resource type="Script" uid="uid://duf5yg5mm20qy" path="res://Bot/BotScriptPath.gd" id="2_u4bbq"]
-[ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="5_r3adq"]
+[ext_resource type="PackedScene" uid="uid://t5vpt02mjy6l" path="res://Geometry/RoundedTriangle.tscn" id="4_ghja7"]
+[ext_resource type="PackedScene" uid="uid://bqx3dnnoqbjo5" path="res://Bot/BotInspector.tscn" id="5_ghja7"]
 
 [sub_resource type="Resource" id="Resource_ghja7"]
 script = ExtResource("2_u4bbq")
@@ -108,22 +109,6 @@ func _finish(result: bool) -> void:
 		_callback = Callable()
 "
 
-[sub_resource type="Texture2D" id="Texture2D_ppfm4"]
-resource_local_to_scene = false
-resource_name = ""
-script = ExtResource("5_r3adq")
-_hex_data = "89504e470d0a1a0a0000000d494844520000000c000000060806000000f7ee7f81000000017352474200aece1ce90000004549444154189563648080ff0ca880119738138cf5fff32486ff9f2731a0037471162ca66033192ece0233a588613ddc4446de3c387bb3ec3c1471261c26e1048c78acc70a008bec1db2a387d5140000000049454e44ae426082"
-metadata/_custom_type_script = "uid://xqi7kv2y70eo"
-
-[sub_resource type="GDScript" id="GDScript_74tqk"]
-script/source = "extends Sprite2D
-
-@export var running: bool:
-	set(value):
-		running = value
-		frame = 0 if value else 1
-"
-
 [node name="Bot" type="Node2D" unique_id=11366525]
 script = ExtResource("1_sck5o")
 py_path = SubResource("Resource_ghja7")
@@ -142,10 +127,20 @@ script = SubResource("GDScript_q6hsy")
 unique_name_in_owner = true
 script = SubResource("GDScript_ybhwq")
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=2063031169]
+[node name="Sprite" parent="." unique_id=349567150 instance=ExtResource("4_ghja7")]
 unique_name_in_owner = true
+instance_shader_parameters/corner_radius = 5.0
+instance_shader_parameters/fill_color = Color(1, 0.34488413, 0.3868219, 1)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/outline_width = 3.0
+instance_shader_parameters/rect_size = Vector2(48.000008, 48)
 position = Vector2(-9.536743e-07, -1.66893e-06)
-scale = Vector2(7.9999995, 7.9999995)
-texture = SubResource("Texture2D_ppfm4")
-hframes = 2
-script = SubResource("GDScript_74tqk")
+scale = Vector2(48.000008, 48)
+rect_size = Vector2(48.000008, 48)
+corner_radius = 5.0
+fill_color = Color(1, 0.34488413, 0.3868219, 1)
+outline_color = Color(1, 1, 1, 1)
+outline_width = 3.0
+
+[node name="ResourceReference" type="Node" parent="." unique_id=2006095126]
+metadata/editor = ExtResource("5_ghja7")
