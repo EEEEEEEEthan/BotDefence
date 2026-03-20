@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://diwpq1ndrbb23"]
 
-[ext_resource type="Script" path="res://MonsterSpawnPoint.gd" id="1_spawn"]
+[ext_resource type="Script" uid="uid://bkyd8ro4ky0vf" path="res://MonsterSpawnPoint.gd" id="1_spawn"]
 
-[node name="MonsterSpawnPoint" type="Node2D"]
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3ugxx"]
+
+[node name="MonsterSpawnPoint" type="Sprite2D" unique_id=1123679277]
+scale = Vector2(44, 46)
+texture = SubResource("PlaceholderTexture2D_3ugxx")
 script = ExtResource("1_spawn")
