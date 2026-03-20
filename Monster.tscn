@@ -41,64 +41,6 @@ func _physics_process(delta: float) -> void:
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 
-[sub_resource type="GDScript" id="GDScript_ssiii"]
-script/source = "@tool
-extends Node
-
-@export var target_canvas_item: CanvasItem
-
-@export var fill_color: Color = Color(0.22, 0.62, 1.0, 1.0):
-	set(value):
-		fill_color = value
-		_apply_fill_color()
-
-@export var outline_color: Color = Color(1.0, 1.0, 1.0, 1.0):
-	set(value):
-		outline_color = value
-		_apply_outline_color()
-
-@export_range(0.0, 0.5, 0.001) var outline_width: float = 0.06:
-	set(value):
-		outline_width = clampf(value, 0.0, 0.5)
-		_apply_outline_width()
-
-func _ready() -> void:
-	_apply_all_parameters()
-
-func _apply_all_parameters() -> void:
-	_apply_fill_color()
-	_apply_outline_color()
-	_apply_outline_width()
-
-func _apply_fill_color() -> void:
-	var canvas_item: CanvasItem = _resolve_target_canvas_item()
-	if canvas_item == null:
-		return
-	canvas_item.set_instance_shader_parameter(&\"fill_color\", fill_color)
-
-func _apply_outline_color() -> void:
-	var canvas_item: CanvasItem = _resolve_target_canvas_item()
-	if canvas_item == null:
-		return
-	canvas_item.set_instance_shader_parameter(&\"outline_color\", outline_color)
-
-func _apply_outline_width() -> void:
-	var canvas_item: CanvasItem = _resolve_target_canvas_item()
-	if canvas_item == null:
-		return
-	canvas_item.set_instance_shader_parameter(&\"outline_width\", outline_width)
-
-func _resolve_target_canvas_item() -> CanvasItem:
-	if target_canvas_item != null:
-		return target_canvas_item
-	var current_node: Node = self
-	if current_node is CanvasItem:
-		return current_node as CanvasItem
-	if get_parent() is CanvasItem:
-		return get_parent() as CanvasItem
-	return null
-"
-
 [node name="Monster" type="RigidBody2D" unique_id=140614155]
 collision_layer = 2
 collision_mask = 3
@@ -117,7 +59,6 @@ fill_color = Color(0.900388, 0.4558068, 0.3999015, 1)
 process_mode = 4
 shape = SubResource("CircleShape2D_monster")
 debug_color = Color(0, 0.6, 0.69803923, 0)
-script = SubResource("GDScript_ssiii")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
 unique_name_in_owner = true

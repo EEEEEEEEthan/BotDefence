@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://licx0qlp2xpn" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
-[ext_resource type="Environment" uid="uid://ia8eyp231aqp" path="res://Environment.tres" id="8_joorw"]
 [ext_resource type="PackedScene" uid="uid://diwpq1ndrbb23" path="res://MonsterSpawnPoint.tscn" id="9_2vekm"]
 
 [sub_resource type="GDScript" id="GDScript_joorw"]
@@ -24,6 +23,12 @@ class_name Game
 func _ready() -> void:
 	scripts_panel.refresh()
 "
+
+[sub_resource type="Environment" id="Environment_3mrqo"]
+background_mode = 3
+ambient_light_sky_contribution = 0.0
+glow_enabled = true
+glow_normalized = true
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mrqo"]
 vertices = PackedVector2Array(10, 694, 10, 138, 54, 138, 54, 202, 266, 202, 266, 138, 374, 138, 374, 330, 758, 330, 758, 394, 842, 246, 458, 246, 458, 54, 1334, 10, 330, 54, 330, 10, 1334, 694, 842, 394, 182, 54, 10, 54, 10, 10, 182, 10)
@@ -525,7 +530,7 @@ func _ready() -> void:
 script = SubResource("GDScript_joorw")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=207512326]
-environment = ExtResource("8_joorw")
+environment = SubResource("Environment_3mrqo")
 
 [node name="Camera" type="Camera2D" parent="." unique_id=318200678]
 unique_name_in_owner = true
