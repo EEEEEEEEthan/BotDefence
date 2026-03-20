@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="PythonHighlighterFactory" format=3 uid="uid://bld6fq0xtltoo"]
 
-[ext_resource type="Script" path="res://PythonHighlighterFactory.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://ge0oayrcyrcw" path="res://PythonHighlighterFactory.gd" id="1_script"]
 
 [resource]
 script = ExtResource("1_script")
