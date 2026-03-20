@@ -18,6 +18,8 @@ class_name Game
 ## 通过 stdio 行协议与 Python 子进程交互，无需 TCP 服务器
 
 @onready var scripts_panel: Control = $%ScriptsPanel
+@onready var tilemap_terrain: TileMapLayer = $%Terrain
+@onready var tilemap_platform: TileMapLayer = $Platform
 
 func _ready() -> void:
 	scripts_panel.refresh()
