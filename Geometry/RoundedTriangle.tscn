@@ -95,7 +95,7 @@ var _outline_soft: float = 1.0
 		if is_node_ready():
 			_apply_rect_size()
 
-@export_range(1.0, 4096.0, 0.1) var base_length: float = 120.0:
+@export var base_length: float = 120.0:
 	get:
 		return _base_length
 	set(value):
@@ -103,7 +103,7 @@ var _outline_soft: float = 1.0
 		if is_node_ready():
 			_apply_base_length()
 
-@export_range(-4096.0, 4096.0, 0.1) var apex_offset_x: float = 0.0:
+@export var apex_offset_x: float = 0.0:
 	get:
 		return _apex_offset_x
 	set(value):
@@ -111,7 +111,7 @@ var _outline_soft: float = 1.0
 		if is_node_ready():
 			_apply_apex_offset_x()
 
-@export_range(0.0, 1024.0, 0.1) var corner_radius: float = 8.0:
+@export var corner_radius: float = 8.0:
 	get:
 		return _corner_radius
 	set(value):
@@ -135,7 +135,7 @@ var _outline_soft: float = 1.0
 		if is_node_ready():
 			_apply_outline_color()
 
-@export_range(0.0, 1024.0, 0.1) var outline_width: float = 4.0:
+@export var outline_width: float = 4.0:
 	get:
 		return _outline_width
 	set(value):
@@ -143,7 +143,7 @@ var _outline_soft: float = 1.0
 		if is_node_ready():
 			_apply_outline_width()
 
-@export_range(0.0, 64.0, 0.1) var outline_soft: float = 1.0:
+@export var outline_soft: float = 1.0:
 	get:
 		return _outline_soft
 	set(value):
@@ -186,24 +186,12 @@ func _apply_rect_size() -> void:
 	_apply_corner_radius()
 
 func _apply_base_length() -> void:
-	var max_base_length: float = maxf(_rect_size.x - _corner_radius * 2.0, 1.0)
-	var clamped_base_length: float = clampf(_base_length, 1.0, max_base_length)
-	if !is_equal_approx(_base_length, clamped_base_length):
-		_base_length = clamped_base_length
 	set_instance_shader_parameter(&\"base_length\", _base_length)
 
 func _apply_apex_offset_x() -> void:
-	var half_base_length: float = _base_length * 0.5
-	var clamped_apex_offset: float = clampf(_apex_offset_x, -half_base_length, half_base_length)
-	if !is_equal_approx(_apex_offset_x, clamped_apex_offset):
-		_apex_offset_x = clamped_apex_offset
 	set_instance_shader_parameter(&\"apex_offset_x\", _apex_offset_x)
 
 func _apply_corner_radius() -> void:
-	var max_corner_radius: float = minf(_base_length, _rect_size.y) * 0.5
-	var clamped_corner_radius: float = clampf(_corner_radius, 0.0, max_corner_radius)
-	if !is_equal_approx(_corner_radius, clamped_corner_radius):
-		_corner_radius = clamped_corner_radius
 	_apply_base_length()
 	_apply_apex_offset_x()
 	set_instance_shader_parameter(&\"corner_radius\", _corner_radius)
@@ -223,17 +211,17 @@ func _apply_outline_soft() -> void:
 
 [node name="RoundedTriangle" type="Sprite2D" unique_id=349567150]
 material = SubResource("ShaderMaterial_rounded_triangle")
-instance_shader_parameters/apex_offset_x = -38.8
+instance_shader_parameters/apex_offset_x = 0.0
 instance_shader_parameters/base_length = 77.6
 instance_shader_parameters/corner_radius = 12.1
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/outline_soft = 1.0
 instance_shader_parameters/outline_width = 4.0
-instance_shader_parameters/rect_size = Vector2(160, 96)
-scale = Vector2(160, 96)
+instance_shader_parameters/rect_size = Vector2(102.00001, 96)
+scale = Vector2(102.00001, 96)
 texture = SubResource("Texture2D_1xtex")
 script = SubResource("GDScript_rounded_triangle")
+rect_size = Vector2(102.00001, 96)
 base_length = 77.6
-apex_offset_x = -38.8
 corner_radius = 12.1
