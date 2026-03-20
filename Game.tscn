@@ -1,14 +1,27 @@
 [gd_scene format=4 uid="uid://ri6jg3hsmjys"]
 
 [ext_resource type="Script" uid="uid://cvu7675ahsnkj" path="res://CameraController.gd" id="1_camera_controller"]
-[ext_resource type="Script" uid="uid://cscwr4gihxmsw" path="res://Game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://k4afs5cov1dn" path="res://Bot/Bot.tscn" id="1_wbfu4"]
 [ext_resource type="Texture2D" uid="uid://du4mv37tj6oeh" path="res://SpriteSheet.png" id="2_sb48q"]
-[ext_resource type="PackedScene" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
+[ext_resource type="PackedScene" uid="uid://licx0qlp2xpn" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
 [ext_resource type="PackedScene" uid="uid://diwpq1ndrbb23" path="res://MonsterSpawnPoint.tscn" id="9_2vekm"]
 [ext_resource type="Script" uid="uid://dlduus8ydmmt" path="res://TempAutoSpawnTrigger.gd" id="10_temp_autospawn"]
+
+[sub_resource type="GDScript" id="GDScript_joorw"]
+script/source = "extends Node
+class_name Game
+
+## 每个 Bot 用各自保存的代码在子进程运行
+## 每个 Bot 通过自己的检视器 Play 按钮独立启动脚本
+## 通过 stdio 行协议与 Python 子进程交互，无需 TCP 服务器
+
+@onready var scripts_panel: Control = $%ScriptsPanel
+
+func _ready() -> void:
+	scripts_panel.refresh()
+"
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mrqo"]
 vertices = PackedVector2Array(10, 694, 10, 138, 54, 138, 54, 202, 266, 202, 266, 138, 374, 138, 374, 330, 758, 330, 758, 394, 842, 246, 458, 246, 458, 54, 1334, 10, 330, 54, 330, 10, 1334, 694, 842, 394, 182, 54, 10, 54, 10, 10, 182, 10)
@@ -490,7 +503,7 @@ sources/1 = SubResource("TileSetAtlasSource_yhmtn")
 pattern_0 = SubResource("TileMapPattern_sb48q")
 
 [node name="Game" type="Node" unique_id=684061255]
-script = ExtResource("1_game")
+script = SubResource("GDScript_joorw")
 
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
 position = Vector2(480, 288)
