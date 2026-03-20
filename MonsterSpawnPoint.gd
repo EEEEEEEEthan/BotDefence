@@ -1,12 +1,33 @@
+@tool
 extends Node2D
 class_name MonsterSpawnPoint
 
 ## 按 MonsterSpawnConfig 定时生成怪物；每次 spawn_with_config 为独立协程，可并行多条配置
 
+const _DEBUG_SPAWN_AREA_COLOR := Color(0.25, 0.95, 0.35, 0.42)
+
 @export var monsters_parent: Node
+## 本地空间矩形宽高（以节点原点为中心）；会随 scale/rotation 映射到世界空间。Vector2.ZERO 则退化为 global_position
+@export var spawn_area_size: Vector2 = Vector2.ZERO:
+	set(value):
+		spawn_area_size = value
+		queue_redraw()
+
 
 func spawn_with_config(config: MonsterSpawnConfig) -> void:
 	_spawn_async(config)
+
+
+func _ready() -> void:
+	queue_redraw()
+
+
+func _draw() -> void:
+	var half_extents: Vector2 = _spawn_half_extents()
+	if half_extents.x <= 0.0 and half_extents.y <= 0.0:
+		return
+	var rect := Rect2(-half_extents, half_extents * 2.0)
+	draw_rect(rect, _DEBUG_SPAWN_AREA_COLOR, true)
 
 
 func _spawn_async(config: MonsterSpawnConfig) -> void:
@@ -24,10 +45,25 @@ func _spawn_async(config: MonsterSpawnConfig) -> void:
 			return
 		var monster: Node = config.monster_scene.instantiate()
 		parent_node.add_child(monster)
-		monster.global_position = global_position
+		monster.global_position = _random_spawn_global_position()
 
 		var is_last: bool = spawn_index >= total_count - 1
 		if is_last:
 			break
 		if config.spawn_interval_seconds > 0.0:
 			await get_tree().create_timer(config.spawn_interval_seconds).timeout
+
+
+func _random_spawn_global_position() -> Vector2:
+	var half_extents: Vector2 = _spawn_half_extents()
+	if half_extents.x <= 0.0 and half_extents.y <= 0.0:
+		return global_position
+	var local_offset := Vector2(
+		randf_range(-half_extents.x, half_extents.x),
+		randf_range(-half_extents.y, half_extents.y)
+	)
+	return to_global(local_offset)
+
+
+func _spawn_half_extents() -> Vector2:
+	return Vector2(absf(spawn_area_size.x), absf(spawn_area_size.y)) * 0.5

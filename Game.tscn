@@ -528,7 +528,9 @@ tile_set = SubResource("TileSet_lvtmh")
 
 [node name="MonsterSpawnPoint" parent="." unique_id=907281187 node_paths=PackedStringArray("monsters_parent") instance=ExtResource("9_2vekm")]
 position = Vector2(1050, 100)
+scale = Vector2(59.999985, 66.000015)
 monsters_parent = NodePath("../Monsters")
+spawn_area_size = Vector2(1, 1)
 
 [node name="Monsters" type="Node" parent="." unique_id=851966904]
 
