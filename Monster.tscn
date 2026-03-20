@@ -4,10 +4,9 @@
 script/source = "extends RigidBody2D
 
 ## 游戏开始后沿导航网格移动到目标点，带物理碰撞与群体推挤
-## 用 velocity lerp 实现转角平滑，RigidBody2D 间自然推挤
+## 每帧直接位移向路径点，重叠交给物理解算分离
 
 const MOVE_SPEED: float = 200.0
-const VELOCITY_SMOOTH: float = 6.0
 const ROTATE_SMOOTH: float = 12.0
 ## 仍距目标超过此半径却收到 navigation_finished 时重算路径（RigidBody 被挤离网格时常见）
 const GOAL_REPLAN_DISTANCE: float = 32.0
@@ -23,14 +22,15 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector2 = Vector2.ZERO
 	if to_next.length_squared() >= DIRECTION_EPSILON_SQ:
 		direction = to_next.normalized()
-		var target_velocity: Vector2 = direction * MOVE_SPEED
-		linear_velocity = linear_velocity.lerp(target_velocity, VELOCITY_SMOOTH * delta)
+		var step: float = MOVE_SPEED * delta
+		var distance: float = to_next.length()
+		global_position += direction * minf(step, distance)
 
 	var face: Vector2 = Vector2.ZERO
-	if linear_velocity.length_squared() >= DIRECTION_EPSILON_SQ:
-		face = linear_velocity.normalized()
-	elif direction != Vector2.ZERO:
+	if direction != Vector2.ZERO:
 		face = direction
+	elif linear_velocity.length_squared() >= DIRECTION_EPSILON_SQ:
+		face = linear_velocity.normalized()
 	if face != Vector2.ZERO:
 		rotation = lerp_angle(rotation, face.angle(), ROTATE_SMOOTH * delta)
 "
