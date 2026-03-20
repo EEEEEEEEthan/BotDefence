@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
 
-[ext_resource type="Shader" uid="uid://dvmq3dypwhsot" path="res://CircleAA.gdshader" id="1_qheve"]
+[ext_resource type="Shader" path="res://CircleAA.gdshader" id="1_qheve"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="1_vb3nq"]
-[ext_resource type="Script" uid="uid://bs47wtt3gfv7v" path="res://CircleShaderController.gd" id="3_eupxk"]
+[ext_resource type="Script" path="res://CircleShaderController.gd" id="3_eupxk"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
 friction = 0.0
