@@ -1,43 +1,10 @@
 [gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
 
 [ext_resource type="PackedScene" uid="uid://bo82gudpd2mwx" path="res://Geometry/Circle.tscn" id="1_vb3nq"]
+[ext_resource type="Script" path="res://Monsters/Monster.gd" id="2_8a1u4"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
 friction = 0.0
-
-[sub_resource type="GDScript" id="GDScript_3mrqo"]
-script/source = "extends RigidBody2D
-
-## 沿导航朝目标推进：用 central force 驱动，线速度阻尼由 linear_damp 与工程默认值决定
-## 不再每帧直接改 global_position，重叠与滑行由物理解算
-
-## 朝路径方向的推力（与质量、linear_damp 一起决定稳态速度）
-const MOVE_PUSH_FORCE: float = 900.0
-const ROTATE_SMOOTH: float = 12.0
-## 仍距目标超过此半径却收到 navigation_finished 时重算路径（RigidBody 被挤离网格时常见）
-const GOAL_REPLAN_DISTANCE: float = 32.0
-const DIRECTION_EPSILON_SQ: float = 0.0004
-const GOAL_CENTER: Vector2 = Vector2(565, 679)
-
-@onready var nav_agent: NavigationAgent2D = $%NavigationAgent2D
-
-func _physics_process(delta: float) -> void:
-	nav_agent.target_position = GOAL_CENTER
-	var next_position: Vector2 = nav_agent.get_next_path_position()
-	var to_next: Vector2 = next_position - global_position
-	var direction: Vector2 = Vector2.ZERO
-	if to_next.length_squared() >= DIRECTION_EPSILON_SQ:
-		direction = to_next.normalized()
-		apply_central_force(direction * MOVE_PUSH_FORCE)
-
-	var face: Vector2 = Vector2.ZERO
-	if direction != Vector2.ZERO:
-		face = direction
-	elif linear_velocity.length_squared() >= DIRECTION_EPSILON_SQ:
-		face = linear_velocity.normalized()
-	if face != Vector2.ZERO:
-		rotation = lerp_angle(rotation, face.angle(), ROTATE_SMOOTH * delta)
-"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 
@@ -48,7 +15,7 @@ physics_material_override = SubResource("PhysicsMaterial_5vc1h")
 gravity_scale = 0.0
 lock_rotation = true
 linear_damp = 5.0
-script = SubResource("GDScript_3mrqo")
+script = ExtResource("2_8a1u4")
 
 [node name="Sprite2D" parent="." unique_id=704267330 instance=ExtResource("1_vb3nq")]
 instance_shader_parameters/fill_color = Color(0.900388, 0.4558068, 0.3999015, 1)

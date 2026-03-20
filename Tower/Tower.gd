@@ -9,15 +9,13 @@ extends Node2D
 		detection_radius = max(value, 0.0)
 		if is_node_ready():
 			_refresh_range_visual()
-## 终点位置：怪物越靠近该点，优先级越高
-@export var goal_position: Vector2 = Vector2(565, 679)
 
 
 func _ready() -> void:
 	_refresh_range_visual()
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	var target_monster: Node2D = _find_highest_priority_monster()
@@ -43,15 +41,17 @@ func _find_highest_priority_monster() -> Node2D:
 
 	var query_results: Array = direct_space_state.intersect_shape(shape_query, 64)
 	var selected_monster: Node2D = null
-	var best_goal_distance: float = INF
+	var best_remaining_path_distance: float = INF
 	for query_result in query_results:
 		var collider: Object = query_result["collider"]
 		if not collider is Node2D:
 			continue
 		var monster: Node2D = collider
-		var goal_distance: float = monster.global_position.distance_to(goal_position)
-		if goal_distance < best_goal_distance:
-			best_goal_distance = goal_distance
+		if not monster.has_method("get_remaining_path_distance"):
+			continue
+		var remaining_path_distance: float = monster.call("get_remaining_path_distance")
+		if remaining_path_distance < best_remaining_path_distance:
+			best_remaining_path_distance = remaining_path_distance
 			selected_monster = monster
 	return selected_monster
 
