@@ -8,6 +8,7 @@ script/source = "extends RigidBody2D
 
 const MOVE_SPEED: float = 200.0
 const VELOCITY_SMOOTH: float = 6.0
+const ROTATE_SMOOTH: float = 12.0
 ## 仍距目标超过此半径却收到 navigation_finished 时重算路径（RigidBody 被挤离网格时常见）
 const GOAL_REPLAN_DISTANCE: float = 32.0
 const DIRECTION_EPSILON_SQ: float = 0.0004
@@ -19,11 +20,19 @@ func _physics_process(delta: float) -> void:
 	nav_agent.target_position = GOAL_CENTER
 	var next_position: Vector2 = nav_agent.get_next_path_position()
 	var to_next: Vector2 = next_position - global_position
-	if to_next.length_squared() < DIRECTION_EPSILON_SQ:
-		return
-	var direction: Vector2 = to_next.normalized()
-	var target_velocity: Vector2 = direction * MOVE_SPEED
-	linear_velocity = linear_velocity.lerp(target_velocity, VELOCITY_SMOOTH * delta)
+	var direction: Vector2 = Vector2.ZERO
+	if to_next.length_squared() >= DIRECTION_EPSILON_SQ:
+		direction = to_next.normalized()
+		var target_velocity: Vector2 = direction * MOVE_SPEED
+		linear_velocity = linear_velocity.lerp(target_velocity, VELOCITY_SMOOTH * delta)
+
+	var face: Vector2 = Vector2.ZERO
+	if linear_velocity.length_squared() >= DIRECTION_EPSILON_SQ:
+		face = linear_velocity.normalized()
+	elif direction != Vector2.ZERO:
+		face = direction
+	if face != Vector2.ZERO:
+		rotation = lerp_angle(rotation, face.angle(), ROTATE_SMOOTH * delta)
 "
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3mrqo"]
