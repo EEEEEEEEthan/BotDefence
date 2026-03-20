@@ -1,6 +1,6 @@
-[gd_scene format=4 uid="uid://c8x2k5m7oap1q"]
+[gd_scene format=3 uid="uid://licx0qlp2xpn"]
 
-[ext_resource type="Script" path="res://ScriptsPanel.gd" id="1_scripts_panel"]
+[ext_resource type="Script" uid="uid://fqp561r6i1bn" path="res://ScriptsPanel.gd" id="1_scripts_panel"]
 
 [node name="ScriptsPanel" type="Control" unique_id=1199935025]
 unique_name_in_owner = true
@@ -10,7 +10,7 @@ offset_right = 184.0
 offset_bottom = 384.0
 script = ExtResource("1_scripts_panel")
 
-[node name="Scripts" type="Tree" parent="." unique_id=2199935026]
+[node name="Scripts" type="Tree" parent="." unique_id=-2095032270]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -19,5 +19,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ContextMenu" type="PopupMenu" parent="." unique_id=2199935027]
+[node name="ContextMenu" type="PopupMenu" parent="." unique_id=-2095032269]
 unique_name_in_owner = true

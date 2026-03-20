@@ -4,7 +4,7 @@ extends Window
 ## CodeEdit 启用 Python 语法高亮和断点槽
 ## 实时校验 Python 语法并在 ErrorLabel 显示错误
 
-const _python_highlighter_factory := preload("res://PythonHighlighterFactory.tres")
+const _python_syntax_highlighter := preload("res://PythonHighlighter.tres")
 
 @onready var code_edit: CodeEdit = $%CodeEdit
 @onready var error_label: RichTextLabel = $%ErrorLabel
@@ -25,7 +25,7 @@ const _CONNECTOR_CIRCLE_RADIUS := 4.0
 func _ready() -> void:
 	_setup_connector()
 	_update_title()
-	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
+	code_edit.syntax_highlighter = _python_syntax_highlighter.duplicate()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	_load_py_file()
 	_update_switch_text()

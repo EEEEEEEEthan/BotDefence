@@ -18,11 +18,11 @@ func _is_path_under_scripts(path: String) -> bool:
 	var normalized: String = ProjectSettings.globalize_path(path).replace("\\", "/")
 	return normalized.begins_with(_get_scripts_root())
 
-const _python_highlighter_factory := preload("res://PythonHighlighterFactory.tres")
+const _python_syntax_highlighter := preload("res://PythonHighlighter.tres")
 
 func _ready() -> void:
 	_update_title()
-	code_edit.syntax_highlighter = _python_highlighter_factory.create_highlighter()
+	code_edit.syntax_highlighter = _python_syntax_highlighter.duplicate()
 	code_edit.delimiter_comments = PackedStringArray(["#"])
 	$%Open.pressed.connect(_on_open_pressed)
 	$%Save.pressed.connect(_on_save_pressed)

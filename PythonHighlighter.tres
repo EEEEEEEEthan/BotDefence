@@ -1,0 +1,51 @@
+[gd_resource type="CodeHighlighter" format=3 uid="uid://bld6fq0xtltoo"]
+
+[resource]
+number_color = Color(0.6, 0.4, 0.2, 1)
+symbol_color = Color(0.5, 0.5, 0.5, 1)
+function_color = Color(0.2, 0.5, 0.9, 1)
+member_variable_color = Color(0.4, 0.6, 0.2, 1)
+keyword_colors = {
+"False": Color(0.6, 0.2, 0.8, 1),
+"None": Color(0.6, 0.2, 0.8, 1),
+"True": Color(0.6, 0.2, 0.8, 1),
+"and": Color(0.8, 0.4, 0.2, 1),
+"as": Color(0.8, 0.4, 0.2, 1),
+"assert": Color(0.8, 0.4, 0.2, 1),
+"async": Color(0.8, 0.4, 0.2, 1),
+"await": Color(0.8, 0.4, 0.2, 1),
+"break": Color(0.8, 0.4, 0.2, 1),
+"class": Color(0.6, 0.2, 0.8, 1),
+"continue": Color(0.8, 0.4, 0.2, 1),
+"def": Color(0.2, 0.5, 0.9, 1),
+"del": Color(0.8, 0.4, 0.2, 1),
+"elif": Color(0.8, 0.4, 0.2, 1),
+"else": Color(0.8, 0.4, 0.2, 1),
+"except": Color(0.8, 0.4, 0.2, 1),
+"finally": Color(0.8, 0.4, 0.2, 1),
+"for": Color(0.8, 0.4, 0.2, 1),
+"from": Color(0.8, 0.4, 0.2, 1),
+"global": Color(0.8, 0.4, 0.2, 1),
+"if": Color(0.8, 0.4, 0.2, 1),
+"import": Color(0.8, 0.4, 0.2, 1),
+"in": Color(0.8, 0.4, 0.2, 1),
+"is": Color(0.8, 0.4, 0.2, 1),
+"lambda": Color(0.8, 0.4, 0.2, 1),
+"nonlocal": Color(0.8, 0.4, 0.2, 1),
+"not": Color(0.8, 0.4, 0.2, 1),
+"or": Color(0.8, 0.4, 0.2, 1),
+"pass": Color(0.8, 0.4, 0.2, 1),
+"raise": Color(0.8, 0.4, 0.2, 1),
+"return": Color(0.8, 0.4, 0.2, 1),
+"try": Color(0.8, 0.4, 0.2, 1),
+"while": Color(0.8, 0.4, 0.2, 1),
+"with": Color(0.8, 0.4, 0.2, 1),
+"yield": Color(0.8, 0.4, 0.2, 1)
+}
+color_regions = {
+"\" \"": Color(0.8, 0.5, 0.2, 1),
+"\"\"\" \"\"\"": Color(0.6, 0.7, 0.5, 1),
+"#": Color(0.4, 0.6, 0.4, 1),
+"' '": Color(0.8, 0.5, 0.2, 1),
+"''' '''": Color(0.6, 0.7, 0.5, 1)
+}
