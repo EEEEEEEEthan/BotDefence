@@ -6,7 +6,7 @@
 [node name="CodeEditor" type="Window" unique_id=358476760]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
-size = Vector2i(607, 477)
+size = Vector2i(400, 400)
 script = ExtResource("4_code_editor")
 
 [node name="PythonSyntaxChecker" type="Node" parent="." unique_id=893729363]
@@ -93,7 +93,7 @@ filters = PackedStringArray("*.py ; Python 脚本")
 
 [node name="SaveAsFileDialog" type="FileDialog" parent="." unique_id=358476764]
 unique_name_in_owner = true
-title = "另存为"
+title = "Open a File or Directory"
 file_mode = 3
 access = 1
 root_subfolder = "user://scripts/"

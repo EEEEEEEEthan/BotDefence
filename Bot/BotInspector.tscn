@@ -301,8 +301,7 @@ func _save_and_close() -> void:
 [node name="BotInspector" type="Window" unique_id=358476760]
 oversampling_override = 1.0
 title = "script.py"
-position = Vector2i(0, 36)
-size = Vector2i(607, 477)
+size = Vector2i(400, 400)
 script = SubResource("GDScript_2vjwb")
 
 [node name="PythonSyntaxChecker" type="Node" parent="." unique_id=893729363]
