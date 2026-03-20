@@ -6,6 +6,10 @@
 
 [node name="Tower" type="Node2D" unique_id=476951934]
 script = ExtResource("1_tower_gd")
+detection_radius = 200.0
+debug_draw_enabled = true
+debug_draw_only_when_focused = false
+debug_show_in_editor = true
 
 [node name="Sprite2D" parent="." unique_id=704267330 instance=ExtResource("2_q2uad")]
 instance_shader_parameters/fill_color = Color(0.942539, 0.83772254, 0.50662106, 1)
@@ -17,19 +21,25 @@ outline_width = 0.019
 [node name="RoundedRect9Slice2" parent="." unique_id=2143062605 instance=ExtResource("3_pxrlm")]
 instance_shader_parameters/corner_radius = 2.5
 instance_shader_parameters/fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
+instance_shader_parameters/outline_width = 2.0
 instance_shader_parameters/rect_size = Vector2(35.25, 18.000002)
 position = Vector2(4.375, -5.066395e-07)
 scale = Vector2(35.25, 18.000002)
 rect_size = Vector2(35.25, 18.000002)
 corner_radius = 2.5
 fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
+outline_width = 2.0
 
 [node name="RoundedRect9Slice" parent="." unique_id=1282808662 instance=ExtResource("3_pxrlm")]
-instance_shader_parameters/corner_radius = 2.5
+instance_shader_parameters/corner_radius = 2.0
 instance_shader_parameters/fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
-instance_shader_parameters/rect_size = Vector2(36.5, 5)
+instance_shader_parameters/outline_soft = 0.0
+instance_shader_parameters/outline_width = 2.0
+instance_shader_parameters/rect_size = Vector2(36.5, 8)
 position = Vector2(15.749998, -5.9604645e-08)
-scale = Vector2(36.5, 5)
-rect_size = Vector2(36.5, 5)
-corner_radius = 2.5
+scale = Vector2(36.5, 8)
+rect_size = Vector2(36.5, 8)
+corner_radius = 2.0
 fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
+outline_width = 2.0
+outline_soft = 0.0

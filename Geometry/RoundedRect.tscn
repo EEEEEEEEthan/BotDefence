@@ -156,7 +156,8 @@ func _apply_outline_soft() -> void:
 	set_instance_shader_parameter(&\"outline_soft\", outline_soft)
 "
 
-[node name="RoundedRect9Slice" type="Sprite2D" unique_id=2143062605]
+[node name="RoundedRect" type="Sprite2D" unique_id=2143062605]
+process_mode = 4
 material = SubResource("ShaderMaterial_rounded_rect_9slice")
 instance_shader_parameters/corner_radius = 3.0
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
