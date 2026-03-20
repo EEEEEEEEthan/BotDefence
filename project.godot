@@ -49,6 +49,7 @@ rendering_device/driver.windows="d3d12"
 anti_aliasing/quality/msaa_2d=3
 anti_aliasing/quality/msaa_3d=3
 anti_aliasing/quality/smaa_edge_detection_threshold=0.06
+environment/defaults/default_environment="uid://cqrfnv82xe4bm"
 
 [shader_globals]
 

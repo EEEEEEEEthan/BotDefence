@@ -1,6 +1,5 @@
 @tool
 extends Node
-class_name CircleShaderController
 
 @export var target_canvas_item: CanvasItem
 

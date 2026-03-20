@@ -66,11 +66,13 @@ script = SubResource("GDScript_3mrqo")
 process_mode = 4
 material = SubResource("ShaderMaterial_ueu8u")
 instance_shader_parameters/fill_color = Color(1, 0.7106217, 0.5097976, 1)
+instance_shader_parameters/outline_color = Color(18.892157, 18.892157, 18.892157, 1)
 instance_shader_parameters/outline_width = 0.061
 scale = Vector2(0.8333333, 0.8333333)
 texture = SubResource("Texture2D_vb3nq")
 script = ExtResource("3_eupxk")
 fill_color = Color(1, 0.7106217, 0.5097976, 1)
+outline_color = Color(18.892157, 18.892157, 18.892157, 1)
 outline_width = 0.061
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]

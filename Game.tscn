@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://licx0qlp2xpn" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
+[ext_resource type="Environment" uid="uid://cqrfnv82xe4bm" path="res://Environment.tres" id="8_joorw"]
 [ext_resource type="PackedScene" uid="uid://diwpq1ndrbb23" path="res://MonsterSpawnPoint.tscn" id="9_2vekm"]
 
 [sub_resource type="GDScript" id="GDScript_joorw"]
@@ -559,8 +560,12 @@ tile_set = SubResource("TileSet_lvtmh")
 position = Vector2(1050, 100)
 scale = Vector2(59.999985, 66.000015)
 monsters_parent = NodePath("../Monsters")
+spawn_area_size = Vector2(1, 1)
 
 [node name="TempAutoSpawnTrigger" type="Node" parent="MonsterSpawnPoint" unique_id=92001001]
 script = SubResource("GDScript_3mrqo")
 
 [node name="Monsters" type="Node" parent="." unique_id=851966904]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=77130676]
+environment = ExtResource("8_joorw")
