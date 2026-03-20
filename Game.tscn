@@ -19,7 +19,7 @@ class_name Game
 
 @onready var scripts_panel: Control = $%ScriptsPanel
 @onready var tilemap_terrain: TileMapLayer = $%Terrain
-@onready var tilemap_platform: TileMapLayer = $Platform
+@onready var tilemap_platform: TileMapLayer = $%Platform
 
 func _ready() -> void:
 	scripts_panel.refresh()

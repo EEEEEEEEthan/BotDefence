@@ -34,7 +34,7 @@ func _ready() -> void:
 
 func start(direction: Consts.Cardinal, callback: Callable) -> void:
 	_callback = callback
-	var tilemap: TileMapLayer = game.get_node(\"%Platform\")
+	var tilemap: TileMapLayer = game.tilemap_platform
 	var tile_set: TileSet = tilemap.tile_set
 	var offset: Vector2 = Consts.CARDINAL_TO_DIRECTION[direction]
 	var tile_size: Vector2 = Vector2(tile_set.tile_size) * tilemap.scale
