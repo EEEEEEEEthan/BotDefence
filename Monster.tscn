@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
 
-[ext_resource type="Shader" uid="uid://dvmq3dypwhsot" path="res://Geometry/CircleAA.gdshader" id="1_qheve"]
-[ext_resource type="Script" path="res://Geometry/CircleShaderController.gd" id="3_qheve"]
+[ext_resource type="PackedScene" uid="uid://bo82gudpd2mwx" path="res://Geometry/Circle.tscn" id="1_vb3nq"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
 friction = 0.0
@@ -39,12 +38,6 @@ func _physics_process(delta: float) -> void:
 	if face != Vector2.ZERO:
 		rotation = lerp_angle(rotation, face.angle(), ROTATE_SMOOTH * delta)
 "
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_qheve"]
-shader = ExtResource("1_qheve")
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ssiii"]
-size = Vector2(4, 4)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 
@@ -115,16 +108,8 @@ lock_rotation = true
 linear_damp = 5.0
 script = SubResource("GDScript_3mrqo")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1406320978]
-process_mode = 4
-material = SubResource("ShaderMaterial_qheve")
-instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
-instance_shader_parameters/outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-instance_shader_parameters/outline_width = 0.06
-scale = Vector2(5, 4.9999995)
-texture = SubResource("PlaceholderTexture2D_ssiii")
-script = ExtResource("3_qheve")
-outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+[node name="Sprite2D" parent="." unique_id=704267330 instance=ExtResource("1_vb3nq")]
+scale = Vector2(21.999998, 21.999998)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 process_mode = 4
