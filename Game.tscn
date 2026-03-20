@@ -7,7 +7,8 @@
 [ext_resource type="PackedScene" path="res://ScriptsPanel.tscn" id="2_scripts_panel"]
 [ext_resource type="Texture2D" uid="uid://cvmamkm0yyd8i" path="res://TileSet.png" id="3_u44n3"]
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
-[ext_resource type="PackedScene" uid="uid://0u8vi8jcjmxw" path="res://Monster.tscn" id="8_joorw"]
+[ext_resource type="PackedScene" path="res://Monster.tscn" id="8_joorw"]
+[ext_resource type="PackedScene" path="res://MonsterSpawnPoint.tscn" id="9_2vekm"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mrqo"]
 vertices = PackedVector2Array(10, 694, 10, 138, 54, 138, 54, 202, 266, 202, 266, 138, 374, 138, 374, 330, 758, 330, 758, 394, 842, 246, 458, 246, 458, 54, 1334, 10, 330, 54, 330, 10, 1334, 694, 842, 394, 182, 54, 10, 54, 10, 10, 182, 10)
@@ -528,3 +529,9 @@ tile_set = SubResource("TileSet_lvtmh")
 [node name="Monster" parent="NavigationRegion" unique_id=140614155 instance=ExtResource("8_joorw")]
 unique_name_in_owner = true
 position = Vector2(615, 161)
+
+[node name="MonsterSpawnPoint" parent="." unique_id=907281187 node_paths=PackedStringArray("monsters_parent") instance=ExtResource("9_2vekm")]
+position = Vector2(992, 98)
+monsters_parent = NodePath("../Monsters")
+
+[node name="Monsters" type="Node" parent="." unique_id=851966904]
