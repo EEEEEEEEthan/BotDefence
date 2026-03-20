@@ -76,13 +76,12 @@ extends Sprite2D
 
 @export var rect_size: Vector2 = Vector2(160.0, 96.0):
 	set(value):
-		var clamped_size: Vector2 = Vector2(maxf(value.x, 1.0), maxf(value.y, 1.0))
-		rect_size = clamped_size
+		rect_size = value
 		_apply_rect_size()
 
 @export_range(0.0, 1024.0, 0.1) var corner_radius: float = 18.0:
 	set(value):
-		corner_radius = maxf(value, 0.0)
+		corner_radius = value
 		_apply_corner_radius()
 
 @export var fill_color: Color = Color(0.22, 0.62, 1.0, 1.0):
@@ -97,12 +96,12 @@ extends Sprite2D
 
 @export_range(0.0, 1024.0, 0.1) var outline_width: float = 4.0:
 	set(value):
-		outline_width = maxf(value, 0.0)
+		outline_width = value
 		_apply_outline_width()
 
 @export_range(0.0, 64.0, 0.1) var outline_soft: float = 1.0:
 	set(value):
-		outline_soft = maxf(value, 0.0)
+		outline_soft = value
 		_apply_outline_soft()
 
 var _is_syncing_transform: bool = false
@@ -162,7 +161,7 @@ material = SubResource("ShaderMaterial_rounded_rect_9slice")
 instance_shader_parameters/corner_radius = 3.0
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
 instance_shader_parameters/outline_color = Color(3.29442, 3.29442, 3.29442, 1)
-instance_shader_parameters/outline_soft = 1.0
+instance_shader_parameters/outline_soft = 0.3
 instance_shader_parameters/outline_width = 1.0
 instance_shader_parameters/rect_size = Vector2(18.000002, 14.000001)
 scale = Vector2(18.000002, 14.000001)
@@ -172,3 +171,4 @@ rect_size = Vector2(18.000002, 14.000001)
 corner_radius = 3.0
 outline_color = Color(3.29442, 3.29442, 3.29442, 1)
 outline_width = 1.0
+outline_soft = 0.3
