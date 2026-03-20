@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
 
-[ext_resource type="Shader" path="res://CircleAA.gdshader" id="1_qheve"]
+[ext_resource type="Shader" uid="uid://dvmq3dypwhsot" path="res://Geometry/CircleAA.gdshader" id="1_qheve"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="1_vb3nq"]
-[ext_resource type="Script" path="res://CircleShaderController.gd" id="3_eupxk"]
+[ext_resource type="Script" uid="uid://bs47wtt3gfv7v" path="res://Geometry/CircleShaderController.gd" id="3_qheve"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
 friction = 0.0
@@ -43,6 +43,8 @@ func _physics_process(delta: float) -> void:
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ueu8u"]
 shader = ExtResource("1_qheve")
+shader_parameter/outline_color = Color(1.4369954, 1.4369954, 1.4369954, 1)
+shader_parameter/bloom_boost = 1.0
 
 [sub_resource type="Texture2D" id="Texture2D_vb3nq"]
 resource_local_to_scene = false
@@ -65,20 +67,17 @@ script = SubResource("GDScript_3mrqo")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1406320978]
 process_mode = 4
 material = SubResource("ShaderMaterial_ueu8u")
-instance_shader_parameters/fill_color = Color(1, 0.7106217, 0.5097976, 1)
-instance_shader_parameters/outline_color = Color(18.892157, 18.892157, 18.892157, 1)
-instance_shader_parameters/outline_width = 0.061
+instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
+instance_shader_parameters/outline_width = 0.06
 scale = Vector2(0.8333333, 0.8333333)
 texture = SubResource("Texture2D_vb3nq")
-script = ExtResource("3_eupxk")
-fill_color = Color(1, 0.7106217, 0.5097976, 1)
-outline_color = Color(18.892157, 18.892157, 18.892157, 1)
-outline_width = 0.061
+script = ExtResource("3_qheve")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 process_mode = 4
 shape = SubResource("CircleShape2D_monster")
 debug_color = Color(0, 0.6, 0.69803923, 0)
+script = ExtResource("3_qheve")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
 unique_name_in_owner = true
