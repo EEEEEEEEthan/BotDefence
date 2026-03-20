@@ -212,10 +212,10 @@ func _apply_outline_soft() -> void:
 [node name="RoundedTriangle" type="Sprite2D" unique_id=349567150]
 material = SubResource("ShaderMaterial_rounded_triangle")
 instance_shader_parameters/apex_offset_x = 0.0
-instance_shader_parameters/base_length = 77.6
+instance_shader_parameters/base_length = 120.0
 instance_shader_parameters/corner_radius = 12.1
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 instance_shader_parameters/outline_soft = 1.0
 instance_shader_parameters/outline_width = 4.0
 instance_shader_parameters/rect_size = Vector2(102.00001, 96)
@@ -223,5 +223,5 @@ scale = Vector2(102.00001, 96)
 texture = SubResource("Texture2D_1xtex")
 script = SubResource("GDScript_rounded_triangle")
 rect_size = Vector2(102.00001, 96)
-base_length = 77.6
 corner_radius = 12.1
+outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)

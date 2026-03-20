@@ -109,7 +109,9 @@ linear_damp = 5.0
 script = SubResource("GDScript_3mrqo")
 
 [node name="Sprite2D" parent="." unique_id=704267330 instance=ExtResource("1_vb3nq")]
+instance_shader_parameters/fill_color = Color(0.900388, 0.4558068, 0.3999015, 1)
 scale = Vector2(21.999998, 21.999998)
+fill_color = Color(0.900388, 0.4558068, 0.3999015, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 process_mode = 4
