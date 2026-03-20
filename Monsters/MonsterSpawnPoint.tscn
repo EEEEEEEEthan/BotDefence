@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://diwpq1ndrbb23"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3ugxx"]
+[ext_resource type="PackedScene" uid="uid://lcdseu4ji0j5" path="res://Geometry/RoundedRect.tscn" id="1_pfa84"]
 
 [sub_resource type="GDScript" id="GDScript_ri8rq"]
 script/source = "@tool
@@ -71,7 +71,13 @@ func _spawn_half_extents() -> Vector2:
 	return Vector2(absf(spawn_area_size.x), absf(spawn_area_size.y)) * 0.5
 "
 
-[node name="MonsterSpawnPoint" type="Sprite2D" unique_id=1123679277]
-scale = Vector2(44, 46)
-texture = SubResource("PlaceholderTexture2D_3ugxx")
+[node name="MonsterSpawnPoint" type="Node2D" unique_id=483988862]
 script = SubResource("GDScript_ri8rq")
+spawn_area_size = Vector2(64, 64)
+
+[node name="RoundedRect9Slice" parent="." unique_id=2143062605 instance=ExtResource("1_pfa84")]
+instance_shader_parameters/outline_width = 2.0
+instance_shader_parameters/rect_size = Vector2(64, 64)
+scale = Vector2(64, 64)
+rect_size = Vector2(64, 64)
+outline_width = 2.0
