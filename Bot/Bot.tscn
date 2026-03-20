@@ -149,7 +149,3 @@ scale = Vector2(7.9999995, 7.9999995)
 texture = SubResource("Texture2D_ppfm4")
 hframes = 2
 script = SubResource("GDScript_74tqk")
-
-[node name="BotInspector" parent="." unique_id=358476760]
-unique_name_in_owner = true
-visible = false

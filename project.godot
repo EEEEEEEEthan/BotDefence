@@ -13,7 +13,7 @@ config_version=5
 config/name="BotDefence"
 config/description="机器人塔防"
 run/main_scene="res://Game.tscn"
-config/features=PackedStringArray("4.7")
+config/features=PackedStringArray("4.6")
 
 [dotnet]
 
@@ -45,12 +45,10 @@ theme/custom_font="res://MonoFont.tres"
 
 [rendering]
 
-rendering_device/driver.windows="d3d12"
 viewport/hdr_2d=true
 anti_aliasing/quality/msaa_2d=3
 anti_aliasing/quality/msaa_3d=3
 anti_aliasing/quality/smaa_edge_detection_threshold=0.06
-environment/defaults/default_environment="uid://cqrfnv82xe4bm"
 
 [shader_globals]
 

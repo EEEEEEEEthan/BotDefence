@@ -1,7 +1,7 @@
 shader_type canvas_item;
 
 instance uniform vec4 fill_color : source_color = vec4(0.22, 0.62, 1.0, 1.0);
-uniform vec4 outline_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+instance uniform vec4 outline_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 instance uniform float outline_width : hint_range(0.0, 0.5, 0.001) = 0.06;
 
 void fragment() {

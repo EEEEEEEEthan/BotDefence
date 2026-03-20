@@ -41,10 +41,8 @@ func _physics_process(delta: float) -> void:
 		rotation = lerp_angle(rotation, face.angle(), ROTATE_SMOOTH * delta)
 "
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ueu8u"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qheve"]
 shader = ExtResource("1_qheve")
-shader_parameter/outline_color = Color(1.4369954, 1.4369954, 1.4369954, 1)
-shader_parameter/bloom_boost = 1.0
 
 [sub_resource type="Texture2D" id="Texture2D_vb3nq"]
 resource_local_to_scene = false
@@ -66,8 +64,10 @@ script = SubResource("GDScript_3mrqo")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1406320978]
 process_mode = 4
-material = SubResource("ShaderMaterial_ueu8u")
+self_modulate = Color(1.2237577, 1.2237577, 1.2237577, 1)
+material = SubResource("ShaderMaterial_qheve")
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
+instance_shader_parameters/outline_color = Color(4.8672786, 4.8672786, 4.8672786, 1)
 instance_shader_parameters/outline_width = 0.06
 scale = Vector2(0.8333333, 0.8333333)
 texture = SubResource("Texture2D_vb3nq")

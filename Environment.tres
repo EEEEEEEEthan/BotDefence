@@ -1,16 +1,6 @@
-[gd_resource type="Environment" format=3 uid="uid://cqrfnv82xe4bm"]
+[gd_resource type="Environment" format=3 uid="uid://ia8eyp231aqp"]
 
 [resource]
+background_mode = 3
+ambient_light_sky_contribution = 0.0
 glow_enabled = true
-glow_levels/1 = 1.0
-glow_levels/2 = 0.9
-glow_levels/3 = 0.75
-glow_levels/4 = 0.55
-glow_levels/5 = 0.35
-glow_normalized = true
-glow_intensity = 4.0
-glow_strength = 2.4
-glow_mix = 0.15
-glow_bloom = 0.38
-glow_blend_mode = 0
-glow_hdr_threshold = 0.7
