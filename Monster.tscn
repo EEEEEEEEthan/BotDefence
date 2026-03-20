@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://0u8vi8jcjmxw"]
 
 [ext_resource type="Shader" uid="uid://dvmq3dypwhsot" path="res://Geometry/CircleAA.gdshader" id="1_qheve"]
-[ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="1_vb3nq"]
 [ext_resource type="Script" path="res://Geometry/CircleShaderController.gd" id="3_qheve"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
@@ -44,12 +43,8 @@ func _physics_process(delta: float) -> void:
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qheve"]
 shader = ExtResource("1_qheve")
 
-[sub_resource type="Texture2D" id="Texture2D_vb3nq"]
-resource_local_to_scene = false
-resource_name = ""
-script = ExtResource("1_vb3nq")
-_hex_data = "89504e470d0a1a0a0000000d4948445200000018000000180806000000e0773df8000000017352474200aece1ce90000021b494441544889b596b16b1a511cc73f3e0b47b908497a0a7148e3d6582138352e4d084827a1d01233f8170885ae758a8b04ba140a5d0b8596a4d89060b70e894b7513a115dac5da41e1eeaa423da825271dee8e18502b9afb8ceffdf87e798fdffbfe9e87c9ac01bbc00e701708d8eb2af01538038e801fe3043c63d657810320a9c892d8082e8d2caa363be8467f609b3c031ad3182480b78a2cf962a1009944944dffe24883b2d62557a850aaabe846bf07a480d349064f80178a2c897c3aced6caf298035ea5d86af3f8d527e7344f8197a30c12c089224ba2b6ff08bff7c654e20e9a7941247b8cdafb33001e0285618355e08b224bbe59c41d74d3647d3f8f6ef47f0311e0a7b0f70e1459f2e5d3f199c50114af977c3a8e224b3eac264160b56232160a4c7de793d85a5926160a0024819000761559129944746e71874c228a224b02d813c0ce4670696c2bcec2a67f11fbed6c0bac17ea1661c1e5f3778380f87fcd7c08ace0720b5560a5a25bd40470566d76286bdd6b532d6b5daacd0ec0b900deeb467f902b54aecd2057a838c17728803a7054aaab145bedb9c58bad36a5ba0ad68ca83b61771b2bec16e609bb5fa6c91d2bec7a5861d770dab401a474a33f88648fd14d7326f170f6837335295b13ef50cd37a063fcbd78f0faf377cfbdf5206bbe9b5389175b6dee3fff88763970de387b2347a607dedd92a5053746a683ab437f9810b0076c0361ae7e5b6ac0397088d58923f9079d2ac61a4bf95cda0000000049454e44ae426082"
-metadata/_custom_type_script = "uid://xqi7kv2y70eo"
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ssiii"]
+size = Vector2(4, 4)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 
@@ -124,13 +119,12 @@ script = SubResource("GDScript_3mrqo")
 process_mode = 4
 material = SubResource("ShaderMaterial_qheve")
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
-instance_shader_parameters/outline_color = Color(4.8687005, 4.8687005, 4.8687005, 1)
-instance_shader_parameters/outline_width = 0.015
-scale = Vector2(0.8333333, 0.8333333)
-texture = SubResource("Texture2D_vb3nq")
+instance_shader_parameters/outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+instance_shader_parameters/outline_width = 0.06
+scale = Vector2(5, 4.9999995)
+texture = SubResource("PlaceholderTexture2D_ssiii")
 script = ExtResource("3_qheve")
-outline_color = Color(4.8687005, 4.8687005, 4.8687005, 1)
-outline_width = 0.015
+outline_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 process_mode = 4
