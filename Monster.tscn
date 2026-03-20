@@ -10,7 +10,7 @@ const MOVE_SPEED: float = 200.0
 const VELOCITY_SMOOTH: float = 6.0
 const GOAL_CENTER: Vector2 = Vector2(565, 679)
 ## 终点附近每人目标点在圆盘内随机，避免共线追逐同一点排成一队
-const GOAL_CROWD_RADIUS: float = 32.0
+const GOAL_CROWD_RADIUS: float = 1
 
 @onready var nav_agent: NavigationAgent2D = $%NavigationAgent2D
 
