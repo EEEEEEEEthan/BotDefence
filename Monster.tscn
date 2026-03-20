@@ -2,7 +2,7 @@
 
 [ext_resource type="Shader" uid="uid://dvmq3dypwhsot" path="res://Geometry/CircleAA.gdshader" id="1_qheve"]
 [ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="1_vb3nq"]
-[ext_resource type="Script" uid="uid://bs47wtt3gfv7v" path="res://Geometry/CircleShaderController.gd" id="3_qheve"]
+[ext_resource type="Script" path="res://Geometry/CircleShaderController.gd" id="3_qheve"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vc1h"]
 friction = 0.0
@@ -53,6 +53,64 @@ metadata/_custom_type_script = "uid://xqi7kv2y70eo"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 
+[sub_resource type="GDScript" id="GDScript_ssiii"]
+script/source = "@tool
+extends Node
+
+@export var target_canvas_item: CanvasItem
+
+@export var fill_color: Color = Color(0.22, 0.62, 1.0, 1.0):
+	set(value):
+		fill_color = value
+		_apply_fill_color()
+
+@export var outline_color: Color = Color(1.0, 1.0, 1.0, 1.0):
+	set(value):
+		outline_color = value
+		_apply_outline_color()
+
+@export_range(0.0, 0.5, 0.001) var outline_width: float = 0.06:
+	set(value):
+		outline_width = clampf(value, 0.0, 0.5)
+		_apply_outline_width()
+
+func _ready() -> void:
+	_apply_all_parameters()
+
+func _apply_all_parameters() -> void:
+	_apply_fill_color()
+	_apply_outline_color()
+	_apply_outline_width()
+
+func _apply_fill_color() -> void:
+	var canvas_item: CanvasItem = _resolve_target_canvas_item()
+	if canvas_item == null:
+		return
+	canvas_item.set_instance_shader_parameter(&\"fill_color\", fill_color)
+
+func _apply_outline_color() -> void:
+	var canvas_item: CanvasItem = _resolve_target_canvas_item()
+	if canvas_item == null:
+		return
+	canvas_item.set_instance_shader_parameter(&\"outline_color\", outline_color)
+
+func _apply_outline_width() -> void:
+	var canvas_item: CanvasItem = _resolve_target_canvas_item()
+	if canvas_item == null:
+		return
+	canvas_item.set_instance_shader_parameter(&\"outline_width\", outline_width)
+
+func _resolve_target_canvas_item() -> CanvasItem:
+	if target_canvas_item != null:
+		return target_canvas_item
+	var current_node: Node = self
+	if current_node is CanvasItem:
+		return current_node as CanvasItem
+	if get_parent() is CanvasItem:
+		return get_parent() as CanvasItem
+	return null
+"
+
 [node name="Monster" type="RigidBody2D" unique_id=140614155]
 collision_layer = 2
 collision_mask = 3
@@ -64,20 +122,21 @@ script = SubResource("GDScript_3mrqo")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1406320978]
 process_mode = 4
-self_modulate = Color(1.2237577, 1.2237577, 1.2237577, 1)
 material = SubResource("ShaderMaterial_qheve")
 instance_shader_parameters/fill_color = Color(0.22, 0.62, 1, 1)
-instance_shader_parameters/outline_color = Color(4.8672786, 4.8672786, 4.8672786, 1)
-instance_shader_parameters/outline_width = 0.06
+instance_shader_parameters/outline_color = Color(4.8687005, 4.8687005, 4.8687005, 1)
+instance_shader_parameters/outline_width = 0.015
 scale = Vector2(0.8333333, 0.8333333)
 texture = SubResource("Texture2D_vb3nq")
 script = ExtResource("3_qheve")
+outline_color = Color(4.8687005, 4.8687005, 4.8687005, 1)
+outline_width = 0.015
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2007719934]
 process_mode = 4
 shape = SubResource("CircleShape2D_monster")
 debug_color = Color(0, 0.6, 0.69803923, 0)
-script = ExtResource("3_qheve")
+script = SubResource("GDScript_ssiii")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1777320448]
 unique_name_in_owner = true
