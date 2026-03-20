@@ -6,12 +6,20 @@
 
 [node name="Tower" type="Node2D" unique_id=476951934]
 script = ExtResource("1_tower_gd")
-detection_radius = 200.0
-debug_draw_enabled = true
-debug_draw_only_when_focused = false
-debug_show_in_editor = true
 
-[node name="Sprite2D" parent="." unique_id=704267330 instance=ExtResource("2_q2uad")]
+[node name="Range" parent="." unique_id=704267330 instance=ExtResource("2_q2uad")]
+unique_name_in_owner = true
+instance_shader_parameters/fill_color = Color(0.21960784, 0.61960787, 1, 0.10980392)
+instance_shader_parameters/outline_color = Color(0.96024394, 0.96024394, 0.96024394, 0.09019608)
+instance_shader_parameters/outline_soft = 0.004
+instance_shader_parameters/outline_width = 0.007
+scale = Vector2(400, 400)
+fill_color = Color(0.21960784, 0.61960787, 1, 0.10980392)
+outline_color = Color(0.96024394, 0.96024394, 0.96024394, 0.09019608)
+outline_width = 0.007
+outline_soft = 0.004
+
+[node name="Sprite2D" parent="." unique_id=53446790 instance=ExtResource("2_q2uad")]
 instance_shader_parameters/fill_color = Color(0.942539, 0.83772254, 0.50662106, 1)
 instance_shader_parameters/outline_width = 0.019
 scale = Vector2(58, 58)
