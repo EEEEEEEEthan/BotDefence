@@ -17,6 +17,11 @@ unique_name_in_owner = true
 process_mode = 4
 metadata/bullet_scene = ExtResource("4_bullet")
 
+[node name="FireOrigin" type="Node2D" parent="." unique_id=-1275682580]
+unique_name_in_owner = true
+process_mode = 4
+position = Vector2(32, 0)
+
 [node name="Range" parent="." unique_id=704267330 instance=ExtResource("2_q2uad")]
 unique_name_in_owner = true
 instance_shader_parameters/fill_color = Color(0.21960784, 0.61960787, 1, 0.10980392)

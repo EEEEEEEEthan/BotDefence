@@ -6,6 +6,7 @@ const META_BULLET_SCENE := "bullet_scene"
 
 @onready var _fire_timer: Timer = %FireTimer
 @onready var _config: Node = %Config
+@onready var _fire_origin: Node2D = %FireOrigin
 
 var _bullet_scene: PackedScene
 
@@ -30,10 +31,10 @@ func _on_fire_timer_timeout() -> void:
 
 
 func _spawn_bullet_toward(target_monster: Node2D) -> void:
-	var direction: Vector2 = target_monster.global_position - global_position
+	var direction: Vector2 = target_monster.global_position - _fire_origin.global_position
 	if direction.length_squared() <= 0.0001:
 		return
 	var bullet: Node2D = _bullet_scene.instantiate() as Node2D
 	get_parent().add_child(bullet)
-	bullet.global_position = global_position
+	bullet.global_position = _fire_origin.global_position
 	bullet.global_rotation = direction.angle()
