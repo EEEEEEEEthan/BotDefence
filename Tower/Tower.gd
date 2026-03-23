@@ -17,7 +17,7 @@ func _ready() -> void:
 	_refresh_range_visual()
 
 
-func _physics_process(delta: float) -> void:
+func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	var target_monster: Node2D = _find_highest_priority_monster()
