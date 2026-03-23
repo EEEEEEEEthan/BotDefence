@@ -27,11 +27,12 @@ func _on_fire_timer_timeout() -> void:
 	var target_monster: Node2D = highest_priority_monster
 	if target_monster == null:
 		return
-	_spawn_bullet_toward(target_monster)
+	_spawn_bullet_forward()
 
 
-func _spawn_bullet_toward(target_monster: Node2D) -> void:
-	var direction: Vector2 = target_monster.global_position - _fire_origin.global_position
+## 沿塔身正前方（本地 +X）发射，与枪口朝向一致。
+func _spawn_bullet_forward() -> void:
+	var direction: Vector2 = global_transform.x.normalized()
 	if direction.length_squared() <= 0.0001:
 		return
 	var bullet: Node2D = _bullet_scene.instantiate() as Node2D
