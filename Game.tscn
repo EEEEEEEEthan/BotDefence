@@ -8,7 +8,7 @@
 [ext_resource type="TileSet" uid="uid://ckxnmqnj5tdbk" path="res://TileSet.tres" id="5_r0x5m"]
 [ext_resource type="PackedScene" uid="uid://0u8vi8jcjmxw" path="res://Monsters/Monster.tscn" id="7_joorw"]
 [ext_resource type="PackedScene" uid="uid://diwpq1ndrbb23" path="res://Monsters/MonsterSpawnPoint.tscn" id="9_2vekm"]
-[ext_resource type="PackedScene" uid="uid://d2k8btq1ya4tl" path="res://Tower/Tower.tscn" id="10_tower"]
+[ext_resource type="PackedScene" uid="uid://d2k8btq1ya4tl" path="res://Tower/MachineGunTower.tscn" id="9_yx171"]
 
 [sub_resource type="GDScript" id="GDScript_joorw"]
 script/source = "extends Node
@@ -569,9 +569,6 @@ metadata/monster = ExtResource("7_joorw")
 
 [node name="Monsters" type="Node" parent="." unique_id=851966904]
 
-[node name="Tower" parent="." unique_id=476951935 instance=ExtResource("10_tower")]
-position = Vector2(802, 288)
-
 [node name="Bot" parent="." unique_id=11366525 instance=ExtResource("1_wbfu4")]
 position = Vector2(480, 288)
 bot_id = 1
@@ -579,3 +576,6 @@ bot_id = 1
 [node name="Bot2" parent="." unique_id=1336111075 instance=ExtResource("1_wbfu4")]
 position = Vector2(800, 352)
 bot_id = 2
+
+[node name="Tower" parent="." unique_id=476951934 instance=ExtResource("9_yx171")]
+position = Vector2(800, 286)

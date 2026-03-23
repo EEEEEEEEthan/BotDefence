@@ -1,11 +1,14 @@
 [gd_scene format=3 uid="uid://d2k8btq1ya4tl"]
 
-[ext_resource type="Script" uid="uid://gtfam8eiglwr" path="res://Tower/Tower.gd" id="1_tower_gd"]
+[ext_resource type="Script" uid="uid://b7kq2m8n4wmt" path="res://Tower/MachineGunTower.gd" id="1_tower_gd"]
 [ext_resource type="PackedScene" uid="uid://bo82gudpd2mwx" path="res://Geometry/Circle.tscn" id="2_q2uad"]
 [ext_resource type="PackedScene" uid="uid://lcdseu4ji0j5" path="res://Geometry/RoundedRect.tscn" id="3_pxrlm"]
 
 [node name="Tower" type="Node2D" unique_id=476951934]
 script = ExtResource("1_tower_gd")
+
+[node name="FireTimer" type="Timer" parent="."]
+unique_name_in_owner = true
 
 [node name="Range" parent="." unique_id=704267330 instance=ExtResource("2_q2uad")]
 unique_name_in_owner = true

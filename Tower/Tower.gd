@@ -1,5 +1,6 @@
 @tool
 extends Node2D
+class_name Tower
 
 @onready var range_node: Node2D = %Range
 
