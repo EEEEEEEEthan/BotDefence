@@ -3,6 +3,8 @@ extends Node2D
 
 @onready var range_node: Node2D = %Range
 
+const _ROTATION_LERP_SPEED := 5.0
+
 ## 索敌半径（世界单位）
 @export var detection_radius: float = 200.0:
 	set(value):
@@ -15,7 +17,7 @@ func _ready() -> void:
 	_refresh_range_visual()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	var target_monster: Node2D = _find_highest_priority_monster()
@@ -24,7 +26,9 @@ func _physics_process(_delta: float) -> void:
 	var look_direction: Vector2 = target_monster.global_position - global_position
 	if look_direction.length_squared() <= 0.0001:
 		return
-	rotation = look_direction.angle()
+	var target_angle: float = look_direction.angle()
+	var t: float = 1.0 - exp(-_ROTATION_LERP_SPEED * delta)
+	rotation = lerp_angle(rotation, target_angle, t)
 
 
 func _find_highest_priority_monster() -> Node2D:
