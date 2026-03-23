@@ -1,0 +1,6 @@
+[gd_scene format=4 uid="uid://c8m3h7k2metal"]
+
+[ext_resource type="Script" path="res://Tower/MetalHitSpark.gd" id="1_spark"]
+
+[node name="MetalHitSpark" type="Node2D"]
+script = ExtResource("1_spark")
