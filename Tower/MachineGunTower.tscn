@@ -60,3 +60,5 @@ corner_radius = 2.0
 fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
 outline_width = 2.0
 outline_soft = 0.0
+
+[connection signal="timeout" from="FireTimer" to="." method="_on_fire_timer_timeout"]

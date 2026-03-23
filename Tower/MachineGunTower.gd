@@ -19,7 +19,6 @@ func _ready() -> void:
 	if _bullet_scene == null:
 		push_error("MachineGunTower: Config 节点缺少或无效的 metadata「%s」" % META_BULLET_SCENE)
 		return
-	_fire_timer.timeout.connect(_on_fire_timer_timeout)
 	_fire_timer.start()
 
 
