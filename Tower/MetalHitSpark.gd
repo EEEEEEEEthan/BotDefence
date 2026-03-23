@@ -10,13 +10,19 @@ func setup(hit_position: Vector2, bullet_direction: Vector2) -> void:
 
 
 func _ready() -> void:
-	var particles := CPUParticles2D.new()
+	var particles := GPUParticles2D.new()
+	var material := ParticleProcessMaterial.new()
+	particles.process_material = material
 	add_child(particles)
+
+	material.particle_flag_disable_z = true
 
 	var spark_gradient := Gradient.new()
 	spark_gradient.set_color(0, Color(1.0, 0.97, 0.88, 1.0))
 	spark_gradient.set_color(1, Color(0.55, 0.58, 0.65, 0.0))
-	particles.color_ramp = spark_gradient
+	var color_ramp_texture := GradientTexture1D.new()
+	color_ramp_texture.gradient = spark_gradient
+	material.color_ramp = color_ramp_texture
 
 	var dot_gradient := Gradient.new()
 	dot_gradient.set_color(0, Color(1, 1, 1, 1))
@@ -29,24 +35,26 @@ func _ready() -> void:
 	particles.texture = dot_texture
 
 	particles.z_index = 5
+	particles.fixed_fps = 0
 	particles.emitting = false
 	particles.one_shot = true
 	particles.explosiveness = 0.92
 	particles.randomness = 0.45
 	particles.amount = 28
 	particles.lifetime = 0.38
-	particles.lifetime_randomness = 0.35
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-	particles.emission_sphere_radius = 3.0
-	particles.direction = Vector2(1, 0)
-	particles.spread = 70.0
-	particles.initial_velocity_min = 90.0
-	particles.initial_velocity_max = 220.0
-	particles.angular_velocity_min = -420.0
-	particles.angular_velocity_max = 420.0
-	particles.scale_amount_min = 0.35
-	particles.scale_amount_max = 0.95
-	particles.gravity = Vector2(0, 180)
+
+	material.lifetime_randomness = 0.35
+	material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	material.emission_sphere_radius = 3.0
+	material.direction = Vector3(1, 0, 0)
+	material.spread = 70.0
+	material.initial_velocity_min = 90.0
+	material.initial_velocity_max = 220.0
+	material.angular_velocity_min = -420.0
+	material.angular_velocity_max = 420.0
+	material.scale_min = 0.35
+	material.scale_max = 0.95
+	material.gravity = Vector3(0, 180, 0)
 
 	rotation = (-_bullet_direction).angle()
 
