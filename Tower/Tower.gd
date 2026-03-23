@@ -5,6 +5,18 @@ extends Node2D
 
 const _ROTATION_LERP_SPEED := 5.0
 
+var _highest_priority_monster_cache_frame: int = -1
+var _highest_priority_monster_cached: Node2D = null
+
+## 当前帧最高优先级怪物（路径剩余最短）；同帧多次读取只索敌一次。
+var highest_priority_monster: Node2D:
+	get:
+		var frame: int = Engine.get_process_frames()
+		if _highest_priority_monster_cache_frame != frame:
+			_highest_priority_monster_cache_frame = frame
+			_highest_priority_monster_cached = _find_highest_priority_monster()
+		return _highest_priority_monster_cached
+
 ## 索敌半径（世界单位）
 @export var detection_radius: float = 200.0:
 	set(value):
@@ -20,7 +32,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	var target_monster: Node2D = _find_highest_priority_monster()
+	var target_monster: Node2D = highest_priority_monster
 	if target_monster == null:
 		return
 	var look_direction: Vector2 = target_monster.global_position - global_position
