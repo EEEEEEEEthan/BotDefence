@@ -3,6 +3,7 @@ extends Tower
 
 const FIRE_INTERVAL_SECONDS := 0.1
 const META_BULLET_SCENE := "bullet_scene"
+const TowerBulletScript := preload("res://Tower/TowerBullet.gd")
 
 @onready var _fire_timer: Timer = %FireTimer
 @onready var _config: Node = %Config
@@ -21,6 +22,33 @@ func _ready() -> void:
 		push_error("MachineGunTower: Config 节点缺少或无效的 metadata「%s」" % META_BULLET_SCENE)
 		return
 	_fire_timer.start()
+
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	var target_monster: Node2D = highest_priority_monster
+	if target_monster == null:
+		return
+	var aim_point: Vector2 = _get_predicted_monster_position(target_monster)
+	var look_direction: Vector2 = aim_point - global_position
+	if look_direction.length_squared() <= 0.0001:
+		return
+	var target_angle: float = look_direction.angle()
+	var blend: float = 1.0 - exp(-_ROTATION_LERP_SPEED * delta)
+	rotation = lerp_angle(rotation, target_angle, blend)
+
+
+func _get_predicted_monster_position(monster: Node2D) -> Vector2:
+	var to_monster_from_muzzle: Vector2 = monster.global_position - _fire_origin.global_position
+	var distance: float = to_monster_from_muzzle.length()
+	if distance <= 0.0001:
+		return monster.global_position
+	var flight_time: float = distance / TowerBulletScript.MOVE_SPEED
+	var monster_velocity: Vector2 = Vector2.ZERO
+	if monster is RigidBody2D:
+		monster_velocity = monster.linear_velocity
+	return monster.global_position + monster_velocity * flight_time
 
 
 func _on_fire_timer_timeout() -> void:
