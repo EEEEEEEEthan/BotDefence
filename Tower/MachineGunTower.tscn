@@ -3,15 +3,16 @@
 [ext_resource type="Script" uid="uid://b7kq2m8n4wmt" path="res://Tower/MachineGunTower.gd" id="1_tower_gd"]
 [ext_resource type="PackedScene" uid="uid://bo82gudpd2mwx" path="res://Geometry/Circle.tscn" id="2_q2uad"]
 [ext_resource type="PackedScene" uid="uid://lcdseu4ji0j5" path="res://Geometry/RoundedRect.tscn" id="3_pxrlm"]
-[ext_resource type="PackedScene" uid="uid://c8m3k2n1towerbullet" path="res://Tower/TowerBullet.tscn" id="4_bullet"]
+[ext_resource type="PackedScene" uid="uid://d3h80psslfl1h" path="res://Tower/TowerBullet.tscn" id="4_bullet"]
 
 [node name="Tower" type="Node2D" unique_id=476951934]
 script = ExtResource("1_tower_gd")
 
-[node name="FireTimer" type="Timer" parent="."]
+[node name="FireTimer" type="Timer" parent="." unique_id=1776418136]
 unique_name_in_owner = true
+wait_time = 0.1
 
-[node name="Config" type="Node" parent="."]
+[node name="Config" type="Node" parent="." unique_id=897562298]
 unique_name_in_owner = true
 process_mode = 4
 metadata/bullet_scene = ExtResource("4_bullet")
@@ -35,7 +36,7 @@ scale = Vector2(58, 58)
 fill_color = Color(0.942539, 0.83772254, 0.50662106, 1)
 outline_width = 0.019
 
-[node name="RoundedRect9Slice2" parent="." unique_id=2143062605 instance=ExtResource("3_pxrlm")]
+[node name="RoundedRect" parent="." unique_id=2143062605 instance=ExtResource("3_pxrlm")]
 instance_shader_parameters/corner_radius = 2.5
 instance_shader_parameters/fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
 instance_shader_parameters/outline_width = 2.0
@@ -47,7 +48,7 @@ corner_radius = 2.5
 fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
 outline_width = 2.0
 
-[node name="RoundedRect9Slice" parent="." unique_id=1282808662 instance=ExtResource("3_pxrlm")]
+[node name="RoundedRect2" parent="." unique_id=1282808662 instance=ExtResource("3_pxrlm")]
 instance_shader_parameters/corner_radius = 2.0
 instance_shader_parameters/fill_color = Color(0.9411765, 0.8392157, 0.5058824, 1)
 instance_shader_parameters/outline_soft = 0.0

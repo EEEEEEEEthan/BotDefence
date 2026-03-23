@@ -1,20 +1,19 @@
-[gd_scene format=3 uid="uid://c8m3k2n1towerbullet"]
+[gd_scene format=3 uid="uid://d3h80psslfl1h"]
 
-[ext_resource type="Script" uid="uid://c4n8p3j2k9tb" path="res://Tower/TowerBullet.gd" id="1_bullet"]
+[ext_resource type="Script" uid="uid://c4n8p3j2latb" path="res://Tower/TowerBullet.gd" id="1_bullet"]
 [ext_resource type="PackedScene" uid="uid://bo82gudpd2mwx" path="res://Geometry/Circle.tscn" id="2_circle"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bullet"]
 radius = 3.0
 
-[node name="TowerBullet" type="Area2D"]
+[node name="TowerBullet" type="Area2D" unique_id=1423796629]
 collision_layer = 0
 collision_mask = 2
-monitoring = true
 script = ExtResource("1_bullet")
 
-[node name="Sprite2D" parent="." instance=ExtResource("2_circle")]
-instance_shader_parameters/fill_color = Color(0.95, 0.85, 0.2, 1)
+[node name="Sprite2D" parent="." unique_id=2027060981 instance=ExtResource("2_circle")]
 scale = Vector2(10, 10)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=953157973]
+process_mode = 4
 shape = SubResource("CircleShape2D_bullet")
