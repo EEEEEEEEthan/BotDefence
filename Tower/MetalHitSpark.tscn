@@ -45,4 +45,5 @@ fixed_fps = 0
 process_material = SubResource("ParticleProcessMaterial_spark")
 script = ExtResource("1_spark")
 
+[connection signal="finished" from="." to="." method="_on_finished"]
 [connection signal="ready" from="." to="." method="_on_ready"]
