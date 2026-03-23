@@ -34,6 +34,7 @@ color_ramp = SubResource("GradientTexture1D_spark")
 [node name="MetalHitSpark" type="GPUParticles2D" unique_id=1409999699]
 self_modulate = Color(3.2944162, 1.6883397, 0, 1)
 z_index = 5
+emitting = false
 amount = 28
 texture = SubResource("Texture2D_ysng3")
 lifetime = 0.38
@@ -43,3 +44,5 @@ randomness = 0.45
 fixed_fps = 0
 process_material = SubResource("ParticleProcessMaterial_spark")
 script = ExtResource("1_spark")
+
+[connection signal="ready" from="." to="." method="_on_ready"]

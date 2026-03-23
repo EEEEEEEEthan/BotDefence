@@ -8,5 +8,10 @@ func setup(hit_position: Vector2, bullet_direction: Vector2) -> void:
 
 
 func _ready() -> void:
+	emitting = true
 	await get_tree().create_timer(lifetime + 0.25).timeout
 	queue_free()
+
+
+func _on_ready() -> void:
+	pass # Replace with function body.
