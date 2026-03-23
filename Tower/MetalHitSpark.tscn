@@ -1,6 +1,45 @@
-[gd_scene format=4 uid="uid://c8m3h7k2metal"]
+[gd_scene format=3 uid="uid://c8m3h7k2metal"]
 
-[ext_resource type="Script" path="res://Tower/MetalHitSpark.gd" id="1_spark"]
+[ext_resource type="Script" uid="uid://xqi7kv2y70eo" path="res://Addons/editable_texture/editable_texture.gd" id="1_o8pl1"]
+[ext_resource type="Script" uid="uid://b7nq2kmetal1x" path="res://Tower/MetalHitSpark.gd" id="1_spark"]
 
-[node name="MetalHitSpark" type="Node2D"]
+[sub_resource type="Texture2D" id="Texture2D_ysng3"]
+resource_local_to_scene = false
+resource_name = ""
+script = ExtResource("1_o8pl1")
+_hex_data = "89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000017749444154388d7dd3db6e13411004d053b14dae1646c44411e2ff3f0c1e50c0f23571e238db3cec1882b9cccb8c66bb6b6aabaa5355febf4a0988a3da8ae13fba2638c508c133eef180974333fe00b8c0146fdbf90c1df6618d05e62a9b46e937804bdc52535c93b172267909cfd446e55b03fd22b6c70cdeb7d76fc9076a22b944614be66284133ce2330cab17678289ca54728b1b32c55819888d72a7d76cd7b4586235ec75ce65b812636a426ef011d7a2c3aca20bdbd638c31556c366cd888c8af3c805352e79874fe8c249ca5a9c6154ea4de454ff3f41ba5ed47a41a99c84617aa107cdb51ccc4fa57dfa25e2bef7377b6a57c90adfd31775d43c9507b123bb9685a7d7000fcabdd492ccd287a8a87563b8117798294ba915797c0db0143372a56f566c23f39eb57b31c75ddbe7d4f23540f5973f93b76bc93b6d89db5173b2c0d756bb3f0ed2ba09b3c7b658a4cfc0a0788aac944563bad6062b7f99c6817e16ce1d0f5359a23bf841fd15e078c5e1b93abac50faea69f273f60aa180000000049454e44ae426082"
+metadata/_custom_type_script = "uid://xqi7kv2y70eo"
+
+[sub_resource type="Gradient" id="Gradient_spark"]
+colors = PackedColorArray(1, 0.97, 0.88, 1, 0.55, 0.58, 0.65, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_spark"]
+gradient = SubResource("Gradient_spark")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spark"]
+lifetime_randomness = 0.35
+particle_flag_disable_z = true
+emission_shape = 1
+emission_sphere_radius = 3.0
+spread = 70.0
+initial_velocity_min = 90.0
+initial_velocity_max = 220.0
+angular_velocity_min = -420.0
+angular_velocity_max = 420.0
+gravity = Vector3(0, 180, 0)
+scale_min = 0.35
+scale_max = 0.95
+color_ramp = SubResource("GradientTexture1D_spark")
+
+[node name="MetalHitSpark" type="GPUParticles2D" unique_id=1409999699]
+self_modulate = Color(3.2944162, 1.6883397, 0, 1)
+z_index = 5
+amount = 28
+texture = SubResource("Texture2D_ysng3")
+lifetime = 0.38
+one_shot = true
+explosiveness = 0.92
+randomness = 0.45
+fixed_fps = 0
+process_material = SubResource("ParticleProcessMaterial_spark")
 script = ExtResource("1_spark")
