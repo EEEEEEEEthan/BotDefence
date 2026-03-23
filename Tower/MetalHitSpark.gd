@@ -8,7 +8,7 @@ func setup(hit_position: Vector2, bullet_direction: Vector2) -> void:
 
 
 func _on_ready() -> void:
-	pass # Replace with function body.
+	emitting = true
 
 
 func _on_finished() -> void:

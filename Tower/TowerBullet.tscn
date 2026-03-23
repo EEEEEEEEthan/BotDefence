@@ -12,7 +12,13 @@ collision_mask = 2
 script = ExtResource("1_bullet")
 
 [node name="Sprite2D" parent="." unique_id=2027060981 instance=ExtResource("2_circle")]
+instance_shader_parameters/fill_color = Color(1.8247963, 1.0911151, 0.2596095, 1)
+instance_shader_parameters/outline_color = Color(1.825, 1.091, 0.26, 1)
+instance_shader_parameters/outline_soft = 0.5
 scale = Vector2(10, 10)
+fill_color = Color(1.8247963, 1.0911151, 0.2596095, 1)
+outline_color = Color(1.825, 1.091, 0.26, 1)
+outline_soft = 0.5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=953157973]
 process_mode = 4
